@@ -1,37 +1,72 @@
 let currentAudio: HTMLAudioElement | null = null;
 let currentUrl: string | null = null;
+let playbackGeneration = 0;
 
-export function stopVoicePlayback(): void {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = "";
-    currentAudio = null;
+function isBenignPlaybackError(err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false;
   }
+
+  if (err.name === "AbortError") {
+    return true;
+  }
+
+  const message = err.message.toLowerCase();
+  return message.includes("interrupted") || message.includes("new load");
+}
+
+function disposeCurrentAudio(): void {
+  if (currentAudio) {
+    const audio = currentAudio;
+    currentAudio = null;
+    audio.onended = null;
+    audio.onerror = null;
+    audio.pause();
+    audio.removeAttribute("src");
+  }
+
   if (currentUrl) {
     URL.revokeObjectURL(currentUrl);
     currentUrl = null;
   }
 }
 
-export function playAudioBlob(blob: Blob): Promise<void> {
-  stopVoicePlayback();
+export function stopVoicePlayback(): void {
+  playbackGeneration++;
+  disposeCurrentAudio();
+}
 
-  return new Promise((resolve, reject) => {
+export function playAudioBlob(blob: Blob): Promise<void> {
+  const generation = ++playbackGeneration;
+  disposeCurrentAudio();
+
+  return new Promise((resolve) => {
     const url = URL.createObjectURL(blob);
     currentUrl = url;
     const audio = new Audio(url);
     currentAudio = audio;
 
-    audio.onended = () => {
-      stopVoicePlayback();
+    const finish = () => {
+      if (generation !== playbackGeneration) {
+        resolve();
+        return;
+      }
+
+      disposeCurrentAudio();
       resolve();
     };
-    audio.onerror = () => {
-      stopVoicePlayback();
-      reject(new Error("Audio playback failed"));
-    };
 
-    void audio.play().catch(reject);
+    audio.onended = finish;
+    audio.onerror = finish;
+
+    void audio.play().catch((err) => {
+      if (generation !== playbackGeneration || isBenignPlaybackError(err)) {
+        resolve();
+        return;
+      }
+
+      finish();
+    });
   });
 }
 
