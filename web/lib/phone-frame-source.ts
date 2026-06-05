@@ -1,7 +1,9 @@
 import type { Frame, FrameHandler, FrameSource } from "@foreman/shared";
 import { captureCompressedJpeg } from "./compress-frame";
 
-const SAMPLE_INTERVAL_MS = 4000;
+/** First frame fast; steady interval while Claude catches up. */
+const SAMPLE_INTERVAL_MS = 5000;
+const FIRST_FRAME_DELAY_MS = 800;
 
 interface PhoneFrameSourceOptions {
   includeAudio?: boolean;
@@ -30,16 +32,18 @@ export class PhoneFrameSource implements FrameSource {
     this.stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: 640, max: 1280 },
+        height: { ideal: 480, max: 720 },
       },
-      audio: this.options.includeAudio ?? false,
+      audio: this.options.includeAudio
+        ? { echoCancellation: true, noiseSuppression: true }
+        : false,
     });
 
     this.video.srcObject = this.stream;
     await this.video.play();
 
-    this.captureFrame();
+    setTimeout(() => this.captureFrame(), FIRST_FRAME_DELAY_MS);
     this.intervalId = setInterval(() => this.captureFrame(), SAMPLE_INTERVAL_MS);
   }
 

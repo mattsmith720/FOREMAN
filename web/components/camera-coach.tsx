@@ -119,8 +119,10 @@ export function CameraCoach() {
         setErrorMessage(null);
         setStatus("running");
 
+        pushMemory("frame", "Neural sync complete — coaching updated");
+
         if (result.persisted) {
-          pushMemory("frame", "Frame analysed — adding to training memory");
+          pushMemory("frame", "Frame stored in training memory");
           pushMemory(
             "coaching",
             `${result.coaching.observations[0] ?? "Coaching event"} logged`,
@@ -233,16 +235,26 @@ export function CameraCoach() {
 
       const stream = source.getStream();
       setMediaStream(stream);
+
       if (!stream || stream.getAudioTracks().length === 0) {
-        setWarningMessage("Microphone unavailable — video only.");
+        setWarningMessage("Microphone unavailable — vision coaching only.");
       } else {
-        const audio = new PhoneAudioSource(stream);
-        audio.onChunk((blob) => {
-          void handleAudioChunk(blob);
-        });
-        await audio.start();
-        audioSourceRef.current = audio;
-        setMicActive(true);
+        try {
+          const audio = new PhoneAudioSource(stream);
+          audio.onChunk((blob) => {
+            void handleAudioChunk(blob);
+          });
+          await audio.start();
+          audioSourceRef.current = audio;
+          setMicActive(true);
+        } catch (audioErr) {
+          const detail =
+            audioErr instanceof Error ? audioErr.message : "Mic capture failed";
+          setWarningMessage(
+            `Vision coaching active — mic offline (${detail}).`,
+          );
+          setMicActive(false);
+        }
       }
 
       await requestWakeLock();

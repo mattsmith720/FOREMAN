@@ -14,7 +14,11 @@ export function useAudioLevels(stream: MediaStream | null): number[] {
     }
 
     const context = new AudioContext();
-    const source = context.createMediaStreamSource(stream);
+    void context.resume();
+
+    const source = context.createMediaStreamSource(
+      new MediaStream(stream.getAudioTracks()),
+    );
     const analyser = context.createAnalyser();
     analyser.fftSize = 64;
     source.connect(analyser);
