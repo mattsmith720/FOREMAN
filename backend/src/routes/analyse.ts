@@ -8,6 +8,8 @@ import { assertActiveSession } from "../db/sessions.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
 import { getRecentSessionTranscript } from "../db/transcript.js";
 import type { SessionContext } from "../prompts/analysis.js";
+import { requireSessionToken } from "../require-session-token.js";
+import { validateImageBytes } from "../validate-media.js";
 
 const analyseRequestSchema = z.object({
   image: z.string().min(1).max(20_000_000),
@@ -43,10 +45,18 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
       }
 
       try {
-        const { base64, mediaType } = decodeImagePayload(parsed.data.image);
+        const { base64, mediaType: declaredType } = decodeImagePayload(
+          parsed.data.image,
+        );
+        const imageBytes = Buffer.from(base64, "base64");
+        const { mediaType } = validateImageBytes(imageBytes, declaredType);
 
         let context: SessionContext | undefined = parsed.data.context;
         if (parsed.data.sessionId) {
+          if (!requireSessionToken(request, reply, parsed.data.sessionId)) {
+            return;
+          }
+
           if (!isSupabaseConfigured()) {
             return reply.status(503).send({
               error: "Supabase is not configured for session logging",
@@ -84,7 +94,6 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
         });
 
         let persisted: { frameId: string; storageRef: string } | undefined;
-        let persistError: string | undefined;
 
         if (parsed.data.sessionId) {
           try {
@@ -96,14 +105,10 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
             });
           } catch (persistErr) {
             request.log.error(persistErr);
-            persistError =
-              persistErr instanceof Error
-                ? persistErr.message
-                : "Failed to persist frame";
           }
         }
 
-        return reply.send({ coaching, persisted, persistError });
+        return reply.send({ coaching, persisted });
       } catch (err) {
         request.log.error(err);
         const { statusCode, message } = toClientError(err, "Analysis failed");

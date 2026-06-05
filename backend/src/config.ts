@@ -17,6 +17,9 @@ export function isTranscriptionConfigured(): boolean {
 export function getCorsOrigins(): string[] | true {
   const raw = process.env.CORS_ORIGINS?.trim();
   if (!raw || raw === "*") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CORS_ORIGINS must be set in production");
+    }
     return true;
   }
   return raw.split(",").map((origin) => origin.trim()).filter(Boolean);

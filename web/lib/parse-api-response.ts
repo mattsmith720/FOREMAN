@@ -18,6 +18,11 @@ export async function parseApiResponse<T>(
         "API unauthorized. Set matching FOREMAN_API_KEY on Vercel and Render.",
       );
     }
+    if (response.status === 403) {
+      throw new Error(
+        "Session access denied. Stop and restart the job, or refresh the page.",
+      );
+    }
     if (response.status === 502 || response.status === 504) {
       throw new Error(
         "API timed out or is waking up (Render cold start). Wait 60s and retry.",

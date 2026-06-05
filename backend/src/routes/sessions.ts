@@ -10,6 +10,8 @@ import {
   getSessionCounts,
   updateSessionSummary,
 } from "../db/sessions.js";
+import { requireSessionToken } from "../require-session-token.js";
+import { signSessionToken } from "../session-token.js";
 import { summariseSession } from "../summarise-session.js";
 
 const startSessionSchema = z.object({
@@ -45,12 +47,12 @@ export async function registerSessionRoutes(
 
     try {
       const session = await createSession(parsed.data);
-      return reply.status(201).send({ session });
+      const token = signSessionToken(session.id);
+      return reply.status(201).send({ session, token });
     } catch (err) {
       request.log.error(err);
-      const detail = err instanceof Error ? err.message : "Failed to start session";
       const { statusCode, message } = toClientError(err, "Failed to start session");
-      return reply.status(statusCode).send({ error: message, detail });
+      return reply.status(statusCode).send({ error: message });
     }
   });
 
@@ -65,6 +67,10 @@ export async function registerSessionRoutes(
     }
 
     const { id } = params.data;
+
+    if (!requireSessionToken(request, reply, id)) {
+      return;
+    }
 
     try {
       const existing = await getSession(id);
@@ -115,6 +121,10 @@ export async function registerSessionRoutes(
     }
 
     const { id } = params.data;
+
+    if (!requireSessionToken(request, reply, id)) {
+      return;
+    }
 
     try {
       const session = await getSession(id);

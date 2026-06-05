@@ -11,6 +11,15 @@ out/
 .env
 .env.local
 .env.*.local
+!.env.example
+!**/.env.example
+!**/.env.local.example
+
+# secrets and credentials
+*.pem
+*.key
+credentials.json
+service-account*.json
 
 # logs
 *.log
@@ -19,6 +28,9 @@ npm-debug.log*
 # agent skills (local tooling, not needed for deploy)
 .agents/
 skills-lock.json
+
+# editor / local tooling (may contain project refs)
+.cursor/mcp.json
 
 # native local overrides
 native/ios/**/Local.xcconfig
@@ -29,4 +41,3 @@ native/ios/**/RealGlasses.xcconfig
 .vercel
 .vscode/
 .idea/
-.vercel

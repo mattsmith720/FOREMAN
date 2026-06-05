@@ -18,6 +18,11 @@ export async function proxyToBackend(
     headers.set("content-type", contentType);
   }
 
+  const sessionToken = request.headers.get("x-session-token");
+  if (sessionToken) {
+    headers.set("x-session-token", sessionToken);
+  }
+
   const apiKey = process.env.FOREMAN_API_KEY?.trim();
   if (apiKey) {
     headers.set(API_KEY_HEADER, apiKey);

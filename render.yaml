@@ -28,5 +28,7 @@ services:
         sync: false
       - key: FOREMAN_API_KEY
         sync: false
+      - key: SESSION_TOKEN_SECRET
+        sync: false
       - key: CORS_ORIGINS
         value: https://foreman-phi.vercel.app

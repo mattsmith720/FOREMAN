@@ -1,18 +1,13 @@
 import { getApiUrl } from "./api-url";
-
-const API_KEY_HEADER = "x-foreman-api-key";
+import { getSessionAuthHeaders } from "./session-auth";
 
 export function getApiHeaders(
   extra?: Record<string, string>,
 ): Record<string, string> {
-  const headers: Record<string, string> = { ...extra };
-
-  const apiKey = process.env.NEXT_PUBLIC_FOREMAN_API_KEY?.trim();
-  if (apiKey) {
-    headers[API_KEY_HEADER] = apiKey;
-  }
-
-  return headers;
+  return {
+    ...getSessionAuthHeaders(),
+    ...extra,
+  };
 }
 
 export async function apiFetch(

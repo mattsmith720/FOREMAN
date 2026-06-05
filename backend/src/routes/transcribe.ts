@@ -4,11 +4,13 @@ import { toClientError } from "../api-error.js";
 import { assertActiveSession } from "../db/sessions.js";
 import { persistTranscriptSegment } from "../db/transcript.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
+import { requireSessionToken } from "../require-session-token.js";
 import {
   decodeAudioPayload,
   isTranscriptionConfigured,
   transcribeAudio,
 } from "../transcribe.js";
+import { validateAudioBytes } from "../validate-media.js";
 
 const transcribeRequestSchema = z.object({
   audio: z.string().min(1).max(20_000_000),
@@ -40,6 +42,10 @@ export async function registerTranscribeRoutes(
 
       try {
         if (parsed.data.sessionId) {
+          if (!requireSessionToken(request, reply, parsed.data.sessionId)) {
+            return;
+          }
+
           if (!isSupabaseConfigured()) {
             return reply.status(503).send({
               error: "Supabase is not configured for session logging",
@@ -48,7 +54,10 @@ export async function registerTranscribeRoutes(
           await assertActiveSession(parsed.data.sessionId);
         }
 
-        const { bytes, mimeType } = decodeAudioPayload(parsed.data.audio);
+        const { bytes, mimeType: declaredType } = decodeAudioPayload(
+          parsed.data.audio,
+        );
+        const { mimeType } = validateAudioBytes(bytes, declaredType);
         if (bytes.length < 1000) {
           return reply.send({ text: "", persisted: false });
         }

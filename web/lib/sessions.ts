@@ -1,5 +1,6 @@
 import { apiFetch } from "./api-fetch";
 import { parseApiResponse } from "./parse-api-response";
+import { clearSessionToken, setSessionToken } from "./session-auth";
 
 export interface SessionRow {
   id: string;
@@ -33,7 +34,10 @@ export async function startSession(
     body: JSON.stringify(input ?? {}),
   });
 
-  const body = await parseApiResponse<{ session: SessionRow }>(response);
+  const body = await parseApiResponse<{ session: SessionRow; token: string }>(
+    response,
+  );
+  setSessionToken(body.token);
   return body.session;
 }
 
@@ -45,9 +49,12 @@ export async function stopSession(sessionId: string): Promise<{
     method: "POST",
   });
 
-  return parseApiResponse<{ session: SessionRow; stored: SessionCounts }>(
-    response,
-  );
+  const result = await parseApiResponse<{
+    session: SessionRow;
+    stored: SessionCounts;
+  }>(response);
+  clearSessionToken();
+  return result;
 }
 
 export async function getSession(sessionId: string): Promise<{
