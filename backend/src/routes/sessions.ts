@@ -48,11 +48,12 @@ export async function registerSessionRoutes(
       return reply.status(201).send({ session });
     } catch (err) {
       request.log.error(err);
-      const { statusCode, message } = toClientError(
-        err,
-        "Failed to start session",
-      );
-      return reply.status(statusCode).send({ error: message });
+      const detail = err instanceof Error ? err.message : "Failed to start session";
+      const { statusCode, message } = toClientError(err, "Failed to start session");
+      return reply.status(statusCode).send({
+        error: message,
+        detail: process.env.NODE_ENV === "production" ? undefined : detail,
+      });
     }
   });
 
