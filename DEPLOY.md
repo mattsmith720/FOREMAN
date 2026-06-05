@@ -83,20 +83,27 @@ Render (Fastify API)
 |-------|-----|
 | Camera won't open | URL must be `https://` — use Vercel, not `http://` |
 | API 502 / timeout on first request | Render cold start — wait ~60s and retry |
-| API 502 during coaching | Claude slow; if persistent, check Render logs. Fallback: set `NEXT_PUBLIC_API_URL` to your Render URL directly (see below) |
+| API 502 during coaching | Claude slow; if persistent, check Render logs. Do **not** point `NEXT_PUBLIC_API_URL` at Render — that exposes your API key in the browser bundle. |
+| 413 payload too large | Frame compression is built in; keep `NEXT_PUBLIC_API_URL=same-origin` |
 | "Supabase not configured" | Set `SUPABASE_*` on **Render**, redeploy API |
 | Build fails on Vercel | Confirm **Root Directory** = `web` |
 | Rewrites point at wrong API | `BACKEND_URL` must match Render URL; **redeploy** Vercel after changing it |
 
-## Fallback: call API directly (skip Vercel proxy)
+## Security — do not call Render from the browser
 
-If the Vercel proxy times out, set on Vercel:
+Never set `NEXT_PUBLIC_API_URL` to your Render URL or `NEXT_PUBLIC_FOREMAN_API_KEY` on Vercel.  
+`NEXT_PUBLIC_*` values are embedded in the JavaScript bundle — anyone can extract your API key.
+
+Always use:
 
 ```
-NEXT_PUBLIC_API_URL=https://foreman-api.onrender.com
+NEXT_PUBLIC_API_URL=same-origin
+BACKEND_URL=https://foreman-api-y31r.onrender.com
+FOREMAN_API_KEY=<server-only secret>
+ALLOWED_APP_ORIGINS=https://foreman-phi.vercel.app
 ```
 
-The backend already allows all origins (`cors: origin: true`). The phone talks straight to Render; the web UI still loads from Vercel.
+The Vercel `/api/*` proxy injects the key server-side. Frames are compressed client-side to stay under Vercel's body limit.
 
 ## Local dev (unchanged)
 

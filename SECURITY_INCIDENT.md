@@ -19,7 +19,7 @@ The old JWT is **revoked** once rotated. Sessions/storage remain; only the crede
 
 | Secret | Where to rotate |
 |--------|-----------------|
-| `FOREMAN_API_KEY` | Generate new random string; update Render + Vercel |
+| `FOREMAN_API_KEY` | **Rotate immediately** if you set `NEXT_PUBLIC_FOREMAN_API_KEY` on Vercel — that value ships in the browser bundle. Generate a new secret; update Render + Vercel (server-only, never `NEXT_PUBLIC_*`). |
 | `ANTHROPIC_API_KEY` | [Anthropic console](https://console.anthropic.com) |
 | `OPENAI_API_KEY` | [OpenAI platform](https://platform.openai.com) |
 
