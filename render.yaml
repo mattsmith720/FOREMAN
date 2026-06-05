@@ -1,0 +1,28 @@
+# Deploy the Foreman API to Render (free tier).
+# The web client deploys separately to Vercel — see DEPLOY.md.
+#
+# Connect this repo in Render → New → Blueprint → select render.yaml,
+# or New → Web Service with root = repo root and these commands.
+
+services:
+  - type: web
+    name: foreman-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build:shared && npm run build --workspace backend
+    startCommand: npm run start --workspace backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-20250514
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

@@ -1,0 +1,5 @@
+BACKEND_API_URL = https:/$()/your-backend.example.com
+FOREMAN_USE_MOCK_DEVICE = NO
+META_APP_ID = 0
+CLIENT_TOKEN =
+DEVELOPMENT_TEAM =

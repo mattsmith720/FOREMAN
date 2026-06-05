@@ -1,0 +1,14 @@
+// Copy these values into Debug.xcconfig when switching to real Meta glasses.
+// Then run: cd native/ios && xcodegen generate
+
+FOREMAN_USE_MOCK_DEVICE = NO
+
+// From Wearables Developer Center → your Foreman project
+META_APP_ID = your_meta_app_id
+CLIENT_TOKEN = your_client_token
+
+// Your Apple Developer Team ID
+DEVELOPMENT_TEAM = your_team_id
+
+// Mac LAN IP for backend (same Wi-Fi as iPhone)
+BACKEND_API_URL = http:/$()/192.168.0.88:8080

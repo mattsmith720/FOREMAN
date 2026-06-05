@@ -1,0 +1,115 @@
+import Anthropic from "@anthropic-ai/sdk";
+import {
+  coachingResponseSchema,
+  type CoachingResponse,
+} from "@foreman/shared";
+import { parseCoachingResponse } from "./parse-coaching.js";
+import {
+  ANALYSIS_SYSTEM_PROMPT,
+  buildAnalysisUserPrompt,
+  type SessionContext,
+} from "./prompts/analysis.js";
+
+const DEFAULT_MODEL = "claude-sonnet-4-20250514";
+const MAX_RETRIES = 3;
+
+type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+
+export interface AnalyseImageInput {
+  base64: string;
+  mediaType: ImageMediaType;
+  context?: SessionContext;
+}
+
+function getClient(): Anthropic {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY is not set");
+  }
+  return new Anthropic({ apiKey });
+}
+
+function getModel(): string {
+  return process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
+}
+
+function extractTextContent(
+  content: Anthropic.Messages.ContentBlock[],
+): string {
+  const text = content
+    .filter((block): block is Anthropic.Messages.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join("\n")
+    .trim();
+
+  if (!text) {
+    throw new Error("Model returned no text content");
+  }
+
+  return text;
+}
+
+export async function analyseImage(
+  input: AnalyseImageInput,
+): Promise<CoachingResponse> {
+  const client = getClient();
+  const model = getModel();
+  const userPrompt = buildAnalysisUserPrompt(input.context);
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await client.messages.create({
+        model,
+        max_tokens: 1024,
+        system: ANALYSIS_SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: input.mediaType,
+                  data: input.base64,
+                },
+              },
+              {
+                type: "text",
+                text: userPrompt,
+              },
+            ],
+          },
+        ],
+      });
+
+      const raw = extractTextContent(response.content);
+      return parseCoachingResponse(raw);
+    } catch (err) {
+      lastError = err;
+      if (attempt === MAX_RETRIES) {
+        break;
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Failed to parse coaching response");
+}
+
+export function decodeImagePayload(image: string): {
+  base64: string;
+  mediaType: ImageMediaType;
+} {
+  const dataUrlMatch = image.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
+  if (dataUrlMatch) {
+    const mediaType = dataUrlMatch[1] as ImageMediaType;
+    return { mediaType, base64: dataUrlMatch[2] };
+  }
+
+  return { mediaType: "image/jpeg", base64: image };
+}
+
+export { coachingResponseSchema };

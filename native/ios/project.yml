@@ -1,0 +1,38 @@
+name: Foreman
+options:
+  bundleIdPrefix: com.foreman
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""
+packages:
+  MetaWearablesDAT:
+    url: https://github.com/facebook/meta-wearables-dat-ios
+    from: 0.7.0
+targets:
+  Foreman:
+    type: application
+    platform: iOS
+    sources:
+      - Foreman
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.foreman.app
+        INFOPLIST_FILE: Foreman/Info.plist
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+    dependencies:
+      - package: MetaWearablesDAT
+        product: MWDATCore
+      - package: MetaWearablesDAT
+        product: MWDATCamera
+      - package: MetaWearablesDAT
+        product: MWDATMockDevice
+    configFiles:
+      Debug: Foreman/Config/Debug.xcconfig
+      Release: Foreman/Config/Release.xcconfig

@@ -1,0 +1,10 @@
+// Set this to your Mac's LAN IP when testing on a physical iPhone.
+BACKEND_API_URL = http:/$()/192.168.0.88:8080
+DEVELOPMENT_TEAM =
+
+// Mock device (phone camera as glasses feed). Set to NO for real Meta glasses.
+FOREMAN_USE_MOCK_DEVICE = YES
+
+// Mock development placeholders. Replace with Wearables Developer Center values for real glasses.
+META_APP_ID = 0
+CLIENT_TOKEN =

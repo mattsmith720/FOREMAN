@@ -1,0 +1,115 @@
+# Deploy Foreman — test from your phone on any network
+
+Local `npm run dev:phone` only works when your iPhone and Mac share the same Wi‑Fi.
+For **any network** (cellular, different Wi‑Fi, job site), deploy:
+
+| Piece | Host | Why |
+|-------|------|-----|
+| **Web** (camera + Jarvis UI) | [Vercel](https://vercel.com) | HTTPS by default — required for iPhone camera/mic |
+| **API** (Claude + Whisper + Supabase) | [Render](https://render.com) | Long-running Node server; Claude calls can take 15–45s |
+
+Your phone opens the Vercel URL. API traffic is proxied through Vercel (`/api/*` → Render) so you never hit mixed-content or CORS issues.
+
+## Prerequisites
+
+- GitHub repo pushed (Vercel and Render connect to Git)
+- API keys ready (see below)
+- Supabase project **uvlgbsiwyvtsjlqzozas** (schema + private `frames` bucket already applied)
+
+## Step 1 — Deploy the API (Render)
+
+1. [render.com](https://render.com) → **New** → **Blueprint** (or **Web Service**)
+2. Connect this GitHub repo
+3. If using Blueprint, Render reads `render.yaml` at the repo root
+4. Set environment variables (Render dashboard → **Environment**):
+
+| Variable | Value |
+|----------|--------|
+| `ANTHROPIC_API_KEY` | Your Anthropic key |
+| `OPENAI_API_KEY` | Your OpenAI key |
+| `SUPABASE_URL` | `https://uvlgbsiwyvtsjlqzozas.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | [Service role key](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/settings/api) (not anon) |
+| `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` (optional) |
+
+5. Deploy and wait for **Healthy** on `/health`
+6. Copy the public URL, e.g. `https://foreman-api.onrender.com`
+
+**Note:** Render free tier sleeps after ~15 min idle. First request after sleep may take 30–60s (cold start).
+
+## Step 2 — Deploy the web app (Vercel)
+
+1. [vercel.com](https://vercel.com) → **Add New** → **Project** → import this repo
+2. **Root Directory:** `web` (important — monorepo)
+3. Framework should auto-detect **Next.js** (`web/vercel.json` sets install/build)
+4. **Environment variables** (Vercel → Project → Settings → Environment Variables):
+
+| Variable | Value | Environments |
+|----------|--------|--------------|
+| `BACKEND_URL` | `https://foreman-api.onrender.com` (your Render URL, no trailing slash) | Production, Preview, Development |
+| `NEXT_PUBLIC_API_URL` | `same-origin` | Production, Preview, Development |
+
+`BACKEND_URL` is baked into Next.js rewrites at **build time** — set it before the first deploy, and redeploy if you change the API URL.
+
+5. Deploy
+
+## Step 3 — Test on your iPhone (any network)
+
+1. Open Safari → your Vercel URL, e.g. `https://foreman.vercel.app`
+2. No certificate warning (unlike local HTTPS dev)
+3. Tap **I understand — enable camera & mic**
+4. Allow camera + microphone
+5. Tap **Start job**
+
+Works on cellular, home Wi‑Fi, or a job site — no Mac on the same network required.
+
+## Architecture
+
+```
+iPhone (any network)
+    │
+    ▼ HTTPS
+Vercel (Next.js web)
+    │  /api/* rewrites
+    ▼ HTTPS
+Render (Fastify API)
+    ├── Claude (vision coaching)
+    ├── Whisper (transcription)
+    └── Supabase (sessions + training data)
+```
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Camera won't open | URL must be `https://` — use Vercel, not `http://` |
+| API 502 / timeout on first request | Render cold start — wait ~60s and retry |
+| API 502 during coaching | Claude slow; if persistent, check Render logs. Fallback: set `NEXT_PUBLIC_API_URL` to your Render URL directly (see below) |
+| "Supabase not configured" | Set `SUPABASE_*` on **Render**, redeploy API |
+| Build fails on Vercel | Confirm **Root Directory** = `web` |
+| Rewrites point at wrong API | `BACKEND_URL` must match Render URL; **redeploy** Vercel after changing it |
+
+## Fallback: call API directly (skip Vercel proxy)
+
+If the Vercel proxy times out, set on Vercel:
+
+```
+NEXT_PUBLIC_API_URL=https://foreman-api.onrender.com
+```
+
+The backend already allows all origins (`cors: origin: true`). The phone talks straight to Render; the web UI still loads from Vercel.
+
+## Local dev (unchanged)
+
+Same Wi‑Fi testing still works:
+
+```bash
+npm run dev:phone
+```
+
+See [PHONE_TEST.md](PHONE_TEST.md).
+
+## Costs (typical)
+
+- **Vercel** — Hobby free tier is enough for personal testing
+- **Render** — Free web service (with sleep); upgrade if you need always-on for demos
+- **Anthropic + OpenAI + Supabase** — usage-based; monitor dashboards during heavy testing

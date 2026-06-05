@@ -1,0 +1,447 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09D7129A3024BCB24F18159F /* DeviceMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB2D9030CCAB20F7BA21EA1 /* DeviceMode.swift */; };
+		1ED7F5A758FD17E62714E4D1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1DCF9AAB93DA6AD5A09600 /* ContentView.swift */; };
+		21E5CC8E8FAB178C1851BBBA /* RealGlasses.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 4D89644F12A3CAA3C79628B6 /* RealGlasses.xcconfig.example */; };
+		327806D0E8C6ED11C0DC557B /* MWDATCamera in Frameworks */ = {isa = PBXBuildFile; productRef = 3B86F37FCE3661B5AC309577 /* MWDATCamera */; };
+		3F987D9BC8FDD0C399E25B3C /* StreamViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 025B20C0192A88E79ED38294 /* StreamViewModel.swift */; };
+		721FFB35D1087FF6A116DAED /* ForemanApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7971729A930B6599E0B895D8 /* ForemanApp.swift */; };
+		87DB0DD3D52211CAF9D30F12 /* MockDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B8FFF6CFE4333477996065 /* MockDeviceManager.swift */; };
+		B47D3C0DD1AB088AAAABE372 /* CoachingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2276301E382696EC0484E8 /* CoachingModels.swift */; };
+		B4A35BEDF946C86685F2AD31 /* MWDATCore in Frameworks */ = {isa = PBXBuildFile; productRef = D633D01FCFE56DC6209A9AB7 /* MWDATCore */; };
+		C6732474C7817EEA53FE9D9A /* MWDATMockDevice in Frameworks */ = {isa = PBXBuildFile; productRef = 31CD9D280DE61569B8D2CDDE /* MWDATMockDevice */; };
+		CBCF3247BB6D5AB58F68CE14 /* WearablesConnectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE66CC2FEF6FB50EA5A6752C /* WearablesConnectionViewModel.swift */; };
+		CE830FD1813157BD7320C4C5 /* CoachingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8722A96795C25D11D9C6A6 /* CoachingView.swift */; };
+		EFC245388CA4FD975E1BBCBA /* SessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7CA2E553A3A35C56D69592 /* SessionSummaryView.swift */; };
+		F7DF82AE8D3FC5906D9DDFBD /* BackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EA659688B9FB7C34975482D /* BackendClient.swift */; };
+		FDC064D4F3B5D5D94800C368 /* WearablesConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5840F2932A235D8C6E33B239 /* WearablesConnectionView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		025B20C0192A88E79ED38294 /* StreamViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamViewModel.swift; sourceTree = "<group>"; };
+		24B8FFF6CFE4333477996065 /* MockDeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceManager.swift; sourceTree = "<group>"; };
+		3B19F505BFD4F6EAB3C22CD1 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		4D89644F12A3CAA3C79628B6 /* RealGlasses.xcconfig.example */ = {isa = PBXFileReference; path = RealGlasses.xcconfig.example; sourceTree = "<group>"; };
+		56699BAF88FCAA52092A90D3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5840F2932A235D8C6E33B239 /* WearablesConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesConnectionView.swift; sourceTree = "<group>"; };
+		5D7CA2E553A3A35C56D69592 /* SessionSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSummaryView.swift; sourceTree = "<group>"; };
+		5FB2D9030CCAB20F7BA21EA1 /* DeviceMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceMode.swift; sourceTree = "<group>"; };
+		7971729A930B6599E0B895D8 /* ForemanApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForemanApp.swift; sourceTree = "<group>"; };
+		8EA659688B9FB7C34975482D /* BackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendClient.swift; sourceTree = "<group>"; };
+		9E2276301E382696EC0484E8 /* CoachingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachingModels.swift; sourceTree = "<group>"; };
+		B470D7D10EC88BAC7E49D143 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		DA1DCF9AAB93DA6AD5A09600 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DE66CC2FEF6FB50EA5A6752C /* WearablesConnectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesConnectionViewModel.swift; sourceTree = "<group>"; };
+		E6BA78E04AFF076AA771787B /* Foreman.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Foreman.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC8722A96795C25D11D9C6A6 /* CoachingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachingView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C75AB415C62C794B2A3C1AAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B4A35BEDF946C86685F2AD31 /* MWDATCore in Frameworks */,
+				327806D0E8C6ED11C0DC557B /* MWDATCamera in Frameworks */,
+				C6732474C7817EEA53FE9D9A /* MWDATMockDevice in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4326B4419FA8D8CF23C566F2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E6BA78E04AFF076AA771787B /* Foreman.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		54DBEFB61B10B85500DD3DF1 = {
+			isa = PBXGroup;
+			children = (
+				8F1E9959D3ECEF3D95F2891C /* Foreman */,
+				4326B4419FA8D8CF23C566F2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		62AE163FCA4F4CF7691E5912 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				EC8722A96795C25D11D9C6A6 /* CoachingView.swift */,
+				5D7CA2E553A3A35C56D69592 /* SessionSummaryView.swift */,
+				5840F2932A235D8C6E33B239 /* WearablesConnectionView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		64662EC49E105856CC502768 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9E2276301E382696EC0484E8 /* CoachingModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		7203B6047C2E59C5CE303E11 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				025B20C0192A88E79ED38294 /* StreamViewModel.swift */,
+				DE66CC2FEF6FB50EA5A6752C /* WearablesConnectionViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		8F1E9959D3ECEF3D95F2891C /* Foreman */ = {
+			isa = PBXGroup;
+			children = (
+				DA1DCF9AAB93DA6AD5A09600 /* ContentView.swift */,
+				7971729A930B6599E0B895D8 /* ForemanApp.swift */,
+				56699BAF88FCAA52092A90D3 /* Info.plist */,
+				F4A19D67745E8ECD764F59D0 /* Config */,
+				64662EC49E105856CC502768 /* Models */,
+				90C2371A02087A5B0094D1B3 /* Services */,
+				7203B6047C2E59C5CE303E11 /* ViewModels */,
+				62AE163FCA4F4CF7691E5912 /* Views */,
+			);
+			path = Foreman;
+			sourceTree = "<group>";
+		};
+		90C2371A02087A5B0094D1B3 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				8EA659688B9FB7C34975482D /* BackendClient.swift */,
+				5FB2D9030CCAB20F7BA21EA1 /* DeviceMode.swift */,
+				24B8FFF6CFE4333477996065 /* MockDeviceManager.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		F4A19D67745E8ECD764F59D0 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				B470D7D10EC88BAC7E49D143 /* Debug.xcconfig */,
+				4D89644F12A3CAA3C79628B6 /* RealGlasses.xcconfig.example */,
+				3B19F505BFD4F6EAB3C22CD1 /* Release.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F4805188555A70F62EC3161A /* Foreman */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E8B54BE95D811F469C681E6A /* Build configuration list for PBXNativeTarget "Foreman" */;
+			buildPhases = (
+				2DC438F25DDB68A731C078F9 /* Sources */,
+				29608CEECE144273A74C69F3 /* Resources */,
+				C75AB415C62C794B2A3C1AAD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Foreman;
+			packageProductDependencies = (
+				D633D01FCFE56DC6209A9AB7 /* MWDATCore */,
+				3B86F37FCE3661B5AC309577 /* MWDATCamera */,
+				31CD9D280DE61569B8D2CDDE /* MWDATMockDevice */,
+			);
+			productName = Foreman;
+			productReference = E6BA78E04AFF076AA771787B /* Foreman.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		935832D0B72DAD72C3BE871F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					F4805188555A70F62EC3161A = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 6EB673767EABFAA7FEB5D117 /* Build configuration list for PBXProject "Foreman" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 54DBEFB61B10B85500DD3DF1;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5C8EE231743F267AF4FF61B8 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4326B4419FA8D8CF23C566F2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F4805188555A70F62EC3161A /* Foreman */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		29608CEECE144273A74C69F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				21E5CC8E8FAB178C1851BBBA /* RealGlasses.xcconfig.example in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2DC438F25DDB68A731C078F9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7DF82AE8D3FC5906D9DDFBD /* BackendClient.swift in Sources */,
+				B47D3C0DD1AB088AAAABE372 /* CoachingModels.swift in Sources */,
+				CE830FD1813157BD7320C4C5 /* CoachingView.swift in Sources */,
+				1ED7F5A758FD17E62714E4D1 /* ContentView.swift in Sources */,
+				09D7129A3024BCB24F18159F /* DeviceMode.swift in Sources */,
+				721FFB35D1087FF6A116DAED /* ForemanApp.swift in Sources */,
+				87DB0DD3D52211CAF9D30F12 /* MockDeviceManager.swift in Sources */,
+				EFC245388CA4FD975E1BBCBA /* SessionSummaryView.swift in Sources */,
+				3F987D9BC8FDD0C399E25B3C /* StreamViewModel.swift in Sources */,
+				FDC064D4F3B5D5D94800C368 /* WearablesConnectionView.swift in Sources */,
+				CBCF3247BB6D5AB58F68CE14 /* WearablesConnectionViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4E583FD496023C028A9D8861 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		57E2BFDFE9886902BBBA9DE3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B19F505BFD4F6EAB3C22CD1 /* Release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Foreman/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.foreman.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		5F4AF02E98C726252DC5BCBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		EE91F79C0CEBBE72EC03AE4F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B470D7D10EC88BAC7E49D143 /* Debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Foreman/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.foreman.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6EB673767EABFAA7FEB5D117 /* Build configuration list for PBXProject "Foreman" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E583FD496023C028A9D8861 /* Debug */,
+				5F4AF02E98C726252DC5BCBA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E8B54BE95D811F469C681E6A /* Build configuration list for PBXNativeTarget "Foreman" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE91F79C0CEBBE72EC03AE4F /* Debug */,
+				57E2BFDFE9886902BBBA9DE3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5C8EE231743F267AF4FF61B8 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/meta-wearables-dat-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		31CD9D280DE61569B8D2CDDE /* MWDATMockDevice */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C8EE231743F267AF4FF61B8 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATMockDevice;
+		};
+		3B86F37FCE3661B5AC309577 /* MWDATCamera */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C8EE231743F267AF4FF61B8 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATCamera;
+		};
+		D633D01FCFE56DC6209A9AB7 /* MWDATCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C8EE231743F267AF4FF61B8 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 935832D0B72DAD72C3BE871F /* Project object */;
+}

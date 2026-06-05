@@ -1,0 +1,22 @@
+{
+  "name": "foreman",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AI coaching layer for field work teams. Monorepo: backend + web + shared.",
+  "workspaces": [
+    "shared",
+    "backend",
+    "web"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace @foreman/shared",
+    "build": "npm run build --workspaces --if-present",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:web": "npm run dev --workspace web",
+    "dev:phone": "bash scripts/dev-phone.sh",
+    "postinstall": "npm run build:shared"
+  },
+  "engines": {
+    "node": ">=18.18"
+  }
+}
