@@ -3,6 +3,7 @@ import {
   type CoachingResponse,
 } from "@foreman/shared";
 import { getApiUrl } from "./api-url";
+import { parseApiResponse } from "./parse-api-response";
 
 export interface AnalyseContext {
   jobType?: string;
@@ -43,12 +44,7 @@ export async function analyseFrame(
     }),
   });
 
-  const body = (await response.json()) as AnalyseSuccess | AnalyseError;
-
-  if (!response.ok) {
-    const message = "error" in body ? body.error : "Analysis request failed";
-    throw new Error(message);
-  }
+  const body = await parseApiResponse<AnalyseSuccess | AnalyseError>(response);
 
   if (!("coaching" in body)) {
     throw new Error("Analysis response was missing coaching data");

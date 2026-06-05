@@ -95,12 +95,67 @@ export async function getSessionCounts(
         .eq("session_id", sessionId),
     ]);
 
+  for (const result of [
+    frames,
+    coachingEvents,
+    labels,
+    transcriptSegments,
+  ]) {
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+  }
+
   return {
     frames: frames.count ?? 0,
     coaching_events: coachingEvents.count ?? 0,
     labels: labels.count ?? 0,
     transcript_segments: transcriptSegments.count ?? 0,
   };
+}
+
+export async function claimSessionEnd(
+  sessionId: string,
+): Promise<SessionRow | null> {
+  const supabase = getSupabase();
+  const update = await supabase
+    .from("sessions")
+    .update({
+      ended_at: new Date().toISOString(),
+      summary: "Summarising job…",
+    })
+    .eq("id", sessionId)
+    .is("ended_at", null)
+    .select("*")
+    .single();
+
+  if (update.error) {
+    if (update.error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(update.error.message);
+  }
+
+  return update.data as SessionRow;
+}
+
+export async function updateSessionSummary(
+  sessionId: string,
+  summary: string,
+): Promise<SessionRow> {
+  const supabase = getSupabase();
+  const update = await supabase
+    .from("sessions")
+    .update({ summary })
+    .eq("id", sessionId)
+    .select("*")
+    .single();
+
+  if (update.error || !update.data) {
+    throw new Error(update.error?.message ?? "Failed to update session summary");
+  }
+
+  return update.data as SessionRow;
 }
 
 export async function getSessionFrames(

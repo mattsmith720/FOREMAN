@@ -47,6 +47,7 @@ export async function persistFrame(
   });
 
   if (frameInsert.error) {
+    await supabase.storage.from(FRAMES_BUCKET).remove([storageRef]);
     throw new Error(`Failed to store frame: ${frameInsert.error.message}`);
   }
 

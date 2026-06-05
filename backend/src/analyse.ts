@@ -5,6 +5,11 @@ import {
 } from "@foreman/shared";
 import { parseCoachingResponse } from "./parse-coaching.js";
 import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  isAllowedImageType,
+  isAnalysisConfigured,
+} from "./config.js";
+import {
   ANALYSIS_SYSTEM_PROMPT,
   buildAnalysisUserPrompt,
   type SessionContext,
@@ -13,7 +18,9 @@ import {
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
 const MAX_RETRIES = 3;
 
-type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+type ImageMediaType = (typeof ALLOWED_IMAGE_MIME_TYPES)[number];
+
+export { isAnalysisConfigured };
 
 export interface AnalyseImageInput {
   base64: string;
@@ -71,7 +78,7 @@ export async function analyseImage(
                 type: "image",
                 source: {
                   type: "base64",
-                  media_type: input.mediaType,
+                  media_type: input.mediaType as "image/jpeg" | "image/png" | "image/webp",
                   data: input.base64,
                 },
               },
@@ -103,10 +110,15 @@ export function decodeImagePayload(image: string): {
   base64: string;
   mediaType: ImageMediaType;
 } {
-  const dataUrlMatch = image.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
+  const dataUrlMatch = image.match(/^data:(image\/[a-z0-9+.-]+);base64,(.+)$/i);
   if (dataUrlMatch) {
-    const mediaType = dataUrlMatch[1] as ImageMediaType;
-    return { mediaType, base64: dataUrlMatch[2] };
+    const mediaType = dataUrlMatch[1].toLowerCase();
+    if (!isAllowedImageType(mediaType)) {
+      throw new Error(
+        `Unsupported image type. Allowed: ${ALLOWED_IMAGE_MIME_TYPES.join(", ")}`,
+      );
+    }
+    return { mediaType: mediaType as ImageMediaType, base64: dataUrlMatch[2] };
   }
 
   return { mediaType: "image/jpeg", base64: image };

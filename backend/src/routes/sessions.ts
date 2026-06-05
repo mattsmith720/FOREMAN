@@ -1,18 +1,25 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { toClientError } from "../api-error.js";
+import { isAnalysisConfigured } from "../config.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
 import {
+  claimSessionEnd,
   createSession,
-  finishSession,
   getSession,
   getSessionCounts,
+  updateSessionSummary,
 } from "../db/sessions.js";
 import { summariseSession } from "../summarise-session.js";
 
 const startSessionSchema = z.object({
-  worker: z.string().optional(),
-  jobType: z.string().optional(),
-  notes: z.string().optional(),
+  worker: z.string().max(200).optional(),
+  jobType: z.string().max(200).optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+const sessionIdSchema = z.object({
+  id: z.string().uuid(),
 });
 
 function supabaseUnavailable(reply: {
@@ -33,10 +40,7 @@ export async function registerSessionRoutes(
 
     const parsed = startSessionSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({
-        error: "Invalid request",
-        details: parsed.error.flatten(),
-      });
+      return reply.status(400).send({ error: "Invalid request" });
     }
 
     try {
@@ -44,9 +48,11 @@ export async function registerSessionRoutes(
       return reply.status(201).send({ session });
     } catch (err) {
       request.log.error(err);
-      const message =
-        err instanceof Error ? err.message : "Failed to start session";
-      return reply.status(500).send({ error: message });
+      const { statusCode, message } = toClientError(
+        err,
+        "Failed to start session",
+      );
+      return reply.status(statusCode).send({ error: message });
     }
   });
 
@@ -55,25 +61,48 @@ export async function registerSessionRoutes(
       return supabaseUnavailable(reply);
     }
 
-    const { id } = request.params as { id: string };
+    const params = sessionIdSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.status(400).send({ error: "Invalid session id" });
+    }
+
+    const { id } = params.data;
 
     try {
       const existing = await getSession(id);
-      if (existing.ended_at) {
+      if (existing.ended_at && existing.summary !== "Summarising job…") {
         const stored = await getSessionCounts(id);
         return reply.send({ session: existing, stored });
       }
 
+      const claimed = await claimSessionEnd(id);
+      if (!claimed) {
+        const session = await getSession(id);
+        const stored = await getSessionCounts(id);
+        return reply.send({ session, stored });
+      }
+
+      if (!isAnalysisConfigured()) {
+        const session = await updateSessionSummary(
+          id,
+          "Session ended. Summary unavailable — ANTHROPIC_API_KEY not set.",
+        );
+        const stored = await getSessionCounts(id);
+        return reply.send({ session, stored });
+      }
+
       const summary = await summariseSession(id);
-      const session = await finishSession(id, summary);
+      const session = await updateSessionSummary(id, summary);
       const stored = await getSessionCounts(id);
 
       return reply.send({ session, stored });
     } catch (err) {
       request.log.error(err);
-      const message =
-        err instanceof Error ? err.message : "Failed to stop session";
-      return reply.status(500).send({ error: message });
+      const { statusCode, message } = toClientError(
+        err,
+        "Failed to stop session",
+      );
+      return reply.status(statusCode).send({ error: message });
     }
   });
 
@@ -82,7 +111,12 @@ export async function registerSessionRoutes(
       return supabaseUnavailable(reply);
     }
 
-    const { id } = request.params as { id: string };
+    const params = sessionIdSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.status(400).send({ error: "Invalid session id" });
+    }
+
+    const { id } = params.data;
 
     try {
       const session = await getSession(id);
@@ -90,9 +124,11 @@ export async function registerSessionRoutes(
       return reply.send({ session, stored });
     } catch (err) {
       request.log.error(err);
-      const message =
-        err instanceof Error ? err.message : "Failed to fetch session";
-      return reply.status(404).send({ error: message });
+      const { statusCode, message } = toClientError(
+        err,
+        "Failed to fetch session",
+      );
+      return reply.status(statusCode).send({ error: message });
     }
   });
 }

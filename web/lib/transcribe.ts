@@ -1,4 +1,5 @@
 import { getApiUrl } from "./api-url";
+import { parseApiResponse } from "./parse-api-response";
 
 export interface TranscribeResult {
   text: string;
@@ -29,15 +30,10 @@ export async function transcribeAudioChunk(
     }),
   });
 
-  const body = (await response.json()) as {
+  const body = await parseApiResponse<{
     text?: string;
     persisted?: boolean;
-    error?: string;
-  };
-
-  if (!response.ok) {
-    throw new Error(body.error ?? "Transcription request failed");
-  }
+  }>(response);
 
   return {
     text: body.text?.trim() ?? "",

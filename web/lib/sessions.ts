@@ -1,4 +1,5 @@
 import { getApiUrl } from "./api-url";
+import { parseApiResponse } from "./parse-api-response";
 
 export interface SessionRow {
   id: string;
@@ -23,14 +24,6 @@ export interface StartSessionInput {
   notes?: string;
 }
 
-async function parseResponse<T>(response: Response): Promise<T> {
-  const body = (await response.json()) as T & { error?: string };
-  if (!response.ok) {
-    throw new Error(body.error ?? "Request failed");
-  }
-  return body;
-}
-
 export async function startSession(
   input?: StartSessionInput,
 ): Promise<SessionRow> {
@@ -40,7 +33,7 @@ export async function startSession(
     body: JSON.stringify(input ?? {}),
   });
 
-  const body = await parseResponse<{ session: SessionRow }>(response);
+  const body = await parseApiResponse<{ session: SessionRow }>(response);
   return body.session;
 }
 
@@ -52,7 +45,7 @@ export async function stopSession(sessionId: string): Promise<{
     method: "POST",
   });
 
-  return parseResponse<{ session: SessionRow; stored: SessionCounts }>(
+  return parseApiResponse<{ session: SessionRow; stored: SessionCounts }>(
     response,
   );
 }
@@ -62,7 +55,7 @@ export async function getSession(sessionId: string): Promise<{
   stored: SessionCounts;
 }> {
   const response = await fetch(`${getApiUrl()}/sessions/${sessionId}`);
-  return parseResponse<{ session: SessionRow; stored: SessionCounts }>(
+  return parseApiResponse<{ session: SessionRow; stored: SessionCounts }>(
     response,
   );
 }

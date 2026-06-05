@@ -58,6 +58,28 @@ on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
+-- Explicit deny for storage.objects (service_role bypasses RLS).
+drop policy if exists "deny_public_frames_select" on storage.objects;
+drop policy if exists "deny_public_frames_insert" on storage.objects;
+drop policy if exists "deny_public_frames_update" on storage.objects;
+drop policy if exists "deny_public_frames_delete" on storage.objects;
+
+create policy "deny_public_frames_select"
+  on storage.objects for select to public
+  using (bucket_id = 'frames' and false);
+
+create policy "deny_public_frames_insert"
+  on storage.objects for insert to public
+  with check (bucket_id = 'frames' and false);
+
+create policy "deny_public_frames_update"
+  on storage.objects for update to public
+  using (bucket_id = 'frames' and false);
+
+create policy "deny_public_frames_delete"
+  on storage.objects for delete to public
+  using (bucket_id = 'frames' and false);
+
 -- Backend-only access: RLS on, no public policies (service_role bypasses RLS).
 alter table sessions enable row level security;
 alter table frames enable row level security;

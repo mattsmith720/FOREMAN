@@ -6,7 +6,8 @@ LAN_IP="$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | awk '{
 
 echo "=== Foreman phone dev ==="
 echo ""
-echo "1. Ensure backend/.env is filled (ANTHROPIC, OPENAI, SUPABASE keys)"
+echo "1. Ensure backend/.env is filled — see PHONE_READY.md"
+echo "   Run: npm run check-ready"
 echo "2. On iPhone (same Wi-Fi), open:"
 echo "   https://${LAN_IP}:3000"
 echo "3. Accept the self-signed certificate warning in Safari"

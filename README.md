@@ -77,3 +77,11 @@ cd native/ios && xcodegen generate && open Foreman.xcodeproj
 ```bash
 npm run build         # builds shared, backend, and web
 ```
+
+## What you need to do next
+
+**Phone testing:** **[PHONE_READY.md](PHONE_READY.md)** — 10-minute setup. Run `npm run check-ready` to verify.
+
+Full checklist: **[YOUR_TODO.md](YOUR_TODO.md)**
+
+Security posture: **[SECURITY.md](SECURITY.md)**

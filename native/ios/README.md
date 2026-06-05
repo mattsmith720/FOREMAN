@@ -2,6 +2,16 @@
 
 Native iOS app that streams frames through the Meta Wearables DAT SDK to the Foreman backend. Supports **MockDeviceKit** (phone camera) and **real Meta glasses** — the analyse pipeline is identical; only the frame source changes.
 
+## Cursor AI setup (DAT SDK)
+
+Meta Wearables DAT config is installed in `.cursor/rules/` (9 rule files). Reload Cursor or reopen the project to pick them up.
+
+**MCP** (`.cursor/mcp.json`): `wearables-dat` → live DAT docs search via `https://mcp.facebook.com/wearables_dat`.
+
+**Optional — full API reference in chat:** Cursor **Settings → Features → Docs → Add new doc** → URL `https://wearables.developer.meta.com/llms.txt?full=true`, name “Wearables DAT SDK”. Then use `@Docs` in chat.
+
+> The `/plugin marketplace` commands in Meta’s docs are for **Claude Code**, not Cursor. For Cursor, use the install script above (already run in this repo).
+
 ## Prerequisites
 
 - Mac with **Xcode 15+**

@@ -3,6 +3,7 @@
 import type { CoachingResponse } from "@foreman/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { analyseFrame } from "../lib/analyse";
+import { checkApiHealth } from "../lib/health";
 import { speakJarvisLine } from "../lib/jarvis-voice";
 import { createMemoryEvent, type MemoryEvent } from "../lib/memory-feed";
 import { PhoneAudioSource } from "../lib/phone-audio-source";
@@ -207,6 +208,8 @@ export function CameraCoach() {
     lastHeroRef.current = "";
 
     try {
+      await checkApiHealth();
+
       const session = await startSession({
         jobType: "solar_install",
         notes: "Jarvis phone session — camera + mic",
@@ -239,8 +242,12 @@ export function CameraCoach() {
       await requestWakeLock();
       setStatus("running");
     } catch (err) {
+      const orphanedSessionId = sessionIdRef.current;
       sessionIdRef.current = null;
       setActiveSessionId(null);
+      if (orphanedSessionId) {
+        void stopSession(orphanedSessionId).catch(() => undefined);
+      }
       const message =
         err instanceof Error ? err.message : "Could not start job";
       setErrorMessage(message);
