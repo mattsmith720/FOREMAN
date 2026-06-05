@@ -1,5 +1,7 @@
 # Your action items — Foreman
 
+> **Superseded by [YOUR_ACTIONS.md](YOUR_ACTIONS.md)** — use that file as the single source of truth.
+
 Full audit run **2026-06-05**. Everything below is what **you** need to do to go from “UI loads” to “full AI coaching on your iPhone from any network.”
 
 ---

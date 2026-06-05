@@ -1,5 +1,7 @@
 # Phone testing — get live in 10 minutes
 
+> **Full checklist:** see **[YOUR_ACTIONS.md](YOUR_ACTIONS.md)** for the complete what-you-need-to-do doc.
+
 Two ways to test on your iPhone. **Pick one.**
 
 ---

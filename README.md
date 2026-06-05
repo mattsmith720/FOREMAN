@@ -80,8 +80,8 @@ npm run build         # builds shared, backend, and web
 
 ## What you need to do next
 
-**Phone testing:** **[PHONE_READY.md](PHONE_READY.md)** — 10-minute setup. Run `npm run check-ready` to verify.
+**Phone testing — start here:** **[YOUR_ACTIONS.md](YOUR_ACTIONS.md)** (what you need to do)
 
-Full checklist: **[YOUR_TODO.md](YOUR_TODO.md)**
+Run `npm run check-ready` to verify. Also: [PHONE_READY.md](PHONE_READY.md) · [SECURITY.md](SECURITY.md)
 
 Security posture: **[SECURITY.md](SECURITY.md)**
