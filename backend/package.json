@@ -21,10 +21,12 @@
     "@supabase/supabase-js": "^2.45.4",
     "dotenv": "^16.4.5",
     "fastify": "^5.8.5",
+    "ws": "^8.21.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
+    "@types/ws": "^8.18.1",
     "tsx": "^4.16.2",
     "typescript": "^5.4.5"
   }
