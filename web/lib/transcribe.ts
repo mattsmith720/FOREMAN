@@ -1,5 +1,8 @@
-import { getApiUrl } from "./api-url";
+import { apiFetch } from "./api-fetch";
 import { parseApiResponse } from "./parse-api-response";
+
+/** Skip chunks that would exceed Vercel's serverless body limit. */
+const MAX_AUDIO_BYTES = 1_500_000;
 
 export interface TranscribeResult {
   text: string;
@@ -19,8 +22,12 @@ export async function transcribeAudioChunk(
   blob: Blob,
   sessionId: string,
 ): Promise<TranscribeResult> {
+  if (blob.size > MAX_AUDIO_BYTES) {
+    return { text: "", persisted: false };
+  }
+
   const audio = await blobToDataUrl(blob);
-  const response = await fetch(`${getApiUrl()}/transcribe`, {
+  const response = await apiFetch("/transcribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

@@ -27,6 +27,7 @@ await app.register(helmet, {
 await app.register(cors, {
   origin: getCorsOrigins(),
   methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "x-foreman-api-key"],
 });
 
 await app.register(rateLimit, {

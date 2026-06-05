@@ -2,7 +2,7 @@ import {
   coachingResponseSchema,
   type CoachingResponse,
 } from "@foreman/shared";
-import { getApiUrl } from "./api-url";
+import { apiFetch } from "./api-fetch";
 import { parseApiResponse } from "./parse-api-response";
 
 export interface AnalyseContext {
@@ -33,7 +33,7 @@ export async function analyseFrame(
     recentTranscript?: string[];
   },
 ): Promise<AnalyseResult> {
-  const response = await fetch(`${getApiUrl()}/analyse`, {
+  const response = await apiFetch("/analyse", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

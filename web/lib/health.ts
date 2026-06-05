@@ -1,8 +1,8 @@
-import { getApiUrl } from "./api-url";
+import { apiFetch } from "./api-fetch";
 import { parseApiResponse } from "./parse-api-response";
 
 export async function checkApiHealth(): Promise<void> {
-  const response = await fetch(`${getApiUrl()}/health`, {
+  const response = await apiFetch("/health", {
     method: "GET",
     cache: "no-store",
   });

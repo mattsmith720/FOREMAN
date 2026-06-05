@@ -1,9 +1,7 @@
 import type { Frame, FrameHandler, FrameSource } from "@foreman/shared";
+import { captureCompressedJpeg } from "./compress-frame";
 
 const SAMPLE_INTERVAL_MS = 4000;
-const JPEG_QUALITY = 0.8;
-/** Keeps payloads small over cellular / Vercel proxy. */
-const MAX_CAPTURE_WIDTH = 1024;
 
 interface PhoneFrameSourceOptions {
   includeAudio?: boolean;
@@ -57,29 +55,13 @@ export class PhoneFrameSource implements FrameSource {
   }
 
   private captureFrame(): void {
-    if (this.video.videoWidth === 0 || this.video.videoHeight === 0) {
+    const data = captureCompressedJpeg(this.video, this.canvas);
+    if (!data) {
       return;
     }
-
-    let width = this.video.videoWidth;
-    let height = this.video.videoHeight;
-    if (width > MAX_CAPTURE_WIDTH) {
-      height = Math.round((height * MAX_CAPTURE_WIDTH) / width);
-      width = MAX_CAPTURE_WIDTH;
-    }
-
-    this.canvas.width = width;
-    this.canvas.height = height;
-
-    const ctx = this.canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-
-    ctx.drawImage(this.video, 0, 0, width, height);
 
     const frame: Frame = {
-      data: this.canvas.toDataURL("image/jpeg", JPEG_QUALITY),
+      data,
       capturedAt: Date.now(),
     };
 

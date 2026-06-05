@@ -28,6 +28,11 @@ export async function parseApiResponse<T>(
         "API unavailable — check API keys and Supabase config on Render.",
       );
     }
+    if (response.status === 413) {
+      throw new Error(
+        "Image or audio too large for the server. Retry in a moment — frames are now compressed automatically.",
+      );
+    }
     if (preview.startsWith("<") || preview.toLowerCase().includes("<!doctype")) {
       throw new Error(
         `API returned HTML instead of JSON (${response.status}). Check BACKEND_URL and that the backend is running.`,
