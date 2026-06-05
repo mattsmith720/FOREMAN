@@ -41,6 +41,7 @@ export function CameraCoach() {
   const frameSourceRef = useRef<PhoneFrameSource | null>(null);
   const audioSourceRef = useRef<PhoneAudioSource | null>(null);
   const analysingRef = useRef(false);
+  const pendingFrameRef = useRef<string | null>(null);
   const transcribingRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef<string[]>([]);
@@ -102,7 +103,12 @@ export function CameraCoach() {
 
   const handleFrame = useCallback(
     async (image: string) => {
-      if (analysingRef.current || !sessionIdRef.current) {
+      if (!sessionIdRef.current) {
+        return;
+      }
+
+      if (analysingRef.current) {
+        pendingFrameRef.current = image;
         return;
       }
 
@@ -119,15 +125,16 @@ export function CameraCoach() {
         setErrorMessage(null);
         setStatus("running");
 
-        pushMemory("frame", "Neural sync complete — coaching updated");
+        pushMemory("frame", "Coaching updated");
 
         if (result.persisted) {
-          pushMemory("frame", "Frame stored in training memory");
+          pushMemory("frame", "Frame saved to job log");
           pushMemory(
             "coaching",
             `${result.coaching.observations[0] ?? "Coaching event"} logged`,
           );
-          pushMemory("learning", "Dataset growing — sharper on every job");
+        } else if (result.persistError) {
+          setWarningMessage(result.persistError);
         }
 
         const hero =
@@ -149,6 +156,11 @@ export function CameraCoach() {
         setStatus("running");
       } finally {
         analysingRef.current = false;
+        const pending = pendingFrameRef.current;
+        pendingFrameRef.current = null;
+        if (pending) {
+          void handleFrame(pending);
+        }
       }
     },
     [pushMemory],
@@ -165,6 +177,7 @@ export function CameraCoach() {
     await frameSourceRef.current?.stop();
     frameSourceRef.current = null;
     analysingRef.current = false;
+    pendingFrameRef.current = null;
     transcribingRef.current = false;
 
     if (!sessionId) {
@@ -243,6 +256,10 @@ export function CameraCoach() {
           const audio = new PhoneAudioSource(stream);
           audio.onChunk((blob) => {
             void handleAudioChunk(blob);
+          });
+          audio.onError((message) => {
+            setWarningMessage(message);
+            setMicActive(false);
           });
           await audio.start();
           audioSourceRef.current = audio;

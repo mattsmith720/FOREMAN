@@ -14,11 +14,13 @@ export interface AnalyseContext {
 export interface AnalyseResult {
   coaching: CoachingResponse;
   persisted: boolean;
+  persistError?: string;
 }
 
 interface AnalyseSuccess {
   coaching: CoachingResponse;
   persisted?: { frameId: string; storageRef: string };
+  persistError?: string;
 }
 
 interface AnalyseError {
@@ -53,5 +55,6 @@ export async function analyseFrame(
   return {
     coaching: coachingResponseSchema.parse(body.coaching),
     persisted: Boolean(body.persisted),
+    persistError: body.persistError,
   };
 }

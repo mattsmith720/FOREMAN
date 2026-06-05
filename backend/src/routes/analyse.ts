@@ -94,6 +94,7 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
         });
 
         let persisted: { frameId: string; storageRef: string } | undefined;
+        let persistError: string | undefined;
 
         if (parsed.data.sessionId) {
           try {
@@ -105,10 +106,11 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
             });
           } catch (persistErr) {
             request.log.error(persistErr);
+            persistError = "Frame coaching was not saved to storage";
           }
         }
 
-        return reply.send({ coaching, persisted });
+        return reply.send({ coaching, persisted, persistError });
       } catch (err) {
         request.log.error(err);
         const { statusCode, message } = toClientError(err, "Analysis failed");

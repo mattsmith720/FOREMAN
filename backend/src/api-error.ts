@@ -39,6 +39,12 @@ export function toClientError(err: unknown, fallback: string): {
     if (err.message.includes("invalid input syntax for type uuid")) {
       return { statusCode: 400, message: "Invalid session id" };
     }
+    if (
+      err.message.includes("Unsupported audio type") ||
+      err.message.includes("Unsupported image type")
+    ) {
+      return { statusCode: 400, message: err.message };
+    }
   }
 
   return { statusCode: 500, message: fallback };

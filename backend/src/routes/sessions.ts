@@ -8,11 +8,14 @@ import {
   createSession,
   getSession,
   getSessionCounts,
+  type SessionRow,
   updateSessionSummary,
 } from "../db/sessions.js";
 import { requireSessionToken } from "../require-session-token.js";
 import { signSessionToken } from "../session-token.js";
 import { summariseSession } from "../summarise-session.js";
+
+const SUMMARISING_PLACEHOLDER = "Summarising job…";
 
 const startSessionSchema = z.object({
   worker: z.string().max(200).optional(),
@@ -30,6 +33,26 @@ function supabaseUnavailable(reply: {
   return reply.status(503).send({
     error: "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
   });
+}
+
+async function completeSessionSummary(sessionId: string): Promise<SessionRow> {
+  if (!isAnalysisConfigured()) {
+    return updateSessionSummary(
+      sessionId,
+      "Session ended. Summary unavailable — ANTHROPIC_API_KEY not set.",
+    );
+  }
+
+  try {
+    const summary = await summariseSession(sessionId);
+    return updateSessionSummary(sessionId, summary);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "unknown error";
+    return updateSessionSummary(
+      sessionId,
+      `Session ended. Summary could not be generated (${detail}).`,
+    );
+  }
 }
 
 export async function registerSessionRoutes(
@@ -74,31 +97,32 @@ export async function registerSessionRoutes(
 
     try {
       const existing = await getSession(id);
-      if (existing.ended_at && existing.summary !== "Summarising job…") {
+
+      if (existing.ended_at && existing.summary !== SUMMARISING_PLACEHOLDER) {
         const stored = await getSessionCounts(id);
         return reply.send({ session: existing, stored });
+      }
+
+      if (existing.ended_at && existing.summary === SUMMARISING_PLACEHOLDER) {
+        const session = await completeSessionSummary(id);
+        const stored = await getSessionCounts(id);
+        return reply.send({ session, stored });
       }
 
       const claimed = await claimSessionEnd(id);
       if (!claimed) {
         const session = await getSession(id);
+        if (session.summary === SUMMARISING_PLACEHOLDER) {
+          const updated = await completeSessionSummary(id);
+          const stored = await getSessionCounts(id);
+          return reply.send({ session: updated, stored });
+        }
         const stored = await getSessionCounts(id);
         return reply.send({ session, stored });
       }
 
-      if (!isAnalysisConfigured()) {
-        const session = await updateSessionSummary(
-          id,
-          "Session ended. Summary unavailable — ANTHROPIC_API_KEY not set.",
-        );
-        const stored = await getSessionCounts(id);
-        return reply.send({ session, stored });
-      }
-
-      const summary = await summariseSession(id);
-      const session = await updateSessionSummary(id, summary);
+      const session = await completeSessionSummary(id);
       const stored = await getSessionCounts(id);
-
       return reply.send({ session, stored });
     } catch (err) {
       request.log.error(err);

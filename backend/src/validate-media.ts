@@ -3,6 +3,8 @@ import { ALLOWED_IMAGE_MIME_TYPES } from "./config.js";
 const ALLOWED_AUDIO_MIME_TYPES = new Set([
   "audio/webm",
   "audio/mp4",
+  "audio/aac",
+  "audio/x-m4a",
   "audio/mpeg",
   "audio/ogg",
   "audio/wav",
@@ -66,8 +68,12 @@ export function validateAudioBytes(
     throw new Error("Audio payload size is invalid");
   }
 
-  const mimeType = declaredType.toLowerCase().replace(/;.*$/, "").trim();
-  if (!ALLOWED_AUDIO_MIME_TYPES.has(mimeType)) {
+  let mimeType = declaredType.toLowerCase().replace(/;.*$/, "").trim();
+  if (mimeType === "audio/aac" || mimeType === "audio/x-m4a") {
+    mimeType = "audio/mp4";
+  }
+
+  if (!ALLOWED_AUDIO_MIME_TYPES.has(mimeType) && mimeType !== "audio/mp4") {
     throw new Error("Unsupported audio type");
   }
 

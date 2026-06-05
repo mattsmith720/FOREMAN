@@ -9,12 +9,21 @@ export interface TranscribeResult {
   persisted: boolean;
 }
 
+function normalizeAudioBlob(blob: Blob): Blob {
+  const type = blob.type.toLowerCase();
+  if (!type || type === "audio/aac" || type === "audio/x-m4a") {
+    return new Blob([blob], { type: "audio/mp4" });
+  }
+  return blob;
+}
+
 async function blobToDataUrl(blob: Blob): Promise<string> {
+  const normalized = normalizeAudioBlob(blob);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
+    reader.readAsDataURL(normalized);
   });
 }
 

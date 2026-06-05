@@ -1,6 +1,7 @@
 const CHUNK_INTERVAL_MS = 4000;
 
 export type AudioChunkHandler = (blob: Blob) => void;
+export type AudioErrorHandler = (message: string) => void;
 
 export function isMediaRecorderAvailable(): boolean {
   return typeof MediaRecorder !== "undefined";
@@ -13,7 +14,6 @@ function audioOnlyStream(stream: MediaStream): MediaStream {
 function buildRecorderOptions(): MediaRecorderOptions[] {
   const candidates = [
     "audio/mp4",
-    "audio/aac",
     "audio/webm;codecs=opus",
     "audio/webm",
   ];
@@ -38,12 +38,18 @@ async function waitForLiveTrack(track: MediaStreamTrack): Promise<void> {
 
 export class PhoneAudioSource {
   private recorder: MediaRecorder | null = null;
+  private chunkTimer: ReturnType<typeof setInterval> | null = null;
   private handlers: AudioChunkHandler[] = [];
+  private errorHandler: AudioErrorHandler | null = null;
 
   constructor(private readonly stream: MediaStream) {}
 
   onChunk(handler: AudioChunkHandler): void {
     this.handlers.push(handler);
+  }
+
+  onError(handler: AudioErrorHandler): void {
+    this.errorHandler = handler;
   }
 
   async start(): Promise<void> {
@@ -69,24 +75,42 @@ export class PhoneAudioSource {
     for (const options of optionsList) {
       try {
         const recorder = new MediaRecorder(audioStream, options);
+        let usesTimeslice = true;
+
         recorder.addEventListener("dataavailable", (event) => {
           if (event.data.size === 0) {
             return;
           }
+          const blob =
+            event.data.type === "audio/aac"
+              ? new Blob([event.data], { type: "audio/mp4" })
+              : event.data;
           for (const handler of this.handlers) {
-            handler(event.data);
+            handler(blob);
           }
         });
 
         recorder.addEventListener("error", () => {
-          // iOS sometimes fires error without throwing on start.
+          this.errorHandler?.("Microphone recorder error");
         });
 
-        // Some iOS builds fail with a timeslice — try without first.
         try {
           recorder.start(CHUNK_INTERVAL_MS);
         } catch {
+          usesTimeslice = false;
           recorder.start();
+        }
+
+        if (!usesTimeslice) {
+          this.chunkTimer = setInterval(() => {
+            if (recorder.state === "recording") {
+              try {
+                recorder.requestData();
+              } catch {
+                // ignore — recorder may have stopped
+              }
+            }
+          }, CHUNK_INTERVAL_MS);
         }
 
         this.recorder = recorder;
@@ -100,6 +124,11 @@ export class PhoneAudioSource {
   }
 
   async stop(): Promise<void> {
+    if (this.chunkTimer !== null) {
+      clearInterval(this.chunkTimer);
+      this.chunkTimer = null;
+    }
+
     if (!this.recorder || this.recorder.state === "inactive") {
       return;
     }
@@ -113,6 +142,7 @@ export class PhoneAudioSource {
 
       recorder.addEventListener("stop", () => resolve(), { once: true });
       try {
+        recorder.requestData();
         recorder.stop();
       } catch {
         resolve();

@@ -19,11 +19,17 @@ export async function transcribeAudio(
 ): Promise<string> {
   const extension = mimeType.includes("webm")
     ? "webm"
-    : mimeType.includes("mp4")
-      ? "mp4"
+    : mimeType.includes("mp4") ||
+        mimeType.includes("aac") ||
+        mimeType.includes("m4a")
+      ? "m4a"
       : mimeType.includes("mpeg")
         ? "mp3"
-        : "webm";
+        : mimeType.includes("ogg")
+          ? "ogg"
+          : mimeType.includes("wav")
+            ? "wav"
+            : "webm";
 
   const formData = new FormData();
   formData.append(

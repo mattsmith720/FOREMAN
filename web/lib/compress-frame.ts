@@ -72,5 +72,9 @@ export function captureCompressedJpeg(
     }
   }
 
-  return canvas.toDataURL("image/jpeg", 0.22);
+  if (!drawScaled(video, canvas, 240)) {
+    return null;
+  }
+
+  return encodeJpeg(canvas, 0.22);
 }
