@@ -1,6 +1,19 @@
+import { JetBrains_Mono, Orbitron } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
+});
 
 export const metadata: Metadata = {
   title: "Foreman",
@@ -22,7 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${orbitron.variable} ${jetbrainsMono.variable}`}>
       <body>{children}</body>
     </html>
   );

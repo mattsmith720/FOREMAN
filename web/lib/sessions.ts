@@ -34,10 +34,13 @@ export async function startSession(
     body: JSON.stringify(input ?? {}),
   });
 
-  const body = await parseApiResponse<{ session: SessionRow; token: string }>(
-    response,
-  );
-  setSessionToken(body.token);
+  const body = await parseApiResponse<{
+    session: SessionRow;
+    token?: string;
+  }>(response);
+  if (body.token) {
+    setSessionToken(body.token);
+  }
   return body.session;
 }
 

@@ -9,13 +9,9 @@ export function speakJarvisLine(text: string, severity?: string): void {
     return;
   }
 
-  if (severity !== "critical" && severity !== "warning") {
-    return;
-  }
-
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.05;
-  utterance.pitch = 0.95;
+  utterance.rate = severity === "critical" ? 0.95 : 1.08;
+  utterance.pitch = severity === "critical" ? 0.85 : 1;
   window.speechSynthesis.speak(utterance);
 }

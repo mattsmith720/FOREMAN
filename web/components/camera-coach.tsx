@@ -16,6 +16,7 @@ import {
 } from "../lib/sessions";
 import { transcribeAudioChunk } from "../lib/transcribe";
 import { releaseWakeLock, requestWakeLock } from "../lib/wake-lock";
+import { useAudioLevels } from "../lib/use-audio-levels";
 import { JarvisHud } from "./jarvis-hud";
 import { SessionSummary } from "./session-summary";
 
@@ -27,11 +28,11 @@ type CoachStatus =
   | "error";
 
 const STATUS_LABELS: Record<CoachStatus, string> = {
-  idle: "Ready",
-  running: "Live",
-  analysing: "Thinking",
-  summarising: "Summarising",
-  error: "Error",
+  idle: "STANDBY",
+  running: "LIVE FEED",
+  analysing: "NEURAL SYNC",
+  summarising: "JOB CLOSE",
+  error: "FAULT",
 };
 
 export function CameraCoach() {
@@ -57,6 +58,9 @@ export function CameraCoach() {
   const [memoryEvents, setMemoryEvents] = useState<MemoryEvent[]>([]);
   const [memoryTotal, setMemoryTotal] = useState(0);
   const [micActive, setMicActive] = useState(false);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+
+  const audioLevels = useAudioLevels(micActive ? mediaStream : null);
 
   const pushMemory = useCallback((kind: MemoryEvent["kind"], message: string) => {
     const event = createMemoryEvent(kind, message);
@@ -155,6 +159,7 @@ export function CameraCoach() {
     await audioSourceRef.current?.stop();
     audioSourceRef.current = null;
     setMicActive(false);
+    setMediaStream(null);
     await frameSourceRef.current?.stop();
     frameSourceRef.current = null;
     analysingRef.current = false;
@@ -227,6 +232,7 @@ export function CameraCoach() {
       frameSourceRef.current = source;
 
       const stream = source.getStream();
+      setMediaStream(stream);
       if (!stream || stream.getAudioTracks().length === 0) {
         setWarningMessage("Microphone unavailable — video only.");
       } else {
@@ -286,17 +292,22 @@ export function CameraCoach() {
           playsInline
         />
         {!isActive && hasConsented && (
-          <div className="camera-placeholder">Tap Start job to begin</div>
+          <div className="camera-placeholder jarvis-boot-screen">
+            <p className="jarvis-boot-title">FOREMAN</p>
+            <p className="jarvis-boot-sub">Neural field coach — systems ready</p>
+            <p className="jarvis-muted">Tap Start job to activate HUD</p>
+          </div>
         )}
         {!hasConsented && (
-          <div className="camera-placeholder consent-overlay">
-            <p>Foreman watches and listens like a tradie coach.</p>
+          <div className="camera-placeholder consent-overlay jarvis-boot-screen">
+            <p className="jarvis-boot-title">FOREMAN</p>
+            <p>Live vision + audio coaching. Recording starts when you begin a job.</p>
             <button
               type="button"
               className="button button-primary"
               onClick={() => setHasConsented(true)}
             >
-              I understand — enable camera &amp; mic
+              Initialize systems
             </button>
           </div>
         )}
@@ -307,9 +318,12 @@ export function CameraCoach() {
             status={STATUS_LABELS[status]}
             isListening={micActive}
             isWatching={isActive}
+            isAnalysing={status === "analysing"}
+            sessionId={activeSessionId}
             latestTranscript={latestTranscript}
             memoryEvents={memoryEvents}
             memoryTotal={memoryTotal}
+            audioLevels={audioLevels}
           />
         )}
 
@@ -338,7 +352,7 @@ export function CameraCoach() {
           disabled={!hasConsented || isActive}
           onClick={() => void startJob()}
         >
-          Start job
+          Engage systems
         </button>
         <button
           type="button"
@@ -346,7 +360,7 @@ export function CameraCoach() {
           disabled={!activeSessionId || status === "summarising"}
           onClick={() => void stopJob()}
         >
-          Stop job
+          End job
         </button>
       </footer>
     </div>
