@@ -64,16 +64,17 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
           }
 
           const session = await assertActiveSession(parsed.data.sessionId);
-          const storedTranscript = await getRecentSessionTranscript(
-            parsed.data.sessionId,
-          );
           const clientTranscript = parsed.data.recentTranscript ?? [];
-          const recentTranscript = [
-            ...storedTranscript,
-            ...clientTranscript.filter(
-              (line) => !storedTranscript.includes(line),
-            ),
-          ].slice(-8);
+          let recentTranscript: string[];
+
+          if (clientTranscript.length > 0) {
+            recentTranscript = clientTranscript.slice(-8);
+          } else {
+            const storedTranscript = await getRecentSessionTranscript(
+              parsed.data.sessionId,
+            );
+            recentTranscript = storedTranscript.slice(-8);
+          }
           context = {
             jobType: session.job_type ?? context?.jobType,
             worker: session.worker ?? context?.worker,

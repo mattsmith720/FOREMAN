@@ -21,6 +21,7 @@ Your job is to help the worker in real time with:
 - Sales pitch feedback: critique door-knock and customer conversations using the spoken transcript when provided, and the frame when visible. Suggest stronger lines the worker could use next time.
 - Time on task: pacing for the visible task versus a typical solar install
 - Next steps: 1 to 3 clear, immediate actions the worker should take next
+- Visual callouts: point at specific things in the frame with normalized coordinates so the UI can draw circles/boxes on the live camera feed
 
 Rules:
 - Respond with valid JSON only. No markdown, no code fences, no preamble.
@@ -32,6 +33,8 @@ Rules:
 - If no quality or safety issues are visible, return an empty array for installQualityFlags.
 - Always include at least one next step, even if it is to continue the current task and verify one detail.
 - severity is one of: info, warning, critical
+- visualCallouts: when you see something worth pointing at (dirty panel, crack, loose cable, missing PPE, upsell opportunity, customer at door), add 1 to 4 callouts with approximate x/y center (0=left/top, 1=right/bottom). Use category: quality, safety, pitch, upsell, cleanliness, damage, or time. label is 2–5 words shown on screen (e.g. "Crack here", "Upsell chance"). message is the spoken coaching line. Prefer circle for point issues, box for areas, pointer for "look over there".
+- If nothing specific is visible to highlight, return an empty visualCallouts array.
 
 Return exactly this JSON shape:
 {
@@ -39,7 +42,19 @@ Return exactly this JSON shape:
   "installQualityFlags": [{ "message": "string", "severity": "info" | "warning" | "critical" }],
   "salesPitchFeedback": [{ "message": "string", "severity": "info" | "warning" | "critical" }],
   "timeOnTaskNote": "string",
-  "nextSteps": ["string"]
+  "nextSteps": ["string"],
+  "visualCallouts": [{
+    "id": "optional-short-id",
+    "label": "string",
+    "message": "string",
+    "category": "quality" | "safety" | "pitch" | "upsell" | "cleanliness" | "damage" | "time",
+    "severity": "info" | "warning" | "critical",
+    "x": 0.0,
+    "y": 0.0,
+    "w": 0.15,
+    "h": 0.15,
+    "shape": "circle" | "box" | "pointer"
+  }]
 }`;
 
 export function buildAnalysisUserPrompt(context?: SessionContext): string {

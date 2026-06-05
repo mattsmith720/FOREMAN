@@ -35,12 +35,71 @@ check_env_key "ANTHROPIC_API_KEY" "Anthropic (vision coaching)"
 check_env_key "OPENAI_API_KEY" "OpenAI (transcription)"
 check_env_key "SUPABASE_SERVICE_ROLE_KEY" "Supabase service role"
 check_env_key "SUPABASE_URL" "Supabase URL"
+check_env_key "FOREMAN_API_KEY" "Foreman API key"
+
+if grep -q "^ELEVENLABS_API_KEY=" "$ENV_FILE" 2>/dev/null && [ -n "$(grep "^ELEVENLABS_API_KEY=" "$ENV_FILE" 2>/dev/null | cut -d= -f2-)" ]; then
+  green "✓ ElevenLabs voice (TTS)"
+else
+  yellow "○ ELEVENLABS_API_KEY not set — coaching voice disabled"
+fi
+
+echo ""
+echo "Unit tests"
+if (cd "$ROOT/backend" && npm test 2>/dev/null); then
+  green "✓ Backend tests"
+else
+  yellow "○ Backend tests failed or unavailable"
+fi
+
+if (cd "$ROOT/web" && npm test 2>/dev/null); then
+  green "✓ Web tests"
+else
+  yellow "○ Web tests failed or unavailable"
+fi
 
 echo ""
 echo "Local backend health"
 if curl -sf http://127.0.0.1:8080/health >/dev/null 2>&1; then
   green "✓ Backend running at http://127.0.0.1:8080"
   curl -s http://127.0.0.1:8080/ready | python3 -m json.tool 2>/dev/null || true
+
+  if [ -f "$ENV_FILE" ]; then
+    API_KEY="$(grep "^FOREMAN_API_KEY=" "$ENV_FILE" 2>/dev/null | cut -d= -f2- | tr -d '"' || true)"
+    if [ -n "$API_KEY" ]; then
+      echo ""
+      echo "Local API smoke (session start → analyse)"
+      SESSION_JSON="$(curl -sf -X POST http://127.0.0.1:8080/sessions/start \
+        -H "Content-Type: application/json" \
+        -H "x-foreman-api-key: $API_KEY" \
+        -d '{"jobType":"smoke_test"}' 2>/dev/null || echo "")"
+
+      if [ -n "$SESSION_JSON" ]; then
+        SESSION_ID="$(echo "$SESSION_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin)['session']['id'])" 2>/dev/null || echo "")"
+        TOKEN="$(echo "$SESSION_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null || echo "")"
+        if [ -n "$SESSION_ID" ] && [ -n "$TOKEN" ]; then
+          green "✓ Session start ($SESSION_ID)"
+          TINY_JPEG="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA//2Q=="
+          ANALYSE_CODE="$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8080/analyse \
+            -H "Content-Type: application/json" \
+            -H "x-foreman-api-key: $API_KEY" \
+            -H "x-session-token: $TOKEN" \
+            -d "{\"image\":\"$TINY_JPEG\",\"sessionId\":\"$SESSION_ID\"}" 2>/dev/null || echo "000")"
+          if [ "$ANALYSE_CODE" = "200" ]; then
+            green "✓ Analyse with session token"
+          else
+            yellow "○ Analyse returned HTTP $ANALYSE_CODE (Claude/Supabase may be unavailable)"
+          fi
+          curl -sf -X POST "http://127.0.0.1:8080/sessions/$SESSION_ID/stop" \
+            -H "x-foreman-api-key: $API_KEY" \
+            -H "x-session-token: $TOKEN" >/dev/null 2>&1 || true
+        else
+          yellow "○ Session start response missing id/token"
+        fi
+      else
+        yellow "○ Session start failed — is FOREMAN_API_KEY set?"
+      fi
+    fi
+  fi
 else
   yellow "○ Backend not running (start with: npm run dev:backend)"
 fi
@@ -68,6 +127,7 @@ if [ "$FAIL" -eq 0 ]; then
   green "Ready for phone testing."
   echo ""
   echo "Open on iPhone: https://foreman-phi.vercel.app"
+  echo "Debug capture stats: append ?debug=1 to the URL"
 else
   yellow "Not fully ready — see PHONE_READY.md"
   exit 1

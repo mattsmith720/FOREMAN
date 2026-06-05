@@ -1,5 +1,9 @@
 /** Stay under Vercel's ~4.5 MB serverless body limit (JSON + base64 overhead). */
-const MAX_DATA_URL_CHARS = 900_000;
+export const MAX_DATA_URL_CHARS = 900_000;
+
+export function dataUrlWithinLimit(dataUrl: string): boolean {
+  return dataUrl.length <= MAX_DATA_URL_CHARS;
+}
 
 /** Fast path for phone — one encode when possible. */
 const DEFAULT_MAX_WIDTH = 480;
@@ -41,7 +45,7 @@ function encodeJpeg(
   quality: number,
 ): string | null {
   const dataUrl = canvas.toDataURL("image/jpeg", quality);
-  if (dataUrl.length <= MAX_DATA_URL_CHARS) {
+  if (dataUrlWithinLimit(dataUrl)) {
     return dataUrl;
   }
   return null;

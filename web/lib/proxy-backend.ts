@@ -5,13 +5,7 @@ function getBackendUrl(): string {
   return url.replace(/\/$/, "");
 }
 
-export async function proxyToBackend(
-  path: string,
-  request: Request,
-): Promise<Response> {
-  const backendUrl = getBackendUrl();
-  const url = `${backendUrl}${path}`;
-
+function buildProxyHeaders(request: Request): Headers {
   const headers = new Headers();
   const contentType = request.headers.get("content-type");
   if (contentType) {
@@ -28,9 +22,19 @@ export async function proxyToBackend(
     headers.set(API_KEY_HEADER, apiKey);
   }
 
+  return headers;
+}
+
+export async function proxyToBackend(
+  path: string,
+  request: Request,
+): Promise<Response> {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}${path}`;
+
   const init: RequestInit = {
     method: request.method,
-    headers,
+    headers: buildProxyHeaders(request),
   };
 
   if (request.method !== "GET" && request.method !== "HEAD") {
@@ -45,6 +49,35 @@ export async function proxyToBackend(
     headers: {
       "content-type":
         response.headers.get("content-type") ?? "application/json",
+    },
+  });
+}
+
+export async function proxyBinaryToBackend(
+  path: string,
+  request: Request,
+): Promise<Response> {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}${path}`;
+
+  const init: RequestInit = {
+    method: request.method,
+    headers: buildProxyHeaders(request),
+  };
+
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    init.body = await request.text();
+  }
+
+  const response = await fetch(url, init);
+  const body = await response.arrayBuffer();
+
+  return new Response(body, {
+    status: response.status,
+    headers: {
+      "content-type":
+        response.headers.get("content-type") ?? "application/octet-stream",
+      "cache-control": response.headers.get("cache-control") ?? "no-store",
     },
   });
 }

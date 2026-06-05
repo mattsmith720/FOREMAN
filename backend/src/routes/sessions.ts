@@ -15,7 +15,7 @@ import { requireSessionToken } from "../require-session-token.js";
 import { signSessionToken } from "../session-token.js";
 import { summariseSession } from "../summarise-session.js";
 
-const SUMMARISING_PLACEHOLDER = "Summarising job…";
+import { needsSummaryRetry } from "../stuck-summary.js";
 
 const startSessionSchema = z.object({
   worker: z.string().max(200).optional(),
@@ -98,12 +98,12 @@ export async function registerSessionRoutes(
     try {
       const existing = await getSession(id);
 
-      if (existing.ended_at && existing.summary !== SUMMARISING_PLACEHOLDER) {
+      if (existing.ended_at && !needsSummaryRetry(existing)) {
         const stored = await getSessionCounts(id);
         return reply.send({ session: existing, stored });
       }
 
-      if (existing.ended_at && existing.summary === SUMMARISING_PLACEHOLDER) {
+      if (needsSummaryRetry(existing)) {
         const session = await completeSessionSummary(id);
         const stored = await getSessionCounts(id);
         return reply.send({ session, stored });
@@ -112,7 +112,7 @@ export async function registerSessionRoutes(
       const claimed = await claimSessionEnd(id);
       if (!claimed) {
         const session = await getSession(id);
-        if (session.summary === SUMMARISING_PLACEHOLDER) {
+        if (needsSummaryRetry(session)) {
           const updated = await completeSessionSummary(id);
           const stored = await getSessionCounts(id);
           return reply.send({ session: updated, stored });

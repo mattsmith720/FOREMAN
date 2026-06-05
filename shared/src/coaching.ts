@@ -31,6 +31,34 @@ export const salesPitchFeedbackSchema = z.object({
   severity: coachingSeverity,
 });
 
+/** What a on-frame highlight represents. */
+export const visualCalloutCategory = z.enum([
+  "quality",
+  "safety",
+  "pitch",
+  "upsell",
+  "cleanliness",
+  "damage",
+  "time",
+]);
+
+/**
+ * A region the coach wants the worker to look at.
+ * x/y are normalized center coordinates (0–1) relative to the captured frame.
+ */
+export const visualCalloutSchema = z.object({
+  id: z.string().min(1).max(40).optional(),
+  label: z.string().min(1).max(80),
+  message: z.string().min(1),
+  category: visualCalloutCategory,
+  severity: coachingSeverity,
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  w: z.number().min(0.05).max(0.95).optional(),
+  h: z.number().min(0.05).max(0.95).optional(),
+  shape: z.enum(["circle", "box", "pointer"]).default("circle"),
+});
+
 /** The full structured response the model must return for one frame. */
 export const coachingResponseSchema = z.object({
   /** Short reads of what the worker is doing right now. */
@@ -43,6 +71,8 @@ export const coachingResponseSchema = z.object({
   timeOnTaskNote: z.string(),
   /** Concrete next steps the worker should take before the next frame. */
   nextSteps: z.array(z.string().min(1)),
+  /** On-frame highlights — circles/boxes pointing at issues or opportunities. */
+  visualCallouts: z.array(visualCalloutSchema).default([]),
 });
 
 export type CoachingCategory = z.infer<typeof coachingCategory>;
@@ -50,4 +80,6 @@ export type CoachingSeverity = z.infer<typeof coachingSeverity>;
 export type CoachingEvent = z.infer<typeof coachingEventSchema>;
 export type InstallQualityFlag = z.infer<typeof installQualityFlagSchema>;
 export type SalesPitchFeedback = z.infer<typeof salesPitchFeedbackSchema>;
+export type VisualCalloutCategory = z.infer<typeof visualCalloutCategory>;
+export type VisualCallout = z.infer<typeof visualCalloutSchema>;
 export type CoachingResponse = z.infer<typeof coachingResponseSchema>;

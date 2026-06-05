@@ -13,6 +13,18 @@ const validPayload = JSON.stringify({
   salesPitchFeedback: [],
   timeOnTaskNote: "Rail install looks on pace for a standard residential array.",
   nextSteps: ["Confirm rail spacing matches the panel layout plan."],
+  visualCallouts: [
+    {
+      label: "Rail gap",
+      message: "Check bracket spacing against the panel plan.",
+      category: "quality",
+      severity: "warning",
+      x: 0.45,
+      y: 0.55,
+      w: 0.18,
+      shape: "box",
+    },
+  ],
 });
 
 test("parseCoachingResponse accepts valid JSON", () => {

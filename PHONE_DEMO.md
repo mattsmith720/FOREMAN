@@ -1,8 +1,8 @@
-# Foreman — gym demo script (WOW edition)
+# Foreman — gym demo script
 
 **URL:** [https://foreman-phi.vercel.app](https://foreman-phi.vercel.app)
 
-Show your mate the future of tradie coaching in ~90 seconds.
+Show your mate live AI coaching on a real scene in ~90 seconds.
 
 ---
 
@@ -16,55 +16,55 @@ Show your mate the future of tradie coaching in ~90 seconds.
 
 ## The 90-second demo
 
-### 1. Boot sequence (10s)
-- Tap **Initialize systems** → allow camera + mic.
+### 1. Consent (10s)
+- Tap **I understand — continue** → allow camera + mic.
 - Point at something interesting (gym equipment, roof line out the window, anything with structure).
-- Say: *"This is Foreman — Jarvis for tradies. Neural vision, live coaching, training memory."*
+- Say: *"This is Foreman — live AI coaching for field work. It watches the job and gives you feedback."*
 
-### 2. Engage (5s)
-- Tap **Engage systems**.
-- HUD boots: corner brackets, rotating rings, telemetry strip, **REC** indicator.
-- Watch the mic waveform dance when you talk.
+### 2. Start job (5s)
+- Tap **Start job**.
+- Status bar shows **Live** with camera and mic indicators.
+- Small **Recording** badge appears when the session is active.
 
-### 3. The WOW moment (30s)
+### 3. Coaching (30s)
 - Pan the camera slowly across the scene.
-- Every ~4 seconds: status flips to **NEURAL SYNC** → rings spin faster → coaching card updates.
-- Foreman **speaks** critical/warning cues out loud (turn volume up).
-- Memory feed ticks up: *"Frame analysed — adding to training memory"*
+- Every few seconds: status flips to **Analyzing…** → coaching card updates with the top cue.
+- Warnings and safety issues show in amber/red on the card.
 
-### 4. Audio flex (15s)
+### 4. Audio (15s)
 - Say clearly: *"This install is going smooth, customer loves the savings, we're on schedule."*
-- Transcript appears with typewriter cursor.
-- Memory logs: *"Heard and stored…"*
+- Last heard line appears under the coaching card.
+- Events counter ticks up as frames save to the job log.
 
 ### 5. Close (30s)
 - Tap **End job**.
-- Full-screen **JOB COMPLETE** summary with frame/coaching counts.
-- Line: *"Every job makes the model sharper — that's the moat."*
+- Read the job summary and stored counts (frames, coaching events, labels, transcripts).
+- Say: *"Every job builds our training dataset — that's the moat."*
 
 ---
 
-## Best angles for visual impact
+## Debug mode (optional)
 
-| Shot | Why |
-|------|-----|
-| Over-shoulder at phone | They see HUD + your face |
-| Full screen to them | Rings + scan lines + telemetry |
-| Volume up for TTS | Feels like a real AI assistant |
+Append `?debug=1` to the URL for a capture health strip:
 
----
-
-## If something glitches
-
-| Issue | Quick fix |
-|-------|-----------|
-| Cold start timeout | Wait 60s, tap Engage again |
-| No coaching | Point at a busier scene; needs light + detail |
-| No mic waveform | Check mic permission; speak louder |
-| 403 / API error | Hard refresh; confirm Vercel `BACKEND_URL` |
+- Frame size (KB)
+- Analyse latency (ms)
+- Persist success per frame
+- Mic MIME + chunk size
 
 ---
 
-## One-liner for your mate
+## If something breaks
 
-> *"My phone is watching the job like Iron Man's HUD, Claude is coaching in real time, and every frame is training data stored in Supabase."*
+| Symptom | Fix |
+|---------|-----|
+| Start job fails immediately | Render cold start — wait 60s, retry |
+| Yellow "not saved" banner | Supabase env on Render — check `SUPABASE_URL` |
+| No transcript | Mic permission or iOS audio — vision-only still works |
+| 413 error | Hard refresh — compression should keep frames small |
+
+---
+
+## One-liner pitch
+
+*"Foreman is an AI layer for installers — camera and mic on the job, live coaching, automatic job log. The data from every job makes it sharper over time."*

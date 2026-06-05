@@ -52,21 +52,25 @@ export async function persistFrame(
   }
 
   const events = coachingToEvents(input.sessionId, input.coaching, ts);
-  if (events.length > 0) {
-    const eventInsert = await supabase.from("coaching_events").insert(events);
-    if (eventInsert.error) {
-      throw new Error(
-        `Failed to store coaching events: ${eventInsert.error.message}`,
-      );
-    }
+  const labels = coachingToLabels(input.sessionId, input.coaching);
+
+  const [eventInsert, labelInsert] = await Promise.all([
+    events.length > 0
+      ? supabase.from("coaching_events").insert(events)
+      : Promise.resolve({ error: null }),
+    labels.length > 0
+      ? supabase.from("labels").insert(labels)
+      : Promise.resolve({ error: null }),
+  ]);
+
+  if (eventInsert.error) {
+    throw new Error(
+      `Failed to store coaching events: ${eventInsert.error.message}`,
+    );
   }
 
-  const labels = coachingToLabels(input.sessionId, input.coaching);
-  if (labels.length > 0) {
-    const labelInsert = await supabase.from("labels").insert(labels);
-    if (labelInsert.error) {
-      throw new Error(`Failed to store labels: ${labelInsert.error.message}`);
-    }
+  if (labelInsert.error) {
+    throw new Error(`Failed to store labels: ${labelInsert.error.message}`);
   }
 
   return { frameId, storageRef };

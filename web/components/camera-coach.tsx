@@ -4,8 +4,18 @@ import type { CoachingResponse } from "@foreman/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { analyseFrame } from "../lib/analyse";
 import { checkApiHealth } from "../lib/health";
-import { speakJarvisLine } from "../lib/jarvis-voice";
-import { createMemoryEvent, type MemoryEvent } from "../lib/memory-feed";
+import {
+  initCoachVoice,
+  isCoachVoiceAvailable,
+  setCoachVoiceEnabled,
+  speakCoachLine,
+} from "../lib/coach-voice";
+import { fetchVoiceConfig, type VoiceConfig } from "../lib/voice-config";
+import {
+  createActivity,
+  type ActivityItem,
+} from "../lib/activity-feed";
+import { pickActiveCalloutIndex } from "../lib/pick-active-callout";
 import { PhoneAudioSource } from "../lib/phone-audio-source";
 import { PhoneFrameSource } from "../lib/phone-frame-source";
 import {
@@ -16,8 +26,14 @@ import {
 } from "../lib/sessions";
 import { transcribeAudioChunk } from "../lib/transcribe";
 import { releaseWakeLock, requestWakeLock } from "../lib/wake-lock";
-import { useAudioLevels } from "../lib/use-audio-levels";
-import { JarvisHud } from "./jarvis-hud";
+import { CoachAnnotations } from "./coach-annotations";
+import { CoachOverlay } from "./coach-overlay";
+import {
+  CaptureHealth,
+  type CaptureHealthStats,
+} from "./capture-health";
+import { syncLiveVisionContext } from "../lib/live-vision-sync";
+import { CoachLivePanel } from "./coach-live-panel";
 import { SessionSummary } from "./session-summary";
 
 type CoachStatus =
@@ -28,11 +44,19 @@ type CoachStatus =
   | "error";
 
 const STATUS_LABELS: Record<CoachStatus, string> = {
-  idle: "STANDBY",
-  running: "LIVE FEED",
-  analysing: "NEURAL SYNC",
-  summarising: "JOB CLOSE",
-  error: "FAULT",
+  idle: "Ready",
+  running: "Live",
+  analysing: "Analyzing…",
+  summarising: "Summarising…",
+  error: "Error",
+};
+
+const EMPTY_HEALTH: CaptureHealthStats = {
+  frameKb: null,
+  analyseMs: null,
+  lastPersisted: null,
+  micMime: null,
+  chunkKb: null,
 };
 
 export function CameraCoach() {
@@ -56,17 +80,59 @@ export function CameraCoach() {
   const [hasConsented, setHasConsented] = useState(false);
   const [endedSession, setEndedSession] = useState<SessionRow | null>(null);
   const [storedCounts, setStoredCounts] = useState<SessionCounts | null>(null);
-  const [memoryEvents, setMemoryEvents] = useState<MemoryEvent[]>([]);
   const [memoryTotal, setMemoryTotal] = useState(0);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [frameCount, setFrameCount] = useState(0);
+  const [lastAnalyseMs, setLastAnalyseMs] = useState<number | null>(null);
+  const [activeCalloutIndex, setActiveCalloutIndex] = useState(0);
   const [micActive, setMicActive] = useState(false);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [healthStats, setHealthStats] = useState<CaptureHealthStats>(EMPTY_HEALTH);
+  const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [livePanelOpen, setLivePanelOpen] = useState(false);
 
-  const audioLevels = useAudioLevels(micActive ? mediaStream : null);
+  const pushActivity = useCallback(
+    (kind: ActivityItem["kind"], message: string) => {
+      const item = createActivity(kind, message);
+      setActivity((current) => [...current.slice(-19), item]);
+      setMemoryTotal((count) => count + 1);
+    },
+    [],
+  );
 
-  const pushMemory = useCallback((kind: MemoryEvent["kind"], message: string) => {
-    const event = createMemoryEvent(kind, message);
-    setMemoryEvents((current) => [...current.slice(-11), event]);
-    setMemoryTotal((count) => count + 1);
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    setDebugMode(new URLSearchParams(window.location.search).has("debug"));
+  }, []);
+
+  useEffect(() => {
+    setCoachVoiceEnabled(true);
+    void (async () => {
+      await initCoachVoice();
+      try {
+        const config = await fetchVoiceConfig();
+        setVoiceConfig(config);
+      } catch {
+        // Voice optional until backend is deployed with /voice routes
+      }
+    })();
+  }, []);
+
+  const toggleVoice = useCallback(() => {
+    setVoiceOn((current) => {
+      const next = !current;
+      setCoachVoiceEnabled(next);
+      return next;
+    });
+  }, []);
+
+  const pauseJobAudio = useCallback(async () => {
+    await audioSourceRef.current?.stop();
+    setMicActive(false);
   }, []);
 
   const handleAudioChunk = useCallback(
@@ -74,6 +140,14 @@ export function CameraCoach() {
       const sessionId = sessionIdRef.current;
       if (!sessionId || transcribingRef.current) {
         return;
+      }
+
+      if (debugMode) {
+        setHealthStats((current) => ({
+          ...current,
+          micMime: blob.type || "unknown",
+          chunkKb: Math.round(blob.size / 1024),
+        }));
       }
 
       transcribingRef.current = true;
@@ -86,8 +160,13 @@ export function CameraCoach() {
             transcriptRef.current = next;
             return next;
           });
+          pushActivity("transcript", result.text);
+          syncLiveVisionContext({
+            coaching,
+            recentTranscript: transcriptRef.current,
+          });
           if (result.persisted) {
-            pushMemory("transcript", `Heard and stored: "${result.text}"`);
+            pushActivity("saved", "Transcript stored");
           }
         }
       } catch (err) {
@@ -98,8 +177,32 @@ export function CameraCoach() {
         transcribingRef.current = false;
       }
     },
-    [pushMemory],
+    [coaching, debugMode, pushActivity],
   );
+
+  const resumeJobAudio = useCallback(async () => {
+    const stream = mediaStream;
+    const sessionId = sessionIdRef.current;
+    if (!stream || !sessionId || audioSourceRef.current) {
+      return;
+    }
+
+    try {
+      const audio = new PhoneAudioSource(stream);
+      audio.onChunk((blob) => {
+        void handleAudioChunk(blob);
+      });
+      audio.onError((message) => {
+        setWarningMessage(message);
+        setMicActive(false);
+      });
+      await audio.start();
+      audioSourceRef.current = audio;
+      setMicActive(true);
+    } catch {
+      setMicActive(false);
+    }
+  }, [handleAudioChunk, mediaStream]);
 
   const handleFrame = useCallback(
     async (image: string) => {
@@ -114,6 +217,15 @@ export function CameraCoach() {
 
       analysingRef.current = true;
       setStatus("analysing");
+      setFrameCount((count) => count + 1);
+      pushActivity("capture", "Frame sent to coach");
+
+      const frameKb = Math.round((image.length * 3) / 4 / 1024);
+      const startedAt = performance.now();
+
+      if (debugMode) {
+        setHealthStats((current) => ({ ...current, frameKb }));
+      }
 
       try {
         const result = await analyseFrame(image, {
@@ -121,23 +233,50 @@ export function CameraCoach() {
           context: { jobType: "solar_install" },
           recentTranscript: transcriptRef.current,
         });
+
+        const analyseMs = Math.round(performance.now() - startedAt);
+        setLastAnalyseMs(analyseMs);
+
         setCoaching(result.coaching);
         setErrorMessage(null);
         setStatus("running");
 
-        pushMemory("frame", "Coaching updated");
+        const callouts = result.coaching.visualCallouts ?? [];
+        const highlightIndex = pickActiveCalloutIndex(callouts);
+        setActiveCalloutIndex(highlightIndex);
+
+        pushActivity("analyse", `Vision scan complete (${analyseMs}ms)`);
+
+        const seeing = result.coaching.observations[0];
+        if (seeing) {
+          pushActivity("coaching", seeing);
+        }
+
+        for (const callout of callouts.slice(0, 2)) {
+          pushActivity("coaching", `${callout.label}: ${callout.message}`);
+        }
+
+        syncLiveVisionContext({
+          coaching: result.coaching,
+          recentTranscript: transcriptRef.current,
+        });
+
+        if (debugMode) {
+          setHealthStats((current) => ({
+            ...current,
+            analyseMs,
+            lastPersisted: result.persisted ? true : false,
+          }));
+        }
 
         if (result.persisted) {
-          pushMemory("frame", "Frame saved to job log");
-          pushMemory(
-            "coaching",
-            `${result.coaching.observations[0] ?? "Coaching event"} logged`,
-          );
+          pushActivity("saved", "Frame + coaching saved to job log");
         } else if (result.persistError) {
           setWarningMessage(result.persistError);
         }
 
         const hero =
+          callouts[highlightIndex]?.message ??
           result.coaching.installQualityFlags.find(
             (f) => f.severity === "critical" || f.severity === "warning",
           )?.message ??
@@ -147,8 +286,11 @@ export function CameraCoach() {
         if (hero && hero !== lastHeroRef.current) {
           lastHeroRef.current = hero;
           const severity =
-            result.coaching.installQualityFlags[0]?.severity ?? "info";
-          speakJarvisLine(hero, severity);
+            callouts[highlightIndex]?.severity ??
+            result.coaching.installQualityFlags[0]?.severity ??
+            "info";
+          pushActivity("voice", "Speaking coaching cue");
+          void speakCoachLine(hero, severity);
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Analysis failed";
@@ -163,7 +305,7 @@ export function CameraCoach() {
         }
       }
     },
-    [pushMemory],
+    [debugMode, pushActivity],
   );
 
   const stopJob = useCallback(async () => {
@@ -196,9 +338,9 @@ export function CameraCoach() {
       setStoredCounts(result.stored);
       setCoaching(null);
       setStatus("idle");
-      pushMemory(
-        "learning",
-        `Job complete — ${result.stored.frames} frames in memory`,
+      pushActivity(
+        "system",
+        `Job complete — ${result.stored.frames} frames saved`,
       );
     } catch (err) {
       const message =
@@ -206,7 +348,7 @@ export function CameraCoach() {
       setErrorMessage(message);
       setStatus("error");
     }
-  }, [pushMemory]);
+  }, [pushActivity]);
 
   const startJob = useCallback(async () => {
     const video = videoRef.current;
@@ -223,8 +365,12 @@ export function CameraCoach() {
     transcriptRef.current = [];
     setEndedSession(null);
     setStoredCounts(null);
-    setMemoryEvents([]);
     setMemoryTotal(0);
+    setActivity([]);
+    setFrameCount(0);
+    setLastAnalyseMs(null);
+    setActiveCalloutIndex(0);
+    setHealthStats(EMPTY_HEALTH);
     lastHeroRef.current = "";
 
     try {
@@ -232,11 +378,11 @@ export function CameraCoach() {
 
       const session = await startSession({
         jobType: "solar_install",
-        notes: "Jarvis phone session — camera + mic",
+        notes: "Phone session — camera + mic",
       });
       sessionIdRef.current = session.id;
       setActiveSessionId(session.id);
-      pushMemory("learning", "Job session started — memory active");
+      pushActivity("system", "Job session started — live coaching active");
 
       const source = new PhoneFrameSource(video, canvas, { includeAudio: true });
       source.onFrame((frame) => {
@@ -288,7 +434,7 @@ export function CameraCoach() {
       setErrorMessage(message);
       setStatus("error");
     }
-  }, [handleAudioChunk, handleFrame, pushMemory]);
+  }, [handleAudioChunk, handleFrame, pushActivity]);
 
   useEffect(() => {
     return () => {
@@ -311,8 +457,8 @@ export function CameraCoach() {
     transcriptLines[transcriptLines.length - 1] ?? null;
 
   return (
-    <div className="camera-app jarvis-app">
-      <div className="camera-stage jarvis-stage">
+    <div className="camera-app">
+      <div className="camera-stage">
         <video
           ref={videoRef}
           className="camera-feed"
@@ -321,39 +467,58 @@ export function CameraCoach() {
           playsInline
         />
         {!isActive && hasConsented && (
-          <div className="camera-placeholder jarvis-boot-screen">
-            <p className="jarvis-boot-title">FOREMAN</p>
-            <p className="jarvis-boot-sub">Neural field coach — systems ready</p>
-            <p className="jarvis-muted">Tap Start job to activate HUD</p>
+          <div className="camera-placeholder boot-screen">
+            <p className="boot-title">Foreman</p>
+            <p className="boot-sub">Live coaching for field work</p>
+            <p className="boot-muted">Tap Start job when you are ready</p>
           </div>
         )}
         {!hasConsented && (
-          <div className="camera-placeholder consent-overlay jarvis-boot-screen">
-            <p className="jarvis-boot-title">FOREMAN</p>
-            <p>Live vision + audio coaching. Recording starts when you begin a job.</p>
+          <div className="camera-placeholder consent-overlay boot-screen">
+            <p className="boot-title">Foreman</p>
+            <p>Live vision and audio coaching. Recording starts when you begin a job.</p>
             <button
               type="button"
               className="button button-primary"
               onClick={() => setHasConsented(true)}
             >
-              Initialize systems
+              I understand — continue
             </button>
           </div>
         )}
 
+        {hasConsented && !endedSession && isActive && (
+          <CoachAnnotations
+            callouts={coaching?.visualCallouts ?? []}
+            activeIndex={activeCalloutIndex}
+            onSelect={setActiveCalloutIndex}
+          />
+        )}
+
         {hasConsented && !endedSession && (
-          <JarvisHud
+          <CoachOverlay
             coaching={coaching}
             status={STATUS_LABELS[status]}
             isListening={micActive}
             isWatching={isActive}
             isAnalysing={status === "analysing"}
-            sessionId={activeSessionId}
             latestTranscript={latestTranscript}
-            memoryEvents={memoryEvents}
-            memoryTotal={memoryTotal}
-            audioLevels={audioLevels}
+            frameCount={frameCount}
+            lastAnalyseMs={lastAnalyseMs}
+            activity={activity}
+            callouts={coaching?.visualCallouts ?? []}
+            activeCalloutIndex={activeCalloutIndex}
+            onCalloutSelect={setActiveCalloutIndex}
+            voiceReady={isCoachVoiceAvailable()}
+            liveAvailable={voiceConfig?.liveAvailable ?? false}
+            livePanelOpen={livePanelOpen}
+            onTalkToCoach={() => setLivePanelOpen(true)}
+            onSectionOpen={() => setLivePanelOpen(false)}
           />
+        )}
+
+        {debugMode && hasConsented && (
+          <CaptureHealth stats={healthStats} />
         )}
 
         <canvas ref={canvasRef} className="capture-canvas" aria-hidden="true" />
@@ -374,14 +539,26 @@ export function CameraCoach() {
         </p>
       )}
 
-      <footer className="controls jarvis-controls">
+      <CoachLivePanel
+        open={livePanelOpen}
+        liveAvailable={voiceConfig?.liveAvailable ?? false}
+        sessionId={activeSessionId}
+        recentTranscript={transcriptLines}
+        coaching={coaching}
+        mediaStream={mediaStream}
+        onClose={() => setLivePanelOpen(false)}
+        onPauseJobAudio={() => void pauseJobAudio()}
+        onResumeJobAudio={() => void resumeJobAudio()}
+      />
+
+      <footer className="controls">
         <button
           type="button"
           className="button button-primary"
           disabled={!hasConsented || isActive}
           onClick={() => void startJob()}
         >
-          Engage systems
+          Start job
         </button>
         <button
           type="button"
@@ -391,6 +568,27 @@ export function CameraCoach() {
         >
           End job
         </button>
+        {hasConsented && isCoachVoiceAvailable() && (
+          <button
+            type="button"
+            className={`button button-voice ${voiceOn ? "on" : ""}`}
+            onClick={toggleVoice}
+            aria-pressed={voiceOn}
+            title="ElevenLabs reads coaching cues aloud"
+          >
+            Cue voice {voiceOn ? "on" : "off"}
+          </button>
+        )}
+        {hasConsented && voiceConfig?.liveAvailable && (
+          <button
+            type="button"
+            className={`button button-voice ${livePanelOpen ? "on" : ""}`}
+            disabled={!activeSessionId}
+            onClick={() => setLivePanelOpen((open) => !open)}
+          >
+            {livePanelOpen ? "End talk" : "Talk live"}
+          </button>
+        )}
       </footer>
     </div>
   );

@@ -8,7 +8,9 @@ import { registerAuthHook } from "./auth.js";
 import { getCorsOrigins, getListenPort } from "./config.js";
 import { registerAnalyseRoutes } from "./routes/analyse.js";
 import { registerSessionRoutes } from "./routes/sessions.js";
+import { registerLabelRoutes } from "./routes/labels.js";
 import { registerTranscribeRoutes } from "./routes/transcribe.js";
+import { registerVoiceRoutes } from "./routes/voice.js";
 
 assertProductionSecurity();
 
@@ -45,6 +47,8 @@ app.get("/ready", async () => ({ status: "ok" }));
 await registerAnalyseRoutes(app);
 await registerSessionRoutes(app);
 await registerTranscribeRoutes(app);
+await registerLabelRoutes(app);
+await registerVoiceRoutes(app);
 
 const port = getListenPort();
 
