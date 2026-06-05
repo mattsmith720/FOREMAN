@@ -15,6 +15,7 @@ export interface LiveCoachCallbacks {
 }
 
 let activeSession: LiveConversation | null = null;
+let sessionGeneration = 0;
 let lastContextFingerprint = "";
 let lastContextAt = 0;
 
@@ -22,6 +23,26 @@ const MIN_CONTEXT_INTERVAL_MS = 3500;
 
 const VISION_PREAMBLE =
   "Live camera context from the installer's phone (updates every few seconds). Treat this as what you can see on site right now. Do not say you received a system update or JSON — speak naturally as if you're watching with them.";
+
+function isGenerationCurrent(generation: number): boolean {
+  return generation === sessionGeneration;
+}
+
+async function disposeActiveSession(): Promise<void> {
+  if (!activeSession) {
+    return;
+  }
+
+  const session = activeSession;
+  activeSession = null;
+  resetVisionSyncState();
+
+  try {
+    await session.endSession();
+  } catch {
+    // Session may already be closed.
+  }
+}
 
 export function isLiveCoachActive(): boolean {
   return activeSession !== null && activeSession.isOpen();
@@ -81,7 +102,15 @@ export async function startLiveCoach(
   callbacks: LiveCoachCallbacks,
   initialVisionContext?: string | null,
 ): Promise<void> {
-  if (activeSession) {
+  if (isLiveCoachActive()) {
+    return;
+  }
+
+  const generation = ++sessionGeneration;
+
+  await disposeActiveSession();
+
+  if (!isGenerationCurrent(generation)) {
     return;
   }
 
@@ -92,15 +121,25 @@ export async function startLiveCoach(
   try {
     const signedUrl = await fetchConvaiSignedUrl();
 
+    if (!isGenerationCurrent(generation)) {
+      return;
+    }
+
     const session = await Conversation.startSession({
       signedUrl,
       onConnect: () => {
+        if (!isGenerationCurrent(generation)) {
+          return;
+        }
+
         callbacks.onModeChange?.("listening");
         callbacks.onVisionLinked?.(true);
         sendLiveSessionBootstrap(initialVisionContext ?? null);
       },
       onDisconnect: () => {
-        activeSession = null;
+        if (activeSession === session) {
+          activeSession = null;
+        }
         resetVisionSyncState();
         callbacks.onVisionLinked?.(false);
         callbacks.onModeChange?.("idle");
@@ -121,24 +160,29 @@ export async function startLiveCoach(
       },
     });
 
+    if (!isGenerationCurrent(generation)) {
+      try {
+        await session.endSession();
+      } catch {
+        // Superseded start — drop orphan session.
+      }
+      return;
+    }
+
     activeSession = session;
   } catch (err) {
-    callbacks.onModeChange?.("idle");
-    callbacks.onVisionLinked?.(false);
-    const message =
-      err instanceof Error ? err.message : "Could not start live coach";
-    callbacks.onError?.(message);
-    throw err;
+    if (isGenerationCurrent(generation)) {
+      callbacks.onModeChange?.("idle");
+      callbacks.onVisionLinked?.(false);
+      const message =
+        err instanceof Error ? err.message : "Could not start live coach";
+      callbacks.onError?.(message);
+      throw err;
+    }
   }
 }
 
 export async function endLiveCoach(): Promise<void> {
-  if (!activeSession) {
-    return;
-  }
-
-  const session = activeSession;
-  activeSession = null;
-  resetVisionSyncState();
-  await session.endSession();
+  sessionGeneration++;
+  await disposeActiveSession();
 }

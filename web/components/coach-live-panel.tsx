@@ -94,9 +94,12 @@ export function CoachLivePanel({
   const startLiveRef = useRef(startLive);
   startLiveRef.current = startLive;
 
+  const stopLiveRef = useRef(stopLive);
+  stopLiveRef.current = stopLive;
+
   useEffect(() => {
     if (!open) {
-      void stopLive();
+      void stopLiveRef.current();
       return;
     }
 
@@ -104,12 +107,16 @@ export function CoachLivePanel({
       return;
     }
 
+    if (isLiveCoachActive()) {
+      return;
+    }
+
     void startLiveRef.current();
 
     return () => {
-      void stopLive();
+      void stopLiveRef.current();
     };
-  }, [open, liveAvailable, stopLive]);
+  }, [open, liveAvailable]);
 
   const askFromRecording = useCallback(async () => {
     if (!sessionId || asking) {

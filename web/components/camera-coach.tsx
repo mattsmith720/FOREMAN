@@ -32,6 +32,7 @@ import {
   CaptureHealth,
   type CaptureHealthStats,
 } from "./capture-health";
+import { endLiveCoach } from "../lib/coach-live";
 import { syncLiveVisionContext } from "../lib/live-vision-sync";
 import { CoachLivePanel } from "./coach-live-panel";
 import { SessionSummary } from "./session-summary";
@@ -311,6 +312,9 @@ export function CameraCoach() {
   const stopJob = useCallback(async () => {
     const sessionId = sessionIdRef.current;
 
+    setLivePanelOpen(false);
+    await endLiveCoach();
+
     await releaseWakeLock();
     await audioSourceRef.current?.stop();
     audioSourceRef.current = null;
@@ -512,7 +516,12 @@ export function CameraCoach() {
             voiceReady={isCoachVoiceAvailable()}
             liveAvailable={voiceConfig?.liveAvailable ?? false}
             livePanelOpen={livePanelOpen}
-            onTalkToCoach={() => setLivePanelOpen(true)}
+            onTalkToCoach={() => {
+              if (livePanelOpen) {
+                return;
+              }
+              setLivePanelOpen(true);
+            }}
             onSectionOpen={() => setLivePanelOpen(false)}
           />
         )}

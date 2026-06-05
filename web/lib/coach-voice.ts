@@ -1,3 +1,4 @@
+import { isLiveCoachActive } from "./coach-live";
 import { fetchVoiceConfig } from "./voice-config";
 import { fetchVoiceSpeak } from "./voice-speak";
 import { playAudioBlob, stopVoicePlayback } from "./voice-player";
@@ -42,7 +43,12 @@ export function isCoachVoiceAvailable(): boolean {
 export async function speakCoachLine(text: string, _severity?: string): Promise<void> {
   await ensureInit();
 
-  if (!enabled || !ttsAvailable || typeof window === "undefined") {
+  if (
+    !enabled ||
+    !ttsAvailable ||
+    typeof window === "undefined" ||
+    isLiveCoachActive()
+  ) {
     return;
   }
 
