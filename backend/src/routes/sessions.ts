@@ -50,10 +50,7 @@ export async function registerSessionRoutes(
       request.log.error(err);
       const detail = err instanceof Error ? err.message : "Failed to start session";
       const { statusCode, message } = toClientError(err, "Failed to start session");
-      return reply.status(statusCode).send({
-        error: message,
-        detail: process.env.NODE_ENV === "production" ? undefined : detail,
-      });
+      return reply.status(statusCode).send({ error: message, detail });
     }
   });
 
