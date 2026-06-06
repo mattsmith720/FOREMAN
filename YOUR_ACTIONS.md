@@ -1,8 +1,10 @@
 # What you need to do — Foreman phone testing
 
-**Last updated:** 2026-06-05
+**Last updated:** 2026-06-06
 
 Everything below is **your** side only. The repo, Vercel UI, Supabase database, security hardening, and deploy pipeline are already built and pushed.
+
+**Production:** [https://foreman-phi.vercel.app](https://foreman-phi.vercel.app) · API [https://foreman-api-y31r.onrender.com](https://foreman-api-y31r.onrender.com)
 
 ---
 
@@ -10,7 +12,7 @@ Everything below is **your** side only. The repo, Vercel UI, Supabase database, 
 
 | Item | Status |
 |------|--------|
-| Monorepo — backend API, Jarvis web client, shared schema, iOS skeleton | ✅ |
+| Monorepo — backend API, Foreman web client, shared schema, iOS skeleton | ✅ |
 | Supabase project `uvlgbsiwyvtsjlqzozas` — 5 tables, RLS, private `frames` bucket | ✅ |
 | GitHub repo | ✅ [github.com/mattsmith720/FOREMAN](https://github.com/mattsmith720/FOREMAN) |
 | Vercel production UI | ✅ [foreman-phi.vercel.app](https://foreman-phi.vercel.app) |
@@ -20,6 +22,7 @@ Everything below is **your** side only. The repo, Vercel UI, Supabase database, 
 | Meta Wearables DAT Cursor rules + MCP | ✅ |
 | Security — rate limits, helmet, API key auth, input validation | ✅ See [SECURITY.md](SECURITY.md) |
 | `npm run check-ready` verification script | ✅ |
+| `npm run smoke` E2E API smoke script | ✅ See [DEPLOY.md](DEPLOY.md) § Release smoke |
 
 ---
 
@@ -27,11 +30,13 @@ Everything below is **your** side only. The repo, Vercel UI, Supabase database, 
 
 | Blocker | Why it matters |
 |---------|----------------|
-| **3 API keys empty** in `backend/.env` | No vision coaching, transcription, or session storage |
-| **Render API not deployed** | No public backend for your phone to reach |
+| **3 API keys empty** in `backend/.env` | No vision coaching, transcription, or session storage locally |
+| **Render API not deployed** (or keys missing on Render) | No public backend for your phone to reach |
 | **`BACKEND_URL` missing on Vercel** | Vercel can't proxy API calls → errors on Start job |
 
-Until those three are done, the Jarvis UI loads but **Start job will fail**.
+Until those three are done, the Foreman UI loads but **Start job will fail**.
+
+> Production is already live at `https://foreman-api-y31r.onrender.com` when Render env vars are set. If `curl https://foreman-phi.vercel.app/api/health` returns ok, skip to **Step 4** for the iPhone walk.
 
 ---
 
@@ -87,15 +92,15 @@ Expect `"anthropic": true`, `"openai": true`, `"supabase": true`.
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` (optional) |
 
 4. Wait until Render shows **Live** (first deploy ~5–10 min).
-5. Copy your service URL, e.g. `https://foreman-api-xxxx.onrender.com`.
+5. Copy your service URL. Production example: `https://foreman-api-y31r.onrender.com`
 
 **Verify:**
 
 ```bash
-curl https://YOUR-RENDER-URL.onrender.com/health
+curl https://foreman-api-y31r.onrender.com/health
 # → {"status":"ok"}
 
-curl https://YOUR-RENDER-URL.onrender.com/ready
+curl -H "x-foreman-api-key: YOUR_KEY" https://foreman-api-y31r.onrender.com/ready
 # → anthropic/openai/supabase all true
 ```
 
@@ -106,11 +111,11 @@ curl https://YOUR-RENDER-URL.onrender.com/ready
 ### ☐ Step 3 — Connect Vercel to Render (2 min)
 
 1. Open [Vercel → foreman → Environment Variables](https://vercel.com/openland17s-projects/foreman/settings/environment-variables).
-2. Add:
+2. Add or confirm:
 
 | Name | Value | Environments |
 |------|--------|--------------|
-| `BACKEND_URL` | `https://YOUR-RENDER-URL.onrender.com` (no trailing slash) | Production, Preview, Development |
+| `BACKEND_URL` | `https://foreman-api-y31r.onrender.com` (no trailing slash) | Production, Preview, Development |
 
 `FOREMAN_API_KEY` and `NEXT_PUBLIC_API_URL` are already set on Vercel.
 
@@ -125,6 +130,9 @@ curl https://foreman-phi.vercel.app/api/health
 
 npm run check-ready
 # → all green
+
+BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke
+# → exits 0 when keys and backends are wired
 ```
 
 ---
@@ -134,20 +142,24 @@ npm run check-ready
 **Works on any network** (cellular, job site, different Wi‑Fi):
 
 1. iPhone Safari → **https://foreman-phi.vercel.app**
-2. Tap **I understand — enable camera & mic**
-3. Allow **camera** and **microphone**
-4. Tap **Start job**
-5. Point camera at a scene and talk through what you're doing
+2. If Render has been idle, wait ~30–60s before the first **Start job** (free-tier cold start), then retry
+3. Read the consent overlay (Australian privacy / sensitive-data wording), then tap **I understand — continue**
+4. Allow **camera** and **microphone**
+5. Tap **Start job**
+6. Confirm the red **REC** badge appears top-left while the session runs
+7. Point camera at a scene and talk through what you're doing
 
 **Try saying:**
 
 > "Installing rail brackets on the north roof. Checking fall protection. Customer asked about payback — quoted thirty percent bill savings."
 
 **You should see:**
-- Jarvis HUD with coaching cues (~every 4s)
-- **Heard:** line when you speak
-- **Training memory** feed
-- **Stop job** → session summary
+- Foreman coach overlay with hero cue updating (~every 4s)
+- Status pill cycling **Live** → **Analyzing…**
+- **Heard** line when you speak
+- Tap **Feed** → **Live feed** with Frame, AI, Coach, and Saved entries
+- Optional: **Cue voice on/off** and **Talk live** / **End talk** when voice routes are configured
+- **End job** → **Job complete** summary with frame/transcript counts
 
 **Confirm data in Supabase (optional):**  
 [Table Editor](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/editor) → `sessions`, `frames`, `transcript_segments` should have rows.
@@ -166,7 +178,7 @@ npm run dev:phone
 ```
 
 3. On iPhone Safari → **`https://YOUR-MAC-IP:3000`** (script prints IP, e.g. `https://192.168.0.88:3000`).
-4. Accept certificate warning → consent → **Start job**.
+4. Accept certificate warning → tap **I understand — continue** → **Start job**.
 
 This does **not** work on cellular or a different network.
 
@@ -208,7 +220,7 @@ Set spend limits on:
 - [Anthropic console](https://console.anthropic.com)
 - [OpenAI usage](https://platform.openai.com/usage)
 
-Each camera frame and audio chunk calls paid APIs.
+Each camera frame and audio chunk calls paid APIs. See [DEPLOY.md](DEPLOY.md) § Cost guards and billing alerts.
 
 ---
 
@@ -217,6 +229,7 @@ Each camera frame and audio chunk calls paid APIs.
 | Resource | URL |
 |----------|-----|
 | **Your app (open on iPhone)** | https://foreman-phi.vercel.app |
+| **Production API** | https://foreman-api-y31r.onrender.com |
 | GitHub | https://github.com/mattsmith720/FOREMAN |
 | Deploy API (Render) | https://render.com/deploy?repo=https://github.com/mattsmith720/FOREMAN |
 | Vercel env vars | https://vercel.com/openland17s-projects/foreman/settings/environment-variables |
@@ -229,6 +242,6 @@ Each camera frame and audio chunk calls paid APIs.
 
 ## When you're done
 
-Paste your **Render URL** in chat if you want help setting `BACKEND_URL` on Vercel and running a final `check-ready` for you.
+Run `npm run check-ready` and `npm run smoke` one last time. If anything fails, paste the output in chat.
 
 **4 boxes to tick:** keys in `.env` → Render live → `BACKEND_URL` on Vercel → iPhone test passes.
