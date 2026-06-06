@@ -1,0 +1,81 @@
+{
+  "$schema": "../../../../home/ubuntu/.cursor/plugins/cache/cursor-public/9333/683cdbda983ea8be4b766ac3fe94b7b88e7f75ad/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Make Foreman production-ready E2E with layered agents (CEO/CTO/eng) and DoDs at every level.",
+  "summary": "ship Foreman as a pilot-grade product: CEO -> CTO subplanner -> eng workers, DoDs at every layer",
+  "rootSlug": "foreman-production-ready",
+  "baseBranch": "main",
+  "prBase": "main",
+  "repoUrl": "https://github.com/mattsmith720/FOREMAN",
+  "syncStateToGit": true,
+  "selfAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
+  "acceptanceCriteria": [
+    "CEO DoD #1: Public URLs healthy on a cold cellular phone -- https://foreman-phi.vercel.app loads, /api/health returns 200 ok, Render /health returns 200 ok, /api/voice/config reports liveAvailable=true.",
+    "CEO DoD #2: End-to-end customer walk works from a fresh phone: consent -> Start job -> camera frame analysed -> microphone phrase transcribed -> Stop job -> non-fallback session summary returned -> row counts > 0 for sessions/frames/coaching_events/transcript_segments in Supabase.",
+    "CEO DoD #3: Security posture is clean: no committed secrets in current HEAD or last 50 commits (gitleaks reports zero leaks), production boot refuses to start without FOREMAN_API_KEY/CORS_ORIGINS, no NEXT_PUBLIC_* AI keys, CORS allowlist strict, rate limits effective on AI routes, Vercel /api/* origin gate active.",
+    "CEO DoD #4: Privacy + consent UX clear -- the web client gates capture behind an explicit consent step, a visible recording indicator appears while a session is active, and the consent copy points at the AU privacy / sensitive-data treatment described in CLAUDE.md.",
+    "CEO DoD #5: Cost guards documented and enforced -- per-route rate limits on /analyse, /transcribe, /voice/*, frame size cap enforced server-side (>= existing client compression target), and an operator-facing note in DEPLOY.md/SECURITY.md spells out billing alert setup for Anthropic + OpenAI.",
+    "CEO DoD #6: Observability minimum -- /ready endpoint exposes anthropic/openai/supabase availability booleans, every 5xx response includes a server-side correlation id in logs, the Fastify logger emits structured JSON in production, and DEPLOY.md documents where to read Render + Vercel logs.",
+    "CEO DoD #7: Tests + readiness scripts pass -- `npm run build` in monorepo is clean, `npm test` passes in backend and web workspaces, `bash scripts/check-ready.sh` reports green when env is set, and there is at least one E2E smoke script that walks /sessions/start -> /analyse -> /transcribe -> /sessions/:id/stop against a configurable BASE_URL.",
+    "CEO DoD #8: Docs match reality -- README, DEPLOY.md, PHONE_DEMO.md, SECURITY.md, YOUR_ACTIONS.md state only claims backed by code (or explicitly mark them TODO), Render/Vercel URLs are correct, and the Render free-tier cold-start caveat is called out where it matters.",
+    "CEO DoD #9: iOS / glasses path scaffold is not regressed -- `native/ios` opens via xcodegen and references the DAT 0.7 SDK as the conventions document; remaining gaps are listed in a follow-up file rather than failing the build."
+  ],
+  "tasks": [
+    {
+      "name": "cto-readiness",
+      "type": "subplanner",
+      "scopedGoal": "You are the CTO. Own the technical realisation of every CEO DoD item in `acceptanceCriteria` of the parent plan.json. Decompose into eng workers + verifiers under your subtree (further sub-subplanners are allowed if a slice is large). Your own CTO DoD must be written into your plan.json `acceptanceCriteria` and must cover at minimum: (a) backend auth/CORS/rate-limit/error-handling hardening with tests, (b) /ready endpoint exposes anthropic+openai+supabase booleans and structured JSON logging in production, (c) AI-route rate limits + payload size enforcement + correlation IDs, (d) web client consent gating, visible recording indicator, error boundaries, and `same-origin` API proxy verified, (e) Supabase RLS + storage policy audit confirmed against `backend/supabase/`, (f) repo-wide secret/leak audit (current HEAD + recent history) using gitleaks or equivalent, (g) end-to-end smoke script in `scripts/` that walks /sessions/start -> /analyse -> /transcribe -> /sessions/:id/stop against `${BASE_URL}` with a FOREMAN_API_KEY, (h) docs truth-sync across README/DEPLOY/SECURITY/PHONE_DEMO/YOUR_ACTIONS removing or marking any unbacked claims, (i) native/ios compile sanity (xcodegen + xcodebuild dry-run on simulator destination if toolchain is available, otherwise document the gap in `native/ios/README.md`). Each child task you publish MUST carry its own engineering DoD in `acceptance` (concrete, verifiable). Default to broad workers over many tiny ones; pair every behaviour-changing worker with a verifier. Keep merge tasks explicit (`type: worker` with `dependsOn` of sibling branches). Use `model` per task: implementation -> `gpt-5.5-high-fast` or `gpt-5.3-codex-high-fast`, judgment/UX -> `claude-opus-4-7`, verifiers -> default. Do not open PRs from inside the subtree; the root opens the PR. Your final handoff aggregates your subtree onto a single deliverable branch.",
+      "pathsAllowed": [
+        "backend/**",
+        "web/**",
+        "shared/**",
+        "native/ios/**",
+        "scripts/**",
+        "supabase/**",
+        "*.md",
+        "*.yml",
+        "*.yaml",
+        "package.json",
+        "package-lock.json",
+        ".github/**",
+        ".gitignore",
+        ".gitleaks.toml",
+        "render.yaml",
+        "vercel.json",
+        "web/vercel.json",
+        "web/middleware.ts",
+        ".orchestrate/cto-readiness/**"
+      ],
+      "pathsForbidden": [
+        ".orchestrate/foreman-production-ready/plan.json",
+        ".orchestrate/foreman-production-ready/state.json"
+      ],
+      "acceptance": [
+        "CTO DoD: every CEO DoD item in the parent plan's `acceptanceCriteria` is either delivered on your handoff branch or has a documented, planner-visible reason it is blocked by user-only action (e.g. needs new third-party API key); blocked items are listed verbatim in `## Notes, concerns` with the exact action the human must take.",
+        "CTO DoD: monorepo `npm run build` is clean on your handoff branch.",
+        "CTO DoD: `cd backend && npm test` and `cd web && npm test` both pass on your handoff branch.",
+        "CTO DoD: a runnable smoke script exists at `scripts/smoke-e2e.sh` (or `scripts/smoke-e2e.ts`) that walks /sessions/start -> /analyse with a fixture image -> /transcribe with a fixture audio clip -> /sessions/:id/stop against `${BASE_URL:-http://127.0.0.1:8080}` using `${FOREMAN_API_KEY}`, exiting non-zero on any failure.",
+        "CTO DoD: gitleaks (or equivalent) shows zero high-severity leaks against current HEAD; the CI workflow already added previously is wired to run on push and PR.",
+        "CTO DoD: `/ready` returns `{ ok, anthropic, openai, supabase, elevenlabs?, transcription }` (or equivalent) so the readiness script and Render health probes have a structured truthful signal.",
+        "CTO DoD: README, DEPLOY.md, PHONE_DEMO.md, SECURITY.md, YOUR_ACTIONS.md have been read end-to-end and each claim either backed by code on your branch or marked clearly as TODO.",
+        "CTO DoD: handoff branch is mergeable into `main` with no conflicts; consolidate via explicit merge worker tasks inside your subtree, not by asking the root to merge."
+      ],
+      "verify": "## Setup\n- `git checkout <cto-readiness branch>` and run `npm install`.\n- Ensure local `backend/.env` has placeholder values so configured-check booleans flip predictably (or use the synthetic `/ready` path).\n\n## Automated\n- `npm run build` from repo root must succeed.\n- `(cd backend && npm test)` and `(cd web && npm test)` must pass.\n- `bash scripts/check-ready.sh` runs (it is acceptable for it to report `yellow` on missing keys, but it must not error on structural problems).\n- Run any new `scripts/smoke-e2e.*` against a locally running backend (start the backend in another terminal first) and confirm it exits 0 when all keys are present, or that its missing-key error messaging is clear and non-zero exit.\n- `gitleaks detect --no-banner --redact -s . --log-level info` (install with `brew install gitleaks` or `go install`) reports zero high-severity findings.\n\n## Manual\n- Curl the live deployment: `https://foreman-phi.vercel.app/api/health` -> 200 ok; `https://foreman-api-y31r.onrender.com/health` -> 200 ok; `https://foreman-phi.vercel.app/api/voice/config` reports `liveAvailable=true` (free-tier Render cold start may take ~60s).\n- Read README, DEPLOY.md, PHONE_DEMO.md, SECURITY.md, YOUR_ACTIONS.md and spot-check that nothing is aspirational or wrong.\n\n## Gotchas\n- Render free tier sleeps after ~15 min idle; the first curl may take 30-60s.\n- Do not attempt to rotate or set ANTHROPIC_API_KEY / OPENAI_API_KEY / Supabase service role on this branch -- those are owned by the human operator. List any DoD items that depend on those secrets in your `## Notes` instead of failing the worker.\n- iOS smoke is best-effort: if the cloud-agent VM has no `xcodebuild`, document the gap in `native/ios/README.md` rather than spinning on it.",
+      "model": "claude-opus-4-7-thinking-xhigh",
+      "maxAttempts": 3
+    },
+    {
+      "name": "verify-ceo-product-readiness",
+      "type": "verifier",
+      "verifies": "cto-readiness",
+      "scopedGoal": "Verify that the CTO's handoff branch satisfies every CEO DoD item in the parent plan's `acceptanceCriteria`. Run the full verification recipe in `verify`. For each CEO DoD bullet, record explicit pass / not met / n/a with the evidence command and its outcome. Cross-check that any DoD the CTO claims is blocked-by-human-action is genuinely a human-only step (e.g. needs a third-party secret rotation), and not engineering work the CTO skipped. Output your verdict as `## Verification` per the verifier prompt structure: prefer `live-ui-verified` only if you actually exercised the deployed phone web UI end-to-end; `unit-test-verified` if you ran the smoke script + unit tests; downgrade to `type-check-only` if the build was the only signal. If a DoD item is impossible to verify from inside the cloud-agent VM (e.g. iPhone hardware capture), mark it `n/a` and explain.",
+      "acceptance": [
+        "Verification section lists evidence for every CEO DoD bullet in the parent plan's `acceptanceCriteria` (9 items).",
+        "If the CTO marked items as blocked-by-human-action, the verifier independently agreed (with one-line reasoning) or escalated by adding a `(high)` finding.",
+        "`## Verification` line uses one of the prescribed values (`live-ui-verified`, `unit-test-verified`, `type-check-only`, `verifier-blocked`, `verifier-failed`)."
+      ],
+      "verify": "## Setup\n- Inherits `cto-readiness` branch (auto-wired by orchestrate).\n- `npm install` at repo root.\n\n## Automated\n- `npm run build`.\n- `(cd backend && npm test)` and `(cd web && npm test)`.\n- `bash scripts/check-ready.sh` (note env gaps but do not treat missing local API keys as failure if the production URLs verify).\n- Run `scripts/smoke-e2e.*` against the production stack with `BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=<test-key-if-provided>` -- if no test key is available, point at a locally booted backend instead and document.\n- `gitleaks detect --no-banner --redact -s .` -> zero high findings.\n\n## Manual / curl\n- `curl -s https://foreman-phi.vercel.app/api/health` -> `{\"status\":\"ok\"}`.\n- `curl -s https://foreman-api-y31r.onrender.com/health` -> `{\"status\":\"ok\"}`.\n- `curl -s https://foreman-phi.vercel.app/api/voice/config` includes `liveAvailable:true`.\n- Skim README/DEPLOY/SECURITY/PHONE_DEMO/YOUR_ACTIONS -- flag any claim that does not match the code on the branch.\n\n## CEO DoD checklist (verifier MUST report per bullet)\nFor each of the 9 acceptanceCriteria bullets on the parent plan, write `- [x] <criterion text>: <evidence>` or `- [ ] <criterion text>: <reason not met>`.\n\n## Gotchas\n- The dispatcher's human operator owns secret rotation; do not block on missing ANTHROPIC/OPENAI/Supabase keys -- mark such items as `(verifier-blocked, awaiting human secret rotation)` instead of `(verifier-failed)` and explain.\n- iPhone hardware smoke is `n/a` from inside this VM; rely on production URL responses + the smoke script.",
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    }
+  ]
+}

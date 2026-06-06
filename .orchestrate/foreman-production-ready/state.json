@@ -1,0 +1,50 @@
+{
+  "rootSlug": "foreman-production-ready",
+  "tasks": [
+    {
+      "name": "cto-readiness",
+      "type": "subplanner",
+      "branch": "orch/foreman-production-ready/cto-readiness",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "verify-ceo-product-readiness",
+      "type": "verifier",
+      "branch": "orch/foreman-production-ready/verify-ceo-product-readiness",
+      "startingRef": "orch/foreman-production-ready/cto-readiness",
+      "dependsOn": [
+        "cto-readiness"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": []
+}
