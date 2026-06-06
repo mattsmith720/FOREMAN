@@ -1,0 +1,154 @@
+{
+  "$schema": "../../../../home/ubuntu/.cursor/plugins/cache/cursor-public/9333/683cdbda983ea8be4b766ac3fe94b7b88e7f75ad/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Make Foreman production-ready E2E with layered agents (CEO/CTO/eng) and DoDs at every level.",
+  "summary": "SRE slice: CEO DoD #1 (public URLs healthy), #5 (cost guards), #6 (observability) -- /ready truth, structured JSON logs, correlation ids, per-route rate limits, frame-size cap, billing-alert recipe, /health probes wired",
+  "rootSlug": "sre-platform",
+  "baseBranch": "main",
+  "repoUrl": "https://github.com/mattsmith720/FOREMAN",
+  "syncStateToGit": true,
+  "selfAgentId": "bc-7c1837f2-3344-4cad-bcd2-a2142f8498fe",
+  "acceptanceCriteria": [
+    "CEO DoD #1 evidenced: `bash scripts/check-ready.sh` on the handoff branch reports both Vercel and Render production URLs healthy.",
+    "CEO DoD #6 evidenced: `/ready` returns a JSON object with anthropic/openai/supabase booleans (and elevenlabs if configured); Fastify logger emits structured JSON in production; 5xx error responses log a correlation id; DEPLOY.md documents where to read Render + Vercel logs.",
+    "CEO DoD #5 evidenced: per-route rate limits on /analyse, /transcribe, /voice are wired and documented in DEPLOY.md (the CISO sibling owns SECURITY.md tests); frame-size cap enforced server-side before the analyse handler; billing-alert recipe added to operator docs.",
+    "`npm run build --workspace backend` clean; `cd backend && npm test` passes.",
+    "scripts/check-ready.sh runs end-to-end without structural errors."
+  ],
+  "tasks": [
+    {
+      "name": "ready-and-logging",
+      "type": "worker",
+      "scopedGoal": "Expand the /ready endpoint and wire production observability. Concretely: (1) Create `backend/src/routes/ready.ts` exporting `registerReadyRoute(app)` that returns `{ ok: boolean, anthropic: boolean, openai: boolean, supabase: boolean, transcription: boolean, elevenlabs?: boolean }` where booleans reflect whether each integration is configured (env vars present + minimally valid). `ok` should be the AND of the required booleans (anthropic, openai, supabase, transcription). Include `elevenlabs` only when ELEVENLABS_API_KEY is set (do not include the field at all when unset, OR set it explicitly to a boolean -- pick one and be consistent). Add small helpers in `backend/src/config.ts` if needed (e.g. `isSupabaseConfigured`, `isElevenLabsConfigured`); reuse existing `isAnalysisConfigured`/`isTranscriptionConfigured`. (2) Wire it from `backend/src/index.ts`: replace the inline `app.get('/ready', ...)` stub with the registered route. Keep `/health` as the cheap liveness probe (no feature checks). (3) Switch the Fastify logger to production-friendly structured JSON when NODE_ENV=production. Use Fastify's built-in pino integration: in production set `logger: { level: 'info' }` (default JSON output); in non-production set `logger: { level: 'info', transport: { target: 'pino-pretty' } }` if pino-pretty is already a dep, otherwise just `logger: true` for dev. Do NOT add pino-pretty as a new dep -- keep it conditional or omit pretty entirely. (4) Generate a server-side correlation id per request and attach it: use `app.addHook('onRequest', ...)` to generate a `requestId` (use `crypto.randomUUID()` or fastify's `genReqId` option) and put it on `request.id`. Add an `onResponse`/`onError` hook so every 5xx logs include the correlation id (Fastify already logs `req.id` in the standard log line; verify it does and add explicit `request.log.error({ reqId: request.id, err }, 'request failed')` in `setErrorHandler` for 5xx). Also set the response header `x-request-id: <id>` so clients can quote it back. ENGINEERING DoD (acceptance below) is verifiable: `npm run build --workspace backend` clean, `cd backend && npm test` passes, and a local boot of the backend returns the new /ready shape with all booleans present.",
+      "pathsAllowed": [
+        "backend/src/index.ts",
+        "backend/src/config.ts",
+        "backend/src/routes/ready.ts"
+      ],
+      "pathsForbidden": [
+        "backend/src/auth.ts",
+        "backend/src/assert-production-security.ts",
+        "backend/src/routes/analyse.ts",
+        "backend/src/routes/sessions.ts",
+        "backend/src/routes/labels.ts",
+        "backend/src/routes/transcribe.ts",
+        "backend/src/routes/voice.ts"
+      ],
+      "acceptance": [
+        "`backend/src/routes/ready.ts` exists and exports `registerReadyRoute(app)`; `/ready` returns `{ ok, anthropic, openai, supabase, transcription }` (plus `elevenlabs` when configured).",
+        "`/ready` `ok` is the boolean AND of the required integration booleans; route does not throw when any integration is unconfigured.",
+        "`backend/src/index.ts` registers the new ready route (not the inline stub) and configures the Fastify logger so production emits structured JSON (no pretty-printer in prod).",
+        "Every request gets a correlation id (`request.id`) and the response carries `x-request-id`; the global error handler logs `{ reqId, err }` for 5xx responses.",
+        "`npm run build --workspace backend` clean on the worker branch.",
+        "`cd backend && npm test` passes on the worker branch.",
+        "Local boot: `PORT=8080 npm run dev --workspace backend` (or `node dist/index.js`) responds to `curl -s http://127.0.0.1:8080/ready` with JSON containing the new boolean keys; confirm via worker handoff transcript."
+      ],
+      "verify": "## Setup\n- `npm install` at repo root.\n- Touch `backend/.env` if missing so the boot does not crash on `assertProductionSecurity` (use NODE_ENV=development for local boot).\n\n## Automated\n- `npm run build --workspace backend` (must be clean).\n- `cd backend && npm test` (must pass).\n- Start the backend locally with placeholder env (NODE_ENV=development, no ANTHROPIC_API_KEY etc) and curl `/ready` -- expect booleans=false but a 200 response with the new shape.\n- Set one env var (e.g. `ANTHROPIC_API_KEY=test`) and curl `/ready` again -- expect `anthropic:true`.\n- Inspect the request log line: confirm it contains a `reqId` field and that the response includes an `x-request-id` header (`curl -i`).\n\n## Manual\n- Read `backend/src/index.ts` and confirm: (a) prod path uses structured JSON logger (no transport), (b) `/ready` is registered via `registerReadyRoute`, (c) `setErrorHandler` logs the reqId on 5xx.",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "cost-guards-and-payload",
+      "type": "worker",
+      "scopedGoal": "Add cost guards on top of the ready-and-logging branch. Concretely: (1) Per-route rate limits. The global rate-limit in `backend/src/index.ts` stays as a default; add tighter per-route caps for /analyse, /transcribe, and /voice using `@fastify/rate-limit` per-route config (you can use `app.register(rateLimit, { ... })` once globally and then attach `config: { rateLimit: { max, timeWindow } }` to specific route definitions). BUT: the actual route files for /analyse, /transcribe, /voice are owned by siblings and are in your forbidden list -- so you cannot edit them directly. Workaround: use Fastify's `onRoute` hook in `backend/src/index.ts` to attach per-route rate-limit config based on `routeOptions.url` (or use `addHook('onRequest', ...)` that checks `request.routeOptions?.url` and applies a per-path token bucket via the rate-limit plugin's `rateLimit` decorator). Pick whichever is cleanest. Suggested caps: /analyse 30/min/IP, /transcribe 20/min/IP, /voice/* 60/min/IP. Document the caps in DEPLOY.md so the CISO sibling can test them. (2) Frame-size cap enforced server-side BEFORE the analyse handler runs. Add a global `addHook('preValidation', ...)` (or `onRequest`) in `backend/src/index.ts` that for POST /analyse only: if the request body is JSON with an `image` data-URL longer than the configured cap (default 4 MiB of base64 payload, i.e. ~3 MiB raw bytes), return 413 with a clear error message. Expose the cap via `getAnalyseFrameByteCap()` in `backend/src/config.ts`, reading `ANALYSE_FRAME_MAX_BYTES` (default 4 * 1024 * 1024). Also tighten the Fastify-global `bodyLimit` if currently larger than needed: keep it at 15 MiB (current value) since voice/audio also uses the body, but the per-route check enforces the tighter cap on /analyse. (3) Billing-alert operator recipe documented in DEPLOY.md (your forbidden list includes SECURITY.md -- do NOT touch it). Add a new section in DEPLOY.md titled `## Cost guards and billing alerts` describing: rate-limit caps on each route, the frame-size cap, and the manual operator steps for setting billing alerts at Anthropic (Console > Settings > Billing > Usage limits) and OpenAI (Platform > Settings > Limits) -- this is the operator action, not actual alert setup. Note that mirroring this to SECURITY.md is owned by a sibling. ENGINEERING DoD is verifiable: `npm run build --workspace backend` clean, tests pass, and a curl that posts an oversized data-URL image to /analyse returns 413 before the handler runs.",
+      "dependsOn": [
+        "ready-and-logging"
+      ],
+      "startingRef": "cursor/orch/sre-platform/ready-and-logging",
+      "pathsAllowed": [
+        "backend/src/index.ts",
+        "backend/src/config.ts",
+        "DEPLOY.md"
+      ],
+      "pathsForbidden": [
+        "backend/src/auth.ts",
+        "backend/src/assert-production-security.ts",
+        "backend/src/routes/analyse.ts",
+        "backend/src/routes/sessions.ts",
+        "backend/src/routes/labels.ts",
+        "backend/src/routes/transcribe.ts",
+        "backend/src/routes/voice.ts",
+        "backend/src/routes/ready.ts",
+        "SECURITY.md",
+        "SECURITY_INCIDENT.md",
+        "README.md",
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md"
+      ],
+      "acceptance": [
+        "Per-route rate-limit caps applied to /analyse, /transcribe, /voice (or /voice/*) without editing the route files in `backend/src/routes/` (use index.ts hook or @fastify/rate-limit per-route config attached from index.ts).",
+        "DEPLOY.md documents the per-route caps with the numeric values used.",
+        "Frame-size cap enforced server-side: a POST /analyse with an `image` data-URL larger than the configured cap returns 413 before the analyse handler runs; cap value lives in `backend/src/config.ts` as `getAnalyseFrameByteCap()` with sensible default and env override.",
+        "Billing-alert operator recipe added to DEPLOY.md (a new `## Cost guards and billing alerts` section) describing the operator steps for Anthropic + OpenAI billing alerts (link or path, not automation).",
+        "If the actual startingRef branch name does not match `cursor/orch/sre-platform/ready-and-logging` at spawn time, the worker MUST rebase or re-target onto the real ready-and-logging branch (auto-wired by orchestrate via dependsOn) and note that in its handoff.",
+        "`npm run build --workspace backend` clean on the worker branch.",
+        "`cd backend && npm test` passes on the worker branch.",
+        "SECURITY.md is NOT modified by this worker (forbidden path)."
+      ],
+      "verify": "## Setup\n- Inherits the ready-and-logging branch.\n- `npm install` at repo root.\n\n## Automated\n- `npm run build --workspace backend` clean.\n- `cd backend && npm test` passes.\n- Start backend locally with placeholder env (NODE_ENV=development, FOREMAN_API_KEY=test, SESSION_TOKEN_SECRET=test).\n- Curl an oversized JSON body to /analyse: `python3 -c 'import json,sys; sys.stdout.write(json.dumps({\"image\":\"data:image/jpeg;base64,\" + \"A\"*5000000, \"sessionId\":\"00000000-0000-0000-0000-000000000000\"}))' | curl -s -o /dev/null -w '%{http_code}\\n' -X POST http://127.0.0.1:8080/analyse -H 'Content-Type: application/json' -H 'x-foreman-api-key: test' --data-binary @-` -- expect `413` (not 400/401/500), and the response should NOT have invoked the upstream Claude call.\n- Hammer /analyse with > cap req/min from the same IP and confirm 429 is returned past the cap (manual: a quick `for i in $(seq 1 50); do curl ...; done`).\n\n## Manual\n- Read DEPLOY.md `## Cost guards and billing alerts` section and confirm: rate-limit caps stated numerically, frame-size cap stated with env var name, Anthropic + OpenAI billing-alert recipe present.\n- Verify SECURITY.md was NOT touched (`git diff --name-only main...HEAD | grep -v SECURITY.md`).",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "health-and-deploy-docs",
+      "type": "worker",
+      "scopedGoal": "Wire the deploy artifacts and readiness script to the new shape. This worker inherits the cost-guards-and-payload branch (which already includes ready-and-logging), so it is the aggregation branch the verifier will check. Concretely: (1) Update `scripts/check-ready.sh` to print the new /ready boolean shape clearly. Replace the current `curl -s http://127.0.0.1:8080/ready | python3 -m json.tool` block with a parser that asserts the keys `anthropic`, `openai`, `supabase`, `transcription` are present (and `elevenlabs` if configured), prints each as green/red/yellow based on the booleans (do not fail the script on missing local backend -- yellow it), and surfaces the response's `x-request-id` header if present so the operator can quote it. The production curl block (Vercel /api/health, Render /health) stays. Keep `set -euo pipefail` semantics; the script must complete end-to-end without structural errors. (2) Make sure `render.yaml` and `web/vercel.json` health probes use `/health`, NOT `/ready`. Currently `render.yaml` already uses `healthCheckPath: /health` -- keep it and add a comment line above it explaining the choice (`/health` is liveness, `/ready` is feature-availability). For `web/vercel.json`: Vercel does not expose a `healthCheckPath` config for Next.js projects, so add no probe (Vercel does its own platform checks); add a top-level comment in DEPLOY.md noting that Vercel's platform health is implicit. Confirm there is no root `vercel.json` (there shouldn't be; if a sibling created one, do NOT modify their settings). (3) DEPLOY.md documents where to read Render + Vercel logs. Add a new section `## Reading production logs` with: Render: Dashboard -> the `foreman-api` service -> Logs tab (live tail) AND CLI option `render logs --service foreman-api` if installed; Vercel: Dashboard -> the project -> Deployments -> select latest -> Logs OR `vercel logs <deployment-url>` from CLI; how to grep by the `x-request-id` correlation id added by the ready-and-logging worker. (4) Optionally update `PHONE_READY.md` if the readiness script's output changes substantially (only if a user-facing instruction is now wrong; otherwise leave it). ENGINEERING DoD: `bash scripts/check-ready.sh` exits 0 on a healthy production environment (Vercel /api/health 200 + Render /health 200) and prints the new /ready key breakdown without bash errors; `npm run build --workspace backend` clean; `cd backend && npm test` passes.",
+      "dependsOn": [
+        "cost-guards-and-payload"
+      ],
+      "startingRef": "cursor/orch/sre-platform/cost-guards-and-payload",
+      "pathsAllowed": [
+        "scripts/check-ready.sh",
+        "render.yaml",
+        "vercel.json",
+        "web/vercel.json",
+        "DEPLOY.md",
+        "PHONE_READY.md"
+      ],
+      "pathsForbidden": [
+        "backend/src/**",
+        "web/app/**",
+        "web/lib/**",
+        "web/components/**",
+        "web/middleware.ts",
+        "web/next.config.mjs",
+        "SECURITY.md",
+        "SECURITY_INCIDENT.md",
+        "README.md",
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md",
+        ".github/**"
+      ],
+      "acceptance": [
+        "`scripts/check-ready.sh` parses and prints the new /ready boolean shape (anthropic, openai, supabase, transcription, optional elevenlabs) and surfaces `x-request-id` when present.",
+        "`scripts/check-ready.sh` runs end-to-end without structural bash errors on a system with curl available; missing local keys yellow-flag, missing production health is a hard red (existing behaviour preserved).",
+        "`render.yaml` retains `healthCheckPath: /health` with a brief comment noting `/health` is liveness and `/ready` is feature-availability (do NOT switch Render to /ready).",
+        "DEPLOY.md gains a `## Reading production logs` section covering Render logs, Vercel logs, and grepping by the `x-request-id` correlation id.",
+        "If `web/vercel.json` has no platform-health probe, that is fine -- document why in DEPLOY.md instead.",
+        "`npm run build --workspace backend` clean on the worker branch.",
+        "`cd backend && npm test` passes on the worker branch.",
+        "SECURITY.md / README.md / PHONE_DEMO.md / YOUR_ACTIONS.md are NOT modified."
+      ],
+      "verify": "## Setup\n- Inherits cost-guards-and-payload branch.\n- `npm install` at repo root.\n\n## Automated\n- `npm run build --workspace backend` clean.\n- `cd backend && npm test` passes.\n- `bash scripts/check-ready.sh` runs without bash errors (it is OK for it to report yellow on missing local env keys, and OK for Vercel/Render lines to depend on internet; exit code may be 1 if production health fails -- that is a separate concern from structural correctness).\n- Boot backend locally and rerun the script -- the /ready section should now show the new boolean breakdown rather than raw JSON dump.\n\n## Manual\n- `curl -s https://foreman-phi.vercel.app/api/health` -> 200 ok.\n- `curl -s https://foreman-api-y31r.onrender.com/health` -> 200 ok.\n- Read DEPLOY.md `## Reading production logs` section and confirm it covers Render + Vercel + the x-request-id correlation id grep recipe.\n- `git diff --name-only $(git merge-base HEAD main)...HEAD | sort -u` and confirm no forbidden paths were touched.",
+      "model": "composer-2-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "verify-sre-platform",
+      "type": "verifier",
+      "verifies": "health-and-deploy-docs",
+      "scopedGoal": "Verify the aggregated SRE subtree branch (the health-and-deploy-docs branch contains ready-and-logging + cost-guards-and-payload + health-and-deploy-docs). Run the full verification recipe in `verify`. For each SRE acceptance bullet in the parent plan's `acceptanceCriteria`, record explicit pass / not met / n/a with the evidence command and its outcome. Specifically check: (a) `/ready` returns the new boolean shape on a locally booted backend; (b) Fastify logs are structured JSON in production mode (boot with NODE_ENV=production and confirm log lines parse as JSON); (c) a 5xx response (force one by hitting an endpoint that requires auth without a key, or by patching nothing -- just verify the error handler path logs reqId); (d) /analyse oversized payload returns 413 before the handler runs; (e) per-route rate-limit caps documented numerically in DEPLOY.md; (f) `## Cost guards and billing alerts` and `## Reading production logs` sections present in DEPLOY.md; (g) `render.yaml` healthCheckPath is `/health` with the new comment; (h) `bash scripts/check-ready.sh` runs without bash structural errors. Output your verdict as `## Verification` per the verifier prompt structure -- prefer `unit-test-verified` if you ran the build + tests + smoke curl, downgrade to `type-check-only` if only the build worked. Use `verifier-blocked` (not `verifier-failed`) if production URLs are down for reasons outside this subtree's control (e.g. Render free-tier cold start, missing operator-set env vars) and clearly explain.",
+      "dependsOn": [
+        "health-and-deploy-docs"
+      ],
+      "acceptance": [
+        "Verification section lists evidence for every SRE acceptance bullet in this plan's `acceptanceCriteria` (5 items).",
+        "If any item is blocked by human-only action (e.g. operator-owned secret or paid Render upgrade), the verifier marks it `verifier-blocked` with one-line reasoning rather than `verifier-failed`.",
+        "`## Verification` line uses exactly one of: `live-ui-verified`, `unit-test-verified`, `type-check-only`, `verifier-blocked`, `verifier-failed`.",
+        "If sibling-owned forbidden paths (SECURITY.md, route files) were touched, flag as a high finding."
+      ],
+      "verify": "## Setup\n- Inherits health-and-deploy-docs branch (auto-wired).\n- `npm install` at repo root.\n\n## Automated\n- `npm run build --workspace backend` (must be clean).\n- `cd backend && npm test` (must pass).\n- `bash scripts/check-ready.sh` (allowed to report yellow on missing local env; structural bash errors are a fail).\n- Boot backend locally (NODE_ENV=development first, then NODE_ENV=production with required env stubs) and:\n  - `curl -s http://127.0.0.1:8080/ready | jq` -- expect new boolean shape.\n  - `curl -i http://127.0.0.1:8080/health` -- expect 200 and an `x-request-id` header.\n  - Post an oversized base64 image to /analyse and expect 413 (see cost-guards verify recipe).\n  - In NODE_ENV=production mode, confirm a request log line parses as JSON via `python3 -c 'import json,sys; json.loads(sys.stdin.readline())'` piped from the backend stdout.\n\n## Manual\n- `curl -s https://foreman-phi.vercel.app/api/health` -> 200.\n- `curl -s https://foreman-api-y31r.onrender.com/health` -> 200 (allow 30-60s for Render free-tier cold start).\n- Read DEPLOY.md and confirm the log-reading recipe + billing-alert + rate-limit caps sections exist and are coherent.\n- `git diff --name-only main...HEAD` -- confirm no forbidden paths (SECURITY.md, route files under backend/src/routes/{analyse,transcribe,voice,sessions,labels}.ts, web/**, etc.) were modified.\n\n## Gotchas\n- Render free tier sleeps; first curl may take 30-60s. Retry once before flagging.\n- If a production URL is genuinely down for operator-owned reasons (no API key set, project paused), use `verifier-blocked` with the one-line reason -- do not escalate to `verifier-failed`.",
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    }
+  ]
+}
