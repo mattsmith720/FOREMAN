@@ -277,6 +277,14 @@
     {
       "at": "2026-06-06T03:37:58.147Z",
       "message": "ciso-security: run.wait returned status=error; recovery probe found terminal status=error, accepting authoritative status"
+    },
+    {
+      "at": "2026-06-06T03:37:59.111Z",
+      "message": "ciso-security: run ended with status=error; see /workspace/.orchestrate/foreman-production-ready/handoffs/ciso-security.md"
+    },
+    {
+      "at": "2026-06-06T03:37:59.112Z",
+      "message": "ciso-security: synthetic failure handoff written to /workspace/.orchestrate/foreman-production-ready/handoffs/ciso-security-failure.md"
     }
   ]
 }

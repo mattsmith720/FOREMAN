@@ -1,22 +1,22 @@
 <!-- orchestrate failure handoff
 task: ciso-security
 branch: orch/foreman-production-ready/ciso-security
-agentId: bc-4af1d5d3-26f6-4d0a-8214-3710855ce0ef
-runId: run-f3b29f58-edee-46a7-bab6-5344cff7e917
+agentId: bc-c6bd2e24-43a5-4525-8c79-2e77f3ebd4aa
+runId: run-a866d705-b062-47a0-9064-2f41c2199b2a
 failureMode: unknown
-terminatedAt: 2026-06-06T03:03:52.220Z
+terminatedAt: 2026-06-06T03:37:58.148Z
 -->
 
 # ciso-security failure handoff
 
 Status: error (cloud agent terminated without writing a handoff)
 Failure mode: unknown
-Cloud agent: bc-4af1d5d3-26f6-4d0a-8214-3710855ce0ef
-Started: 2026-06-06T02:34:14.836Z
-Terminated: 2026-06-06T03:03:52.220Z
-Duration: 1777384ms
-Last activity: 2026-06-06T03:03:52.121Z
-Last tool call: run_terminal_cmd
+Cloud agent: bc-c6bd2e24-43a5-4525-8c79-2e77f3ebd4aa
+Started: 2026-06-06T03:07:59.533Z
+Terminated: 2026-06-06T03:37:58.148Z
+Duration: 1798615ms
+Last activity: 2026-06-06T03:37:58.032Z - ciso-security manual reset: first attempt died mid-plan-draft with unknown failure mode; retry as-is per orchestrate guidance, attempts zeroed so first new attempt starts from main.
+Last tool call: todo_write
 Branch: orch/foreman-production-ready/ciso-security
 SDK error: (none recorded)
 
