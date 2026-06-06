@@ -92,8 +92,8 @@ See [DEPLOY.md](DEPLOY.md) for production smoke examples.
 
 ## What you need to do next
 
-**Phone testing — start here:** **[YOUR_ACTIONS.md](YOUR_ACTIONS.md)** (what you need to do)
+**Pilot test — start here:** **[PILOT_HANDOFF.md](PILOT_HANDOFF.md)** (the iPhone walk, what to expect, env checklist)
 
-Also: [PHONE_READY.md](PHONE_READY.md) · [PHONE_DEMO.md](PHONE_DEMO.md) · [SECURITY.md](SECURITY.md)
+Setup steps: [YOUR_ACTIONS.md](YOUR_ACTIONS.md) · Demo script: [PHONE_DEMO.md](PHONE_DEMO.md) · Architecture: [TECHNICAL_OVERVIEW.md](TECHNICAL_OVERVIEW.md)
 
 Security posture: **[SECURITY.md](SECURITY.md)**

@@ -144,8 +144,8 @@ BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm
 1. iPhone Safari → **https://foreman-phi.vercel.app**
 2. If Render has been idle, wait ~30–60s before the first **Start job** (free-tier cold start), then retry
 3. Read the consent overlay (Australian privacy / sensitive-data wording), then tap **I understand — continue**
-4. Allow **camera** and **microphone**
-5. Tap **Start job**
+4. Pick a job phase — **Survey**, **Install**, or **Pitch**
+5. Tap **Start install** (the button is labelled for the phase) → allow **camera** and **microphone**
 6. Confirm the red **REC** badge appears top-left while the session runs
 7. Point camera at a scene and talk through what you're doing
 
@@ -154,10 +154,9 @@ BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm
 > "Installing rail brackets on the north roof. Checking fall protection. Customer asked about payback — quoted thirty percent bill savings."
 
 **You should see:**
-- Foreman coach overlay with hero cue updating (~every 4s)
-- Status pill cycling **Live** → **Analyzing…**
-- **Heard** line when you speak
-- Tap **Feed** → **Live feed** with Frame, AI, Coach, and Saved entries
+- Foreman coach overlay with the hero cue updating every few seconds (tap the card to cycle cues)
+- A phase chip + status pill cycling **Live** → **Analyzing…**
+- Tap **Details** for the full sheet: **Seeing**, **Heard** (your speech), **Advice**, **Marks**
 - Optional: **Cue voice on/off** and **Talk live** / **End talk** when voice routes are configured
 - **End job** → **Job complete** summary with frame/transcript counts
 

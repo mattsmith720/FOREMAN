@@ -25,21 +25,21 @@ Show your mate live AI coaching on a real scene in ~90 seconds.
 - Point at something interesting (gym equipment, roof line out the window, anything with structure).
 - Say: *"This is Foreman — live AI coaching for field work. It watches the job and gives you feedback."*
 
-### 2. Start job (5s)
-- Tap **Start job**.
-- Status pill shows **Live**; **Cam** and **Mic** dots light up in the coach header.
-- A red **REC** badge appears top-left on the camera stage while the session is active (through **Summarising…**).
+### 2. Pick phase + start (5s)
+- On the boot screen ("What are you doing on site?") tap a phase — **Survey**, **Install**, or **Pitch**.
+- Tap **Start install** (the button is labelled for the phase you picked).
+- A red **REC** badge appears top-left; the top bar shows the **phase chip** and a **status pill** cycling **Live → Analyzing…** (through **Summarising…** at the end).
 
 ### 3. Coaching (30s)
 - Pan the camera slowly across the scene.
 - Every few seconds: status flips to **Analyzing…** → hero coaching card updates with the top cue.
 - Warnings and safety issues show in amber/red on the card.
-- Optional: tap toolbar buttons **Seeing**, **Hearing**, **Advice**, **Marks**, or **Feed** for detail panels.
+- Optional: tap **Details** for the full sheet — **Seeing**, **Heard**, **Advice**, **Marks**.
 
 ### 4. Audio (15s)
 - Say clearly: *"This install is going smooth, customer loves the savings, we're on schedule."*
-- **Heard** line appears under the coaching card with your latest transcript.
-- Tap **Feed** → **Live feed** shows Frame, AI, Coach, and Saved activity as frames persist.
+- Tap **Details** → **Heard** shows your latest transcript; **Advice → Pitch & upsell** critiques the line.
+- Frames and coaching save to the job log in the background — confirmed by the counts at **End job**.
 
 ### 5. Close (30s)
 - Tap **End job**.
@@ -54,8 +54,9 @@ Append `?debug=1` to the URL for a capture health strip:
 
 - Frame size (KB)
 - Analyse latency (ms)
-- Persist success per frame
+- Persist (async — frames queued for background save)
 - Mic MIME + chunk size
+- Inside **Details**, an **Activity** feed of live Frame/AI/Coach/Saved events
 
 ---
 
@@ -64,7 +65,7 @@ Append `?debug=1` to the URL for a capture health strip:
 | Symptom | Fix |
 |---------|-----|
 | Start job fails immediately | Render cold start — wait 60s, retry |
-| Yellow "not saved" banner | Supabase env on Render — check `SUPABASE_URL` |
+| "Job complete" shows 0 frames | Cold start before Claude warmed up — retry; check `SUPABASE_*` + `ANTHROPIC_API_KEY` on Render |
 | No transcript | Mic permission or iOS audio — vision-only still works |
 | 413 error | Hard refresh — compression should keep frames small |
 | Job ends with "No frames were analysed during this session." | Session ran but no frames reached Claude — check API keys on Render and retry after cold start |
