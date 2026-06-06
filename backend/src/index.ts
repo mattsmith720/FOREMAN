@@ -7,7 +7,11 @@ import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 import { assertProductionSecurity } from "./assert-production-security.js";
 import { registerAuthHook } from "./auth.js";
-import { getCorsOrigins, getListenPort } from "./config.js";
+import {
+  getAnalyseFrameByteCap,
+  getCorsOrigins,
+  getListenPort,
+} from "./config.js";
 import { registerAnalyseRoutes } from "./routes/analyse.js";
 import { registerSessionRoutes } from "./routes/sessions.js";
 import { registerLabelRoutes } from "./routes/labels.js";
@@ -44,6 +48,37 @@ function getLoggerConfig() {
   return true;
 }
 
+const ANALYSE_RATE_LIMIT = { max: 30, timeWindow: "1 minute" } as const;
+const TRANSCRIBE_RATE_LIMIT = { max: 20, timeWindow: "1 minute" } as const;
+const VOICE_RATE_LIMIT = { max: 60, timeWindow: "1 minute" } as const;
+
+function getPerRouteRateLimit(url: string) {
+  if (url === "/analyse") {
+    return ANALYSE_RATE_LIMIT;
+  }
+  if (url === "/transcribe") {
+    return TRANSCRIBE_RATE_LIMIT;
+  }
+  if (url === "/voice" || url.startsWith("/voice/")) {
+    return VOICE_RATE_LIMIT;
+  }
+  return undefined;
+}
+
+function getDataUrlBase64Payload(dataUrl: string): string | undefined {
+  if (!dataUrl.startsWith("data:")) {
+    return undefined;
+  }
+
+  const marker = ";base64,";
+  const markerIndex = dataUrl.indexOf(marker);
+  if (markerIndex === -1) {
+    return undefined;
+  }
+
+  return dataUrl.slice(markerIndex + marker.length);
+}
+
 const app = Fastify({
   logger: getLoggerConfig(),
   bodyLimit: 15 * 1024 * 1024,
@@ -62,6 +97,53 @@ app.addHook("onResponse", async (request, reply) => {
       "request completed with server error",
     );
   }
+});
+
+app.addHook("onRoute", (routeOptions) => {
+  const routeRateLimit = getPerRouteRateLimit(routeOptions.url);
+  if (!routeRateLimit) {
+    return;
+  }
+
+  routeOptions.config = {
+    ...(routeOptions.config ?? {}),
+    rateLimit: routeRateLimit,
+  };
+});
+
+app.addHook("preValidation", async (request, reply) => {
+  if (request.method !== "POST" || request.routeOptions?.url !== "/analyse") {
+    return;
+  }
+
+  if (!request.headers["content-type"]?.includes("application/json")) {
+    return;
+  }
+
+  const body = request.body;
+  if (!body || typeof body !== "object") {
+    return;
+  }
+
+  const image = (body as { image?: unknown }).image;
+  if (typeof image !== "string") {
+    return;
+  }
+
+  const payload = getDataUrlBase64Payload(image);
+  if (!payload) {
+    return;
+  }
+
+  const payloadBytes = Buffer.byteLength(payload, "utf8");
+  const maxBytes = getAnalyseFrameByteCap();
+  if (payloadBytes <= maxBytes) {
+    return;
+  }
+
+  return reply.status(413).send({
+    error: `Image payload exceeds ANALYSE_FRAME_MAX_BYTES (${maxBytes} bytes)`,
+  });
 });
 
 app.setErrorHandler((err, request, reply) => {

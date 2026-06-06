@@ -1,4 +1,5 @@
 const DEFAULT_PORT = 8080;
+const DEFAULT_ANALYSE_FRAME_MAX_BYTES = 4 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -66,6 +67,20 @@ export function getListenPort(): number {
     return DEFAULT_PORT;
   }
   return port;
+}
+
+export function getAnalyseFrameByteCap(): number {
+  const raw = process.env.ANALYSE_FRAME_MAX_BYTES?.trim();
+  if (!raw) {
+    return DEFAULT_ANALYSE_FRAME_MAX_BYTES;
+  }
+
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return DEFAULT_ANALYSE_FRAME_MAX_BYTES;
+  }
+
+  return parsed;
 }
 
 export function isAllowedImageType(mediaType: string): boolean {

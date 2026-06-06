@@ -120,3 +120,26 @@ See [PHONE_TEST.md](PHONE_TEST.md).
 - **Vercel** — Hobby free tier is enough for personal testing
 - **Render** — Free web service (with sleep); upgrade if you need always-on for demos
 - **Anthropic + OpenAI + Supabase** — usage-based; monitor dashboards during heavy testing
+
+## Cost guards and billing alerts
+
+Backend API cost controls are enforced server-side in Fastify:
+
+- Global default rate limit: `120 requests / minute / IP`
+- `/analyse`: `30 requests / minute / IP`
+- `/transcribe`: `20 requests / minute / IP`
+- `/voice/*` (including `/voice/config`, `/voice/speak`, `/voice/convai-url`, `/voice/advice`): `60 requests / minute / IP`
+- `/analyse` frame payload cap: `ANALYSE_FRAME_MAX_BYTES` (default `4194304` bytes of base64 payload)
+
+If a `/analyse` request exceeds `ANALYSE_FRAME_MAX_BYTES`, the API returns `413 Payload Too Large` before the analyse handler runs.
+
+Manual billing-alert operator recipe:
+
+1. Anthropic Console: `Console -> Settings -> Billing -> Usage limits`
+   - Set monthly and/or hard usage limits for the workspace used by Foreman.
+   - Configure notifications at thresholds that fit your budget policy.
+2. OpenAI Platform: `Platform -> Settings -> Limits`
+   - Set spend limits and alerts for the project/organization serving Foreman.
+   - Confirm alert recipients are the on-call/operator distribution list.
+
+Mirroring this operator recipe into `SECURITY.md` is handled separately by the security owner.
