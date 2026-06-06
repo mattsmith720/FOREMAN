@@ -1,0 +1,154 @@
+{
+  "$schema": "../../../../home/ubuntu/.cursor/plugins/cache/cursor-public/9333/683cdbda983ea8be4b766ac3fe94b7b88e7f75ad/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Own CEO DoD #7 for Foreman: tests + readiness scripts pass + E2E smoke. Author scripts/smoke-e2e.* that walks /sessions/start -> /analyse -> /transcribe -> /sessions/:id/stop against ${BASE_URL:-http://127.0.0.1:8080} with ${FOREMAN_API_KEY}, exits non-zero on any failure, and prints a concise summary; ensure backend and web unit tests are green; wire `npm run smoke` and append a 'Release smoke' section to DEPLOY.md.",
+  "summary": "QA Release lead: ship e2e smoke script, green test suites, and a Release smoke recipe for CEO DoD #7",
+  "rootSlug": "qa-release",
+  "baseBranch": "cursor/qa-release-subplan-adfc",
+  "prBase": "main",
+  "repoUrl": "https://github.com/mattsmith720/FOREMAN",
+  "syncStateToGit": true,
+  "selfAgentId": "bc-148267c7-6299-48db-b84b-1fc6cbebadfc",
+  "acceptanceCriteria": [
+    "CEO DoD #7 evidenced: scripts/smoke-e2e.* exists and exits non-zero on any failure when run against ${BASE_URL:-http://127.0.0.1:8080}.",
+    "`cd backend && npm test` and `cd web && npm test` both pass on the QA release handoff branch; document anything that cannot be fixed in this slice.",
+    "`npm run smoke` (or equivalent) defined in package.json invokes the smoke script.",
+    "DEPLOY.md contains a `Release smoke` section that names the script and the env vars it needs.",
+    "Verifier confirms each of the above with command-level evidence."
+  ],
+  "tasks": [
+    {
+      "name": "e2e-smoke-script",
+      "type": "worker",
+      "scopedGoal": "Author a runnable E2E smoke script at `scripts/smoke-e2e.sh` (prefer pure bash + curl + python3 for JSON parsing so it has no install step). The script MUST: (1) read `BASE_URL` (default `http://127.0.0.1:8080`) and `FOREMAN_API_KEY` from env; refuse to run with a clear non-zero exit + helpful message when `FOREMAN_API_KEY` is empty; (2) POST `/sessions/start` with `Content-Type: application/json` and `x-foreman-api-key: $FOREMAN_API_KEY`, body `{\"jobType\":\"smoke_test\"}`; extract `session.id` and the top-level `token` from the JSON response; fail if the HTTP status is not 201; (3) POST `/analyse` with `Content-Type: application/json`, `x-foreman-api-key`, `x-session-token: $TOKEN`, and a body containing `image` (use the tiny built-in JPEG data URL already used in `scripts/check-ready.sh` -- copy it verbatim into the script or load it from a fixture file under `scripts/smoke-fixtures/`) plus `sessionId`; accept HTTP 200 as success, accept HTTP 503 as a CONFIGURED-PASS only when the body contains `ANTHROPIC_API_KEY is not set` (treat this as a yellow note, NOT a failure -- the smoke is exercising the route shape, not the model), and treat anything else as failure; (4) POST `/transcribe` with the same headers and a tiny audio payload -- create a small WAV fixture at `scripts/smoke-fixtures/tiny.wav` (a few hundred bytes of silence/sine is fine; you may generate via `printf` of a hard-coded base64 string emitted by the script itself, or check in a tiny .wav file under 4 KB), encode as a `data:audio/wav;base64,...` URL, send with `sessionId`; accept HTTP 200 (including empty text when the audio is below the size floor) and accept HTTP 503 with body containing `OPENAI_API_KEY is not set` as a configured-pass note; (5) POST `/sessions/$SESSION_ID/stop` with the API key and session token; require HTTP 200; (6) print a concise pass/fail summary at the end with one line per step and an overall verdict; exit non-zero if ANY required step failed. Use `set -euo pipefail` and trap to print the summary even on early exit. Be defensive: `curl -sS -o body.txt -w '%{http_code}'` style so you can inspect both body and status. Echo a `>> request:` line before each call so logs are readable. Keep the script under ~250 lines. Use python3 for JSON extraction (already used by check-ready.sh). Do not add any new npm dependencies. If you also want a TypeScript version under `scripts/smoke-e2e.ts`, that's OK but the bash script is the primary deliverable. Run the script against a locally booted backend (you can use placeholder env so all upstream APIs report 503, which is acceptable per (3) and (4)) to prove that the script exits 0 when the route shape is correct and non-zero on real failure. Commit the script + any fixtures + a short README header inside the script. Final handoff MUST include the actual exit code you observed on a smoke run.",
+      "pathsAllowed": [
+        "scripts/smoke-e2e.sh",
+        "scripts/smoke-e2e.ts",
+        "scripts/smoke-fixtures/**"
+      ],
+      "acceptance": [
+        "scripts/smoke-e2e.sh exists, is executable (chmod +x), and uses `set -euo pipefail`.",
+        "Walks the four endpoints in order: POST /sessions/start -> POST /analyse -> POST /transcribe -> POST /sessions/:id/stop using x-foreman-api-key and x-session-token headers.",
+        "Reads BASE_URL (default http://127.0.0.1:8080) and FOREMAN_API_KEY from env; exits non-zero with a clear missing-key error when FOREMAN_API_KEY is empty.",
+        "Treats HTTP 503 with body `ANTHROPIC_API_KEY is not set` (on /analyse) or `OPENAI_API_KEY is not set` (on /transcribe) as a configured-pass note but NEVER as a failure; treats any other non-2xx on those routes (or any non-2xx on /sessions/start and /sessions/:id/stop) as a failure.",
+        "Prints a pass/fail summary block at the end naming each step and the overall verdict.",
+        "Was actually executed at least once against a locally booted backend; the handoff body records the exit code and a snippet of the summary output.",
+        "No narrative comments in the script: only comment why, not what."
+      ],
+      "verify": "## Setup\n- `chmod +x scripts/smoke-e2e.sh` (the script itself should also set the bit on commit).\n- Boot the backend locally: `cd backend && npm install && PORT=8080 FOREMAN_API_KEY=local-smoke npx tsx src/index.ts &` (or run `npm run dev:backend` in another terminal).\n- Wait for `curl -sf http://127.0.0.1:8080/health` to return 200.\n\n## Automated\n- `BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=local-smoke bash scripts/smoke-e2e.sh; echo \"exit=$?\"` -- expect exit code 0 with /analyse and /transcribe noted as configured-pass when upstream keys are absent.\n- Re-run with `FOREMAN_API_KEY= bash scripts/smoke-e2e.sh; echo \"exit=$?\"` -- expect non-zero exit and a clear missing-key error.\n- Re-run with `BASE_URL=http://127.0.0.1:9999 FOREMAN_API_KEY=local-smoke bash scripts/smoke-e2e.sh; echo \"exit=$?\"` (no backend on that port) -- expect non-zero exit.\n\n## Gotchas\n- /sessions/start requires Supabase to be configured server-side. If Supabase is not configured locally, it returns 503; in that case the smoke MUST exit non-zero and explain why. Do NOT add a silent fallback that treats /sessions/start 503 as success.\n- The session token (`x-session-token`) is required for /analyse, /transcribe, and /sessions/:id/stop. Lift it from the JSON response of /sessions/start (top-level `token` field).\n- Keep the script POSIX-bash compatible (works on macOS bash 3.2 and Linux bash 5).",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 3
+    },
+    {
+      "name": "test-suite-green",
+      "type": "worker",
+      "scopedGoal": "Ensure `cd backend && npm test` and `cd web && npm test` both pass on the QA Release branch. Steps: (1) `npm install` at repo root (this also runs the postinstall that builds shared); (2) run both test commands and capture their outputs verbatim; (3) for each failure, decide if it is fixable inside this slice's path budget. If the failure is in test files only (matching the path globs you are allowed to modify), fix it and re-run until green. If the failure is in source files OWNED by siblings (anything under `backend/src/**`, `shared/src/**`, or `web/lib/**`, `web/app/**`, `web/components/**`, `web/middleware.ts`, `web/next.config.mjs`), DO NOT modify those source files. Instead, document the failure verbatim in your handoff `## Notes` section with: (a) the failing test name, (b) the exact stdout/stderr lines, (c) which sibling subtree should own the fix, (d) a one-sentence recommendation. (4) If you find tests that can be fixed by editing only test files under your allowed paths -- e.g. tightening an assertion to match an intentional new behavior, adjusting a fixture, fixing a flaky timer -- fix them. Keep the diff minimal and explain each fix in your handoff. (5) Re-run BOTH suites at the end and paste the final pass/fail line for each into your handoff. The handoff MUST end with one of: `BOTH-GREEN`, `BACKEND-GREEN-WEB-RED`, `BACKEND-RED-WEB-GREEN`, `BOTH-RED`. (6) If both suites are already green on this branch, just confirm that with the actual output. Do NOT add or modify production source code under sibling paths.",
+      "pathsAllowed": [
+        "backend/src/**/*.test.ts",
+        "web/lib/**/*.test.ts",
+        "web/lib/**/__fixtures__/**",
+        "backend/src/**/__fixtures__/**",
+        ".orchestrate/qa-release/**"
+      ],
+      "pathsForbidden": [
+        "backend/src/index.ts",
+        "backend/src/config.ts",
+        "backend/src/api-error.ts",
+        "backend/src/analyse.ts",
+        "backend/src/transcribe.ts",
+        "backend/src/summarise-session.ts",
+        "backend/src/db/**",
+        "backend/src/routes/**",
+        "backend/src/prompts/**",
+        "shared/src/**",
+        "web/app/**",
+        "web/components/**",
+        "web/lib/api.ts",
+        "web/lib/compress-frame.ts",
+        "web/middleware.ts",
+        "web/next.config.mjs",
+        "web/vercel.json"
+      ],
+      "acceptance": [
+        "Both `cd backend && npm test` and `cd web && npm test` are reported in the handoff with their exact final summary lines (e.g. node:test `# pass` / `# fail` counts).",
+        "Handoff body ends with one of the four sentinel tokens: BOTH-GREEN, BACKEND-GREEN-WEB-RED, BACKEND-RED-WEB-GREEN, BOTH-RED.",
+        "Any test failure that cannot be fixed within the allowed paths is documented in `## Notes` with name, error, owning sibling, and recommendation.",
+        "No production code under sibling paths was modified; only test files / fixtures under the allowed globs."
+      ],
+      "verify": "## Setup\n- `git checkout <test-suite-green branch>` and `npm install` at repo root.\n\n## Automated\n- `(cd backend && npm test)` -- record the final node:test summary line and overall exit code.\n- `(cd web && npm test)` -- same.\n\n## Gotchas\n- `npm install` at root runs `postinstall: npm run build:shared`; if shared TypeScript fails, neither suite will run cleanly. That is a sibling-owned failure -- document, don't patch source under shared/src.\n- node:test exits 0 even when a `# fail > 0` is printed in some runners; check both exit code and the summary line.",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "release-recipe",
+      "type": "worker",
+      "scopedGoal": "Wire the smoke script into the root `package.json` and add a `Release smoke` section to `DEPLOY.md`. Tasks: (1) Add to root `package.json` `scripts`: `\"smoke\": \"bash scripts/smoke-e2e.sh\"` (use the bash script as the canonical entrypoint; if only a .ts version exists at handoff time, fall back to `tsx scripts/smoke-e2e.ts`). Keep other scripts intact; do not reorder unrelated keys. (2) Append a `## Release smoke` section to the END of `DEPLOY.md` (after the existing 'Costs' section). The section MUST be ONE concise paragraph (3-6 sentences) that: names the script path (`scripts/smoke-e2e.sh` and the `npm run smoke` entrypoint), lists the env vars it needs (`BASE_URL`, `FOREMAN_API_KEY`), gives a copy-pasteable example for both local (`BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke`) and production (`BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke`), and explicitly states the script exits non-zero on any failure so it is safe to wire into CI. Do NOT rewrite other DEPLOY.md sections. Do NOT add comments beyond what is essential. (3) Verify the wire-up works by running `npm run smoke` against the local backend -- the script must invoke without 'script not found' or shell errors. Confirm in your handoff that `npm run smoke -- --help 2>&1 | head -5` or equivalent shows the script is reachable. DEPENDS ON: `e2e-smoke-script`. If `scripts/smoke-e2e.sh` does not exist on the upstream's branch (read the upstream handoff that is inlined in this prompt), STILL add the npm script and the DEPLOY.md section pointing at the planned path, and flag in `## Notes` that the script is upstream-blocked.",
+      "pathsAllowed": [
+        "package.json",
+        "DEPLOY.md"
+      ],
+      "acceptance": [
+        "`npm run smoke` resolves to `bash scripts/smoke-e2e.sh` (or the .ts fallback) and runs (even if it then exits non-zero due to a missing key, it must REACH the script).",
+        "`DEPLOY.md` ends with a `## Release smoke` section under the Costs section that is one paragraph (3-6 sentences), names the script path, lists `BASE_URL` and `FOREMAN_API_KEY`, gives a copy-pasteable example for local and production, and states the non-zero-on-failure behavior.",
+        "No other package.json scripts were renamed or removed; only the `smoke` entry was added.",
+        "No other DEPLOY.md sections were rewritten or reordered."
+      ],
+      "verify": "## Setup\n- `git checkout <release-recipe branch>` and `npm install`.\n\n## Automated\n- `node -e \"const p=require('./package.json'); if (!p.scripts.smoke) {console.error('missing smoke script'); process.exit(1)} else {console.log(p.scripts.smoke)}\"` -> prints the smoke entry.\n- `FOREMAN_API_KEY= npm run smoke 2>&1 | tail -5; echo exit=$?` -> reaches the script and exits non-zero with the expected missing-key error.\n- `grep -n '^## Release smoke' DEPLOY.md` -> prints exactly one matching line.\n\n## Manual\n- Read the new DEPLOY.md section and confirm it is one paragraph (no bullet salad), mentions BASE_URL + FOREMAN_API_KEY, both example commands, and the non-zero-exit-on-failure note.",
+      "startingRef": "orch/qa-release/e2e-smoke-script",
+      "dependsOn": ["e2e-smoke-script"],
+      "model": "composer-2-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "merge-qa-release",
+      "type": "worker",
+      "scopedGoal": "Consolidate the three sibling branches into a single deliverable branch that the parent CTO planner can hand up. Steps: (1) You are starting on `orch/qa-release/release-recipe`, which already contains the smoke script (inherited via dependsOn from `e2e-smoke-script` because release-recipe started from that branch). Confirm this by reading `scripts/smoke-e2e.sh`. (2) Merge `orch/qa-release/test-suite-green` into your current branch with `git merge --no-ff orch/qa-release/test-suite-green`. (3) On conflict in any test file under `backend/src/**/*.test.ts` or `web/lib/**/*.test.ts`, PREFER the test-suite-green side (it has authoritative test fixes). For conflicts in any other file, prefer the current side (smoke + DEPLOY recipe). After resolution, commit with `merge: consolidate qa-release subtree`. (4) Run the full acceptance suite on the merged branch and paste output verbatim into your handoff: `npm install`, then `(cd backend && npm test)`, `(cd web && npm test)`, then `FOREMAN_API_KEY= npm run smoke; echo exit=$?` (expect non-zero with missing-key error), then boot the backend locally (`PORT=8080 FOREMAN_API_KEY=local-smoke tsx backend/src/index.ts &`), wait for /health, and run `BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=local-smoke npm run smoke; echo exit=$?`. (5) Push the merged branch. Final handoff MUST include the merge commit SHA, the exit codes from each verification command, and a 'READY FOR VERIFIER' line if everything passed. If any step failed, write `BLOCKED:` with the reason and do NOT mark success.",
+      "pathsAllowed": [
+        "scripts/**",
+        "package.json",
+        "DEPLOY.md",
+        ".orchestrate/qa-release/**",
+        "backend/src/**/*.test.ts",
+        "web/lib/**/*.test.ts"
+      ],
+      "pathsForbidden": [
+        "backend/src/index.ts",
+        "backend/src/routes/**",
+        "backend/src/db/**",
+        "shared/src/**",
+        "web/app/**",
+        "web/components/**",
+        "web/lib/api.ts",
+        "web/lib/compress-frame.ts",
+        "web/middleware.ts",
+        "web/next.config.mjs"
+      ],
+      "acceptance": [
+        "Merge commit exists on the deliverable branch with both parents (release-recipe + test-suite-green) recorded in `git log --merges -1`.",
+        "On the deliverable branch: `(cd backend && npm test)` and `(cd web && npm test)` both pass; the handoff includes the final summary lines.",
+        "On the deliverable branch: `FOREMAN_API_KEY= npm run smoke` exits non-zero with a missing-key error; `BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=local-smoke npm run smoke` exits 0 (or with documented configured-pass notes only) against a locally booted backend.",
+        "`scripts/smoke-e2e.sh` is present and executable; `DEPLOY.md` contains the `## Release smoke` section; `package.json` `scripts.smoke` is present.",
+        "Handoff ends with `READY FOR VERIFIER` OR `BLOCKED: <reason>`."
+      ],
+      "verify": "## Setup\n- `git checkout <merge-qa-release branch>` and `npm install`.\n\n## Automated\n- `git log --merges -1 --format='%H %P %s'` -> shows the merge commit with two parents.\n- `(cd backend && npm test)` and `(cd web && npm test)` -> both green.\n- `FOREMAN_API_KEY= npm run smoke; echo exit=$?` -> non-zero with missing-key error.\n- Boot backend locally, then `BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=local-smoke npm run smoke; echo exit=$?` -> 0.\n\n## Gotchas\n- The shared package must be built before tests run; `npm install` at root handles that via postinstall.\n- If the backend boot needs Supabase, expect /sessions/start to 503; the smoke must then exit non-zero -- that is correct behavior and SHOULD be surfaced by the verifier as a test gap (we cannot fully smoke without Supabase configured), not a failure of this slice.",
+      "startingRef": "orch/qa-release/release-recipe",
+      "dependsOn": ["release-recipe", "test-suite-green"],
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "verify-qa-release",
+      "type": "verifier",
+      "verifies": "merge-qa-release",
+      "scopedGoal": "Verify the consolidated QA Release deliverable branch satisfies the parent's CEO DoD #7 acceptance criteria. Run the full verification recipe in `verify`. For EACH of the four QA Release acceptance criteria in the parent plan, write `- [x]` or `- [ ]` with command-level evidence (exit code, summary line, grep hit). Independently re-run both unit test suites; do not trust the upstream handoff alone. Independently boot the backend and run `npm run smoke` with and without `FOREMAN_API_KEY` to verify the non-zero-exit-on-missing-key contract. Read the new `Release smoke` section in DEPLOY.md and confirm it names `scripts/smoke-e2e.sh`, `BASE_URL`, and `FOREMAN_API_KEY` and states the non-zero-exit contract. Emit a `## Verification` line with one of: `live-ui-verified` (if you actually exercised a deployed phone web UI -- you almost certainly will NOT for this slice), `unit-test-verified` (if you ran the smoke script + unit tests with passing or documented configured-pass results -- this is the expected outcome), `type-check-only` (only the build was a signal -- downgrade), `verifier-blocked` (env failures prevented verification), `verifier-failed` (verification ran and acceptance was not met). Do NOT round up: if the smoke script could not actually reach /sessions/start because Supabase is not configured locally, report that honestly under findings, but treat the contract test (`FOREMAN_API_KEY=` -> non-zero, normal run -> reaches /sessions/start) as the primary signal.",
+      "acceptance": [
+        "Verification section reports per-bullet evidence for each of the 4 QA Release acceptance criteria from the parent plan.",
+        "Both `cd backend && npm test` and `cd web && npm test` were independently re-run and their final summary lines are pasted into the verifier handoff.",
+        "`npm run smoke` was independently re-run with and without `FOREMAN_API_KEY`; the verifier reports the observed exit codes verbatim.",
+        "`## Verification` line uses one of the prescribed values (live-ui-verified, unit-test-verified, type-check-only, verifier-blocked, verifier-failed).",
+        "If anything is downgraded from unit-test-verified, the verifier explains exactly which evidence is missing."
+      ],
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    }
+  ]
+}
