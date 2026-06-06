@@ -1,6 +1,6 @@
 # Test Foreman on your iPhone
 
-Jarvis-style live coach: full-screen camera, microphone, AI coaching overlay, and training memory feedback.
+Full-screen camera, microphone, Foreman coaching overlay, and live activity feed.
 
 ## Test from any network (recommended for real use)
 
@@ -47,19 +47,25 @@ This starts:
 1. Same Wi‑Fi as your Mac
 2. Safari → `https://<your-mac-ip>:3000` (script prints IP, e.g. `https://192.168.0.88:3000`)
 3. Accept the certificate warning (self-signed dev cert)
-4. Tap **I understand — enable camera & mic**
-5. Allow camera and microphone
-6. Tap **Start job**
+4. Read the consent overlay:
+
+   > Foreman captures camera, microphone, and job context. Recordings are treated as sensitive personal data under Australian privacy rules (see CLAUDE.md). Tap I understand to continue.
+
+5. Tap **I understand — continue**
+6. Allow camera and microphone
+7. Tap **Start job**
 
 ## What you should see
 
-- Full-screen camera with **Jarvis HUD** overlay
-- **CAM ON** / **MIC ON** chips
-- Hero cue updating every ~4 seconds (safety, quality, pitch, next step)
+- Full-screen camera with Foreman coach overlay
+- Red **REC** badge top-left while the session is active
+- **LIVE** badge, **Cam** / **Mic** status dots, and status pill (**Live**, **Analyzing…**, **Summarising…**)
+- Hero coaching card updating every ~4 seconds (safety, quality, pitch, next step)
 - **Heard** line when you speak
-- **Training memory** feed: "Frame analysed — adding to training memory", "Dataset growing…"
-- Voice readout for warning/critical cues (disable by muting phone)
-- **Stop job** → session summary + Supabase record counts
+- Tap **Feed** → **Live feed** with Frame, AI, Coach, Saved, and System activity entries
+- **Cue voice on/off** when ElevenLabs voice is available
+- **Talk live** / **End talk** when live voice routes are configured
+- **End job** → **Job complete** panel with stored counts (frames, coaching events, labels, transcript segments)
 
 ## Simulate a tradie
 
@@ -69,7 +75,7 @@ Point the camera at a work scene and talk through what you're doing:
 
 Foreman should:
 
-- Observe install activity in the HUD
+- Observe install activity in the coaching overlay
 - Flag safety/quality if visible
 - Critique pitch from your speech
 - Log frames, transcript, and coaching to Supabase (training data moat)
@@ -80,9 +86,9 @@ Foreman should:
 |-------|----------------|
 | Vision + coaching | Claude via backend (cloud) |
 | Speech-to-text | Whisper via backend (cloud) |
-| Training memory | Supabase — every frame, transcript, coaching event stored for future model training |
+| Job log storage | Supabase — every frame, transcript, and coaching event stored for future model training |
 
-There is no on-device LLM yet. The "training memory" UI reflects real data accumulation in Supabase — the moat described in CLAUDE.md.
+There is no on-device LLM yet. The **Live feed** (toolbar **Feed** button) reflects real persistence activity — the moat described in CLAUDE.md.
 
 ## Troubleshooting
 
