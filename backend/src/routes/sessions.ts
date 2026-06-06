@@ -25,6 +25,7 @@ const startSessionSchema = z.object({
   worker: z.string().max(200).optional(),
   jobType: z.string().max(200).optional(),
   notes: z.string().max(2000).optional(),
+  consentAt: z.string().datetime().optional(),
 });
 
 const sessionIdSchema = z.object({

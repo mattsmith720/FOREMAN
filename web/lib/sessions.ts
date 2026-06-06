@@ -10,6 +10,8 @@ export interface SessionRow {
   job_type: string | null;
   notes: string | null;
   summary: string | null;
+  consent_at?: string | null;
+  data_retention?: string | null;
 }
 
 export interface SessionCounts {
@@ -23,6 +25,8 @@ export interface StartSessionInput {
   worker?: string;
   jobType?: string;
   notes?: string;
+  /** ISO timestamp captured when the worker accepted the consent overlay. */
+  consentAt?: string;
 }
 
 export async function startSession(

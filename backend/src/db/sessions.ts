@@ -9,6 +9,8 @@ export interface SessionRow {
   job_type: string | null;
   notes: string | null;
   summary: string | null;
+  consent_at?: string | null;
+  data_retention?: string | null;
 }
 
 export interface SessionCounts {
@@ -22,26 +24,55 @@ export interface CreateSessionInput {
   worker?: string;
   jobType?: string;
   notes?: string;
+  /** ISO timestamp captured when the worker accepted the consent overlay. */
+  consentAt?: string;
+  /** AU pilot retention policy; defaults to pilot_90d. */
+  dataRetention?: string;
+}
+
+function isMissingIterationAColumn(
+  error: { code?: string; message?: string } | null,
+): boolean {
+  if (!error) {
+    return false;
+  }
+  const message = error.message ?? "";
+  return (
+    error.code === "PGRST204" ||
+    message.includes("consent_at") ||
+    message.includes("data_retention")
+  );
 }
 
 export async function createSession(
   input: CreateSessionInput,
 ): Promise<SessionRow> {
   const supabase = getSupabase();
-  const insert = await supabase
+  const base = {
+    worker: input.worker ?? null,
+    job_type: input.jobType ?? "solar_install",
+    notes: input.notes ?? null,
+  };
+  const withConsent = {
+    ...base,
+    consent_at: input.consentAt ?? null,
+    data_retention: input.dataRetention ?? "pilot_90d",
+  };
+
+  let insert = await supabase
     .from("sessions")
-    .insert({
-      worker: input.worker ?? null,
-      job_type: input.jobType ?? "solar_install",
-      notes: input.notes ?? null,
-    })
+    .insert(withConsent)
     .select("*")
     .single();
 
+  // consent_at / data_retention arrive with training-iteration-a.sql. Until that
+  // migration is applied, retry without them so session start never breaks.
+  if (insert.error && isMissingIterationAColumn(insert.error)) {
+    insert = await supabase.from("sessions").insert(base).select("*").single();
+  }
+
   if (insert.error || !insert.data) {
-    throw new Error(
-      insert.error?.message ?? "Failed to create session",
-    );
+    throw new Error(insert.error?.message ?? "Failed to create session");
   }
 
   return insert.data as SessionRow;

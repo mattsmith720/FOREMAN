@@ -99,6 +99,7 @@ export function CameraCoach() {
   const sessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef<string[]>([]);
   const lastHeroRef = useRef<string>("");
+  const consentAtRef = useRef<string | null>(null);
 
   const [status, setStatus] = useState<CoachStatus>("idle");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -443,6 +444,7 @@ export function CameraCoach() {
       const session = await startSession({
         jobType: jobPhaseRef.current,
         notes: `Phone session — ${jobPhaseLabel(jobPhaseRef.current)}`,
+        consentAt: consentAtRef.current ?? undefined,
       });
       sessionIdRef.current = session.id;
       setActiveSessionId(session.id);
@@ -557,7 +559,10 @@ export function CameraCoach() {
             <button
               type="button"
               className="button button-primary"
-              onClick={() => setHasConsented(true)}
+              onClick={() => {
+                consentAtRef.current = new Date().toISOString();
+                setHasConsented(true);
+              }}
             >
               I understand — continue
             </button>
