@@ -1,0 +1,43 @@
+name: training-export
+
+# Weekly export of the Foreman training dataset (DB rows -> JSONL artifact).
+# Requires repo secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (service role).
+# This exports DB rows only; ffmpeg video processing still runs on a host with
+# ffmpeg (scripts/process-pending-videos.sh or scripts/training-pipeline.sh).
+on:
+  schedule:
+    - cron: "0 17 * * 0" # Sundays 17:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Export training JSONL
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::warning::SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY secrets not set — skipping export"
+            exit 0
+          fi
+          cd backend
+          npx tsx scripts/export-training-data.ts \
+            --out ./exports/training-dataset.jsonl --limit 500
+      - name: Upload dataset artifact
+        if: ${{ env.SUPABASE_URL != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: foreman-training-dataset
+          path: backend/exports/*.jsonl*
+          if-no-files-found: ignore
+          retention-days: 14
