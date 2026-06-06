@@ -11,9 +11,15 @@ ELEVENLABS_VOICE_ID=IKne3meq5aSn9XLyUdCD   # Charlie — Australian male (defaul
 
 Add the same `ELEVENLABS_API_KEY` on **Render** (not Vercel). The web app proxies through the backend — the key never goes to the browser.
 
+## Render / cloud hosting
+
+ElevenLabs may return **401** for TTS from datacenter IPs (e.g. Render free tier) while ConvAI still works.
+The backend falls back to **OpenAI TTS** (`OPENAI_API_KEY`, already used for Whisper) when ElevenLabs TTS fails.
+For native Charlie voice on Render, use a paid ElevenLabs plan or host the API outside a blocked IP range.
+
 ## What works without extra setup
 
-- **Voice on/off** — ElevenLabs TTS reads new coaching cues during a job
+- **Voice on/off** — ElevenLabs TTS (or OpenAI TTS fallback) reads new coaching cues during a job
 - **Talk to coach → Ask Foreman** — hold button, speak, Claude answers, ElevenLabs speaks the reply
 
 ## Live ElevenLabs ConvAI (optional)

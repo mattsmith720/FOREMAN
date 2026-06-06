@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isOpenAiTtsConfigured, synthesizeOpenAiSpeech } from "./openai-tts.js";
 
 /** Charlie — Australian male, casual (ElevenLabs premade). */
 export const DEFAULT_AU_VOICE_ID = "IKne3meq5aSn9XLyUdCD";
@@ -59,7 +60,8 @@ async function synthesizeWithModel(
   });
 
   if (!response.ok) {
-    throw new Error(`ElevenLabs TTS failed (${response.status})`);
+    const detail = (await response.text()).slice(0, 200);
+    throw new Error(`ElevenLabs TTS failed (${response.status}): ${detail}`);
   }
 
   const bytes = await response.arrayBuffer();
@@ -75,6 +77,14 @@ export async function synthesizeSpeech(text: string): Promise<Buffer> {
       return await synthesizeWithModel(text, voiceId, modelId);
     } catch (err) {
       lastError = err instanceof Error ? err : new Error("ElevenLabs TTS failed");
+    }
+  }
+
+  if (isOpenAiTtsConfigured()) {
+    try {
+      return await synthesizeOpenAiSpeech(text);
+    } catch (err) {
+      lastError = err instanceof Error ? err : lastError;
     }
   }
 

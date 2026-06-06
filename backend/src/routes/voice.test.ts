@@ -26,6 +26,7 @@ test("POST /voice/speak returns clean 5xx when provider throws", async () => {
     getElevenLabsAgentId: () => "agent",
     getElevenLabsVoiceId: () => "voice",
     isElevenLabsConfigured: () => true,
+    isOpenAiTtsConfigured: () => false,
     synthesizeSpeech: async () => {
       throw new Error("ElevenLabs secret stack trace");
     },
