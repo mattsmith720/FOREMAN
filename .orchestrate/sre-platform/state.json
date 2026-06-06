@@ -7,15 +7,15 @@
       "branch": "orch/sre-platform/ready-and-logging",
       "startingRef": "main",
       "dependsOn": [],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-51427672-a954-446f-889b-86ba694a0e9f",
+      "runId": "run-c67f2dae-8cbf-4696-b39d-400e21c600cc",
+      "parentAgentId": "bc-7c1837f2-3344-4cad-bcd2-a2142f8498fe",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-06-06T02:38:55.787Z",
       "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:38:55.787Z",
+      "lastUpdate": "2026-06-06T02:38:58.347Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -27,7 +27,7 @@
       "name": "cost-guards-and-payload",
       "type": "worker",
       "branch": "orch/sre-platform/cost-guards-and-payload",
-      "startingRef": "cursor/orch/sre-platform/ready-and-logging",
+      "startingRef": "orch/sre-platform/ready-and-logging",
       "dependsOn": [
         "ready-and-logging"
       ],
@@ -50,7 +50,7 @@
       "name": "health-and-deploy-docs",
       "type": "worker",
       "branch": "orch/sre-platform/health-and-deploy-docs",
-      "startingRef": "cursor/orch/sre-platform/cost-guards-and-payload",
+      "startingRef": "orch/sre-platform/cost-guards-and-payload",
       "dependsOn": [
         "cost-guards-and-payload"
       ],

@@ -53,6 +53,7 @@
       "dependsOn": [
         "ready-and-logging"
       ],
+      "startingRef": "orch/sre-platform/ready-and-logging",
       "pathsAllowed": [
         "backend/src/index.ts",
         "backend/src/config.ts",
@@ -93,6 +94,7 @@
       "dependsOn": [
         "cost-guards-and-payload"
       ],
+      "startingRef": "orch/sre-platform/cost-guards-and-payload",
       "pathsAllowed": [
         "scripts/check-ready.sh",
         "render.yaml",
