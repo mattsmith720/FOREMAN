@@ -71,6 +71,14 @@
     {
       "at": "2026-06-06T02:08:11.393Z",
       "message": "cto-readiness: run.wait returned status=error; recovery probe found terminal status=error, accepting authoritative status"
+    },
+    {
+      "at": "2026-06-06T02:08:12.456Z",
+      "message": "cto-readiness: run ended with status=error; see /workspace/.orchestrate/foreman-production-ready/handoffs/cto-readiness.md"
+    },
+    {
+      "at": "2026-06-06T02:08:12.457Z",
+      "message": "cto-readiness: synthetic failure handoff written to /workspace/.orchestrate/foreman-production-ready/handoffs/cto-readiness-failure.md"
     }
   ]
 }
