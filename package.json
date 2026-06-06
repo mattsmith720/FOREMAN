@@ -19,6 +19,6 @@
     "postinstall": "npm run build:shared"
   },
   "engines": {
-    "node": ">=18.18"
+    "node": ">=20.9"
   }
 }

@@ -4,11 +4,12 @@ export const maxDuration = 15;
 
 export async function GET(
   _request: Request,
-  context: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await context.params;
     return await proxyToBackend(
-      `/ingest/videos/${context.params.id}`,
+      `/ingest/videos/${id}`,
       new Request(_request.url, { method: "GET" }),
       { timeoutMs: 12_000 },
     );
