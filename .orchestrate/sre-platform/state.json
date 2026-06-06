@@ -39,12 +39,12 @@
       "handoffPath": "handoffs/cost-guards-and-payload.md",
       "startedAt": "2026-06-06T02:42:40.181Z",
       "finishedAt": "2026-06-06T02:45:30.030Z",
-      "lastUpdate": "2026-06-06T02:45:30.030Z",
+      "lastUpdate": "2026-06-06T02:45:30.973Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -58,17 +58,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:45:32.593Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:45:32.593Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "verify-sre-platform",
@@ -98,6 +99,10 @@
     {
       "at": "2026-06-06T02:42:33.831Z",
       "message": "ready-and-logging: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:45:30.973Z",
+      "message": "cost-guards-and-payload: verification self-reported (unit-test-verified)"
     }
   ]
 }
