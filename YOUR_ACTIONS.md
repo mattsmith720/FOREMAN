@@ -131,8 +131,9 @@ curl https://foreman-phi.vercel.app/api/health
 npm run check-ready
 # → all green
 
-BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke
-# → exits 0 when keys and backends are wired
+BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke
+# → exits 0 when keys and backends are wired (hit the API host directly; the
+#   Vercel /api proxy's origin gate blocks header-less CLI calls)
 ```
 
 ---

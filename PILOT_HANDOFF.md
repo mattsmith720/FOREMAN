@@ -133,8 +133,9 @@ Open **https://foreman-phi.vercel.app/?debug=1** for a diagnostics strip:
 npm run check-ready
 # Local env + unit tests + production health probes. Ends "Ready for phone testing."
 
-BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY="$(grep '^FOREMAN_API_KEY=' backend/.env | cut -d= -f2-)" npm run smoke
+BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY="$(grep '^FOREMAN_API_KEY=' backend/.env | cut -d= -f2-)" npm run smoke
 # Walks sessions/start → analyse → transcribe → stop against production. Exits 0 on pass.
+# Target the API host directly — the Vercel /api proxy's origin gate blocks header-less CLI calls.
 ```
 
 ---

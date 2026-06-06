@@ -172,12 +172,12 @@ if curl -sf http://127.0.0.1:8080/health >/dev/null 2>&1; then
         TOKEN="$(echo "$SESSION_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null || echo "")"
         if [ -n "$SESSION_ID" ] && [ -n "$TOKEN" ]; then
           green "✓ Session start ($SESSION_ID)"
-          TINY_JPEG="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA//2Q=="
+          SAMPLE_JPEG="data:image/jpeg;base64,$(base64 < "$ROOT/scripts/smoke-fixtures/frame.jpg" | tr -d '\n')"
           ANALYSE_CODE="$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8080/analyse \
             -H "Content-Type: application/json" \
             -H "x-foreman-api-key: $API_KEY" \
             -H "x-session-token: $TOKEN" \
-            -d "{\"image\":\"$TINY_JPEG\",\"sessionId\":\"$SESSION_ID\"}" 2>/dev/null || echo "000")"
+            -d "{\"image\":\"$SAMPLE_JPEG\",\"sessionId\":\"$SESSION_ID\"}" 2>/dev/null || echo "000")"
           if [ "$ANALYSE_CODE" = "200" ]; then
             green "✓ Analyse with session token"
           else

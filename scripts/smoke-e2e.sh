@@ -5,6 +5,7 @@ BASE_URL="${BASE_URL:-http://127.0.0.1:8080}"
 FOREMAN_API_KEY="${FOREMAN_API_KEY:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUDIO_FIXTURE="${SCRIPT_DIR}/smoke-fixtures/tiny.wav"
+IMAGE_FIXTURE="${SCRIPT_DIR}/smoke-fixtures/frame.jpg"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/foreman-smoke.XXXXXX")"
 START_RESULT="NOT_RUN"
 START_NOTE=""
@@ -79,6 +80,15 @@ raw = pathlib.Path(sys.argv[1]).read_bytes()
 print("data:audio/wav;base64," + base64.b64encode(raw).decode("ascii"))
 PY
 }
+encode_jpeg_fixture() {
+  python3 - "$1" <<'PY'
+import base64
+import pathlib
+import sys
+raw = pathlib.Path(sys.argv[1]).read_bytes()
+print("data:image/jpeg;base64," + base64.b64encode(raw).decode("ascii"))
+PY
+}
 print_summary() {
   local script_exit="${1:-0}"
   local overall="PASS"
@@ -114,6 +124,14 @@ if [ ! -f "$AUDIO_FIXTURE" ]; then
   set_step "analyse" "SKIPPED" "missing audio fixture"
   set_step "transcribe" "SKIPPED" "missing audio fixture"
   set_step "stop" "SKIPPED" "missing audio fixture"
+  exit 2
+fi
+if [ ! -f "$IMAGE_FIXTURE" ]; then
+  echo "ERROR: image fixture missing at ${IMAGE_FIXTURE}"
+  set_step "start" "SKIPPED" "missing image fixture"
+  set_step "analyse" "SKIPPED" "missing image fixture"
+  set_step "transcribe" "SKIPPED" "missing image fixture"
+  set_step "stop" "SKIPPED" "missing image fixture"
   exit 2
 fi
 START_BODY="${TMP_DIR}/start.json"
@@ -167,9 +185,9 @@ if [ -z "$SESSION_ID" ] || [ -z "$SESSION_TOKEN" ]; then
   exit 1
 fi
 set_step "start" "PASS" "HTTP 201"
-TINY_JPEG="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA//2Q=="
+ANALYSE_IMAGE="$(encode_jpeg_fixture "$IMAGE_FIXTURE")"
 ANALYSE_PAYLOAD="${TMP_DIR}/analyse-payload.json"
-python3 - "$SESSION_ID" "$TINY_JPEG" >"$ANALYSE_PAYLOAD" <<'PY'
+python3 - "$SESSION_ID" "$ANALYSE_IMAGE" >"$ANALYSE_PAYLOAD" <<'PY'
 import json
 import sys
 print(json.dumps({"image": sys.argv[2], "sessionId": sys.argv[1]}))

@@ -123,4 +123,4 @@ See [PHONE_TEST.md](PHONE_TEST.md).
 
 ## Release smoke
 
-After deploy, run the end-to-end smoke script at `scripts/smoke-e2e.sh` via `npm run smoke`. It needs `BASE_URL` (API root) and `FOREMAN_API_KEY`; it walks `/sessions/start` → `/analyse` → `/transcribe` → `/sessions/:id/stop` and exits non-zero on any failure, so it is safe to wire into CI. Local: `BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke`. Production: `BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke`.
+After deploy, run the end-to-end smoke script at `scripts/smoke-e2e.sh` via `npm run smoke`. It needs `BASE_URL` (API root) and `FOREMAN_API_KEY`; it walks `/sessions/start` → `/analyse` → `/transcribe` → `/sessions/:id/stop` and exits non-zero on any failure, so it is safe to wire into CI. Local: `BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke`. Production: `BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke` — target the API host directly; the Vercel `/api` proxy enforces a browser-origin gate that blocks header-less CLI calls.
