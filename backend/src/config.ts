@@ -6,12 +6,43 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/webp",
 ]);
 
+function cleanEnv(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  return trimmed.replace(/^['"]|['"]$/g, "");
+}
+
 export function isAnalysisConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+  return Boolean(cleanEnv(process.env.ANTHROPIC_API_KEY));
+}
+
+export function isOpenAiConfigured(): boolean {
+  return Boolean(cleanEnv(process.env.OPENAI_API_KEY));
 }
 
 export function isTranscriptionConfigured(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY?.trim());
+  return isOpenAiConfigured();
+}
+
+export function isSupabaseConfigured(): boolean {
+  const url = cleanEnv(process.env.SUPABASE_URL);
+  const serviceRoleKey = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (!url || !serviceRoleKey) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+export function isElevenLabsConfigured(): boolean {
+  return Boolean(cleanEnv(process.env.ELEVENLABS_API_KEY));
 }
 
 export function getCorsOrigins(): string[] | true {
