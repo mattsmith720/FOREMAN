@@ -1,0 +1,131 @@
+{
+  "rootSlug": "cpo-product-ux",
+  "tasks": [
+    {
+      "name": "consent-and-recording-ux",
+      "type": "worker",
+      "branch": "orch/cpo-product-ux/consent-and-recording-ux",
+      "startingRef": "cursor/cpo-product-ux-0d11",
+      "dependsOn": [],
+      "agentId": "bc-c316bf10-7517-4956-8c2a-d5a591772362",
+      "runId": "run-3b629b2d-58ca-4ed4-be91-7774b276bb38",
+      "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/consent-and-recording-ux.md",
+      "startedAt": "2026-06-06T02:40:39.257Z",
+      "finishedAt": "2026-06-06T02:51:34.816Z",
+      "lastUpdate": "2026-06-06T02:51:37.729Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "phone-walk-polish",
+      "type": "worker",
+      "branch": "orch/cpo-product-ux/phone-walk-polish",
+      "startingRef": "cursor/cpo-product-ux-0d11",
+      "dependsOn": [
+        "consent-and-recording-ux"
+      ],
+      "agentId": "bc-fa9a9251-1f8b-45fe-a17c-373a0ad6bd58",
+      "runId": "run-d3a4dfea-fbf5-43a1-a0fa-ece13bce27d5",
+      "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/phone-walk-polish.md",
+      "startedAt": "2026-06-06T02:51:42.056Z",
+      "finishedAt": "2026-06-06T03:10:02.151Z",
+      "lastUpdate": "2026-06-06T03:10:03.282Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "live-ui-verified"
+    },
+    {
+      "name": "demo-script-truth-sync",
+      "type": "worker",
+      "branch": "orch/cpo-product-ux/demo-script-truth-sync",
+      "startingRef": "cursor/cpo-product-ux-0d11",
+      "dependsOn": [
+        "consent-and-recording-ux"
+      ],
+      "agentId": "bc-6bfad901-43ad-4875-ba9f-17b9302aa87d",
+      "runId": "run-36938017-cd5f-4e3a-a060-7cc4e3de2d49",
+      "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/demo-script-truth-sync.md",
+      "startedAt": "2026-06-06T02:51:44.564Z",
+      "finishedAt": "2026-06-06T02:53:03.723Z",
+      "lastUpdate": "2026-06-06T02:53:04.695Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "type-check-only"
+    },
+    {
+      "name": "verify-cpo-product-ux",
+      "type": "verifier",
+      "branch": "`cursor/verify-cpo-product-ux-b7d1` (verifier branch built on `orch/cpo-product-ux/phone-walk-polish` with `orch/cpo-product-ux/demo-script-truth-sync` merged in via `git merge --no-edit`; pushed to origin so the planner can inspect the integrated tree).",
+      "startingRef": "orch/cpo-product-ux/phone-walk-polish",
+      "dependsOn": [
+        "consent-and-recording-ux",
+        "phone-walk-polish",
+        "demo-script-truth-sync"
+      ],
+      "agentId": "bc-18a7e908-c4b8-4db4-853c-65a18879b7d1",
+      "runId": "run-63a6012a-efd3-4ad5-81d4-5360f71313ef",
+      "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-cpo-product-ux.md",
+      "startedAt": "2026-06-06T03:10:07.030Z",
+      "finishedAt": "2026-06-06T03:53:45.376Z",
+      "lastUpdate": "2026-06-06T03:53:45.376Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": [
+    {
+      "at": "2026-06-06T02:51:37.729Z",
+      "message": "consent-and-recording-ux: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:53:04.695Z",
+      "message": "demo-script-truth-sync: verification self-reported (type-check-only)"
+    },
+    {
+      "at": "2026-06-06T02:59:45.810Z",
+      "message": "phone-walk-polish: SSE idle 324091ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T02:59:45.811Z",
+      "message": "phone-walk-polish: tool_call idle 324092ms; last=2026-06-06T02:54:21.719Z"
+    },
+    {
+      "at": "2026-06-06T03:10:03.283Z",
+      "message": "phone-walk-polish: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-06-06T03:20:11.527Z",
+      "message": "verify-cpo-product-ux: SSE idle 337954ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T03:20:11.528Z",
+      "message": "verify-cpo-product-ux: tool_call idle 337955ms; last=2026-06-06T03:14:33.573Z"
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "$schema": "../../../../home/ubuntu/.cursor/plugins/cache/cursor-public/9333/683cdbda983ea8be4b766ac3fe94b7b88e7f75ad/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "You are the CPO. Own CEO DoD #2 (full phone end-to-end customer walk) and #4 (privacy + consent UX). Ship: explicit consent gate before any capture, a visible recording indicator while a session is active, consent copy that references the AU privacy / sensitive-data treatment in CLAUDE.md, the full Start-job -> frame analyse -> mic transcribe -> Stop-job -> non-fallback summary loop polished on iPhone Safari with a screen-recording artifact, and PHONE_DEMO.md/YOUR_ACTIONS.md truth-synced to the UI on this branch. All CPO-owned tests pass via `cd web && npm test`; `npm run build --workspace web` is clean.",
+  "summary": "CPO slice: consent gate + recording indicator + phone-walk polish + docs truth-sync, with a web test that pins the consent gate and recording indicator.",
+  "rootSlug": "cpo-product-ux",
+  "baseBranch": "cursor/cpo-product-ux-0d11",
+  "prBase": "main",
+  "repoUrl": "https://github.com/mattsmith720/FOREMAN",
+  "syncStateToGit": true,
+  "selfAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
+  "acceptanceCriteria": [
+    "CEO DoD #4 (i): the consent gate in web/components/camera-coach.tsx cannot be bypassed -- no camera/mic/getUserMedia call fires until the consent button has been pressed, covered by a web test that runs under `cd web && npm test`.",
+    "CEO DoD #4 (ii): a visible recording indicator (e.g. badge with 'Recording' or 'REC') renders in the camera UI for the entire duration of an active session (status running/analysing/summarising) and disappears when the session ends, covered by a web test.",
+    "CEO DoD #4 (iii): consent copy in the UI explicitly references AU privacy / sensitive-data handling per CLAUDE.md (the words 'Australian privacy' / 'sensitive personal data' or equivalent appear in the consent panel and link the user to a short policy note).",
+    "CEO DoD #2 (iv): PHONE_DEMO.md and YOUR_ACTIONS.md updated so every selector text, button label, expected status badge, and step matches the UI on this branch -- spot-checkable against the rendered app, no aspirational claims.",
+    "CEO DoD #2 (v): the full Start-job -> frame analyse -> mic transcribe -> Stop-job -> non-fallback summary loop is verified end-to-end on this branch -- either by a web test of the happy path, or by a documented screen-recording artifact path referenced in the phone-walk-polish handoff (per the worker prompt quality floor).",
+    "CEO DoD (vi): `cd web && npm test` passes on the cpo-product-ux handoff branch and `npm run build --workspace web` is clean."
+  ],
+  "tasks": [
+    {
+      "name": "consent-and-recording-ux",
+      "type": "worker",
+      "scopedGoal": "Harden the consent + recording-indicator UX in the phone web client so CEO DoD #4 is provably satisfied with a web test that runs under `cd web && npm test`.\n\nConcretely:\n1. In `web/components/camera-coach.tsx`, refactor so NO call to `navigator.mediaDevices.getUserMedia`, no `PhoneFrameSource.start()`, and no `PhoneAudioSource.start()` can fire until `hasConsented === true`. The current Start-job button is already disabled when not consented, but the consent gate must be the structural truth: if a user somehow programmatically triggers `startJob()` (e.g. via test) without consent, it must early-return without acquiring any media. Add a guard at the top of `startJob` like `if (!hasConsentedRef.current) { setErrorMessage('Consent required'); setStatus('error'); return; }` and mirror `hasConsented` into a ref so the guard is testable.\n2. Update the consent overlay copy in `web/components/camera-coach.tsx` so it explicitly mentions Australian privacy and sensitive-data handling, e.g. 'Foreman captures camera, microphone, and job context. Recordings are treated as sensitive personal data under Australian privacy rules (see CLAUDE.md). Tap I understand to continue.' Keep the 'I understand — continue' button text or update both the button text and PHONE_DEMO.md / YOUR_ACTIONS.md in handoff notes for the docs worker.\n3. Add a visible recording indicator while a session is active. Render a `<div class=\"recording-indicator\" role=\"status\" aria-live=\"polite\">REC</div>` (or similar) inside the camera-stage when `isActive` is true (status === 'running' || 'analysing' || 'summarising'). Use `web/app/globals.css` to give it a pulsing red dot + 'REC' label, top-left of the camera viewport. The element MUST be queryable by test (use a stable selector like `data-testid=\"recording-indicator\"`).\n4. Add a CPO-owned web test that covers (a) consent gate cannot be bypassed and (b) recording indicator visibility. Put it at `web/components/camera-coach.consent.test.ts`. Since the existing `web/package.json` test script is `tsx --test lib/**/*.test.ts`, you ALSO need to extend the glob so component tests run. Update `web/package.json` to `\"test\": \"tsx --test 'lib/**/*.test.ts' 'components/**/*.test.ts' 'components/**/*.test.tsx'\"`. The forbidden-paths list owned by siblings is web/lib/**, web/app/api/**, web/middleware.ts, web/next.config.mjs, web/vercel.json -- web/package.json is NOT in that forbidden list. Make this single test-glob edit to package.json and nothing else.\n5. For the test itself, prefer the lightest possible approach: extract a pure helper from camera-coach.tsx (e.g. `web/components/consent-gate-policy.ts`) that exposes `canCapture(hasConsented: boolean): boolean` and `recordingIndicatorVisible(status: 'idle'|'running'|'analysing'|'summarising'|'error'): boolean`. Call the helper from camera-coach.tsx and write a `node --test` style test against the helper. This pins the contract without needing jsdom/React Testing Library. Acceptable alternative: a `tsx --test` smoke that reads the camera-coach.tsx source string and asserts the consent guard and recording-indicator markup are present -- but the helper-based test is preferred.\n6. Run `cd web && npm test` and `npm run build --workspace web` from the repo root. Both must be green on your handoff branch.\n7. In your handoff, list the exact UI strings you ended up with (consent overlay copy + button text + recording indicator label) so the demo-script-truth-sync worker can mirror them verbatim in PHONE_DEMO.md / YOUR_ACTIONS.md.\n\nCode discipline: no narrative comments. Comments only for non-obvious why (e.g. 'mirror hasConsented into a ref so the startJob guard survives stale closures during a test'). Keep the consent-gate-policy helper file under 80 LOC.",
+      "pathsAllowed": [
+        "web/components/**",
+        "web/app/globals.css",
+        "web/app/page.tsx",
+        "web/app/layout.tsx",
+        "web/package.json"
+      ],
+      "pathsForbidden": [
+        "web/lib/**",
+        "web/app/api/**",
+        "web/middleware.ts",
+        "web/next.config.mjs",
+        "web/vercel.json",
+        ".orchestrate/foreman-production-ready/**"
+      ],
+      "acceptance": [
+        "Engineering DoD: `cd web && npm test` passes on this worker's handoff branch and exercises both (a) the consent-gate cannot-be-bypassed contract and (b) the recording-indicator visibility contract.",
+        "Engineering DoD: `npm run build --workspace web` is clean on this worker's handoff branch.",
+        "Engineering DoD: `web/components/camera-coach.tsx` startJob() has a structural guard that early-returns when consent has not been granted (verifiable by reading the file).",
+        "Engineering DoD: the consent overlay copy in the rendered UI mentions Australian privacy / sensitive-data handling (verifiable by grepping the camera-coach.tsx source for 'Australian privacy' and 'sensitive').",
+        "Engineering DoD: a recording indicator element with a stable test selector (`data-testid=\"recording-indicator\"`) renders in the DOM when status is one of running/analysing/summarising and is absent in idle/error.",
+        "Engineering DoD: the worker handoff lists the final consent overlay copy, button label, and recording-indicator label verbatim so the docs worker can mirror them."
+      ],
+      "verify": "## Setup\n- `git checkout <consent-and-recording-ux branch>` and `npm install` at repo root.\n\n## Automated\n- `cd web && npm test` must pass and must show the two new consent/recording-indicator test cases running (the test should print test names like 'consent gate cannot be bypassed' and 'recording indicator visible during active session').\n- `npm run build --workspace web` must succeed with no TypeScript or Next.js errors.\n\n## Manual\n- Open `web/components/camera-coach.tsx` and confirm:\n  1. `startJob` early-returns if not consented (the structural guard is present, not just the button-disabled UX).\n  2. The consent overlay copy mentions 'Australian privacy' and 'sensitive' personal data and points at CLAUDE.md.\n  3. A `recording-indicator` element is rendered when `isActive` is true.\n- Open `web/app/globals.css` and confirm the recording indicator has a clearly visible red pulse style.\n\n## Gotchas\n- Don't touch web/lib/**, web/app/api/**, web/middleware.ts, web/next.config.mjs, or web/vercel.json -- those belong to the CTO sibling subplanner.\n- Don't add jsdom, react-testing-library, or any new heavy test dependency -- just `tsx --test` + a pure-function helper.\n- Don't open a PR. The CPO subplanner aggregates and hands the branch up.",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "phone-walk-polish",
+      "type": "worker",
+      "scopedGoal": "Polish the full phone walk so the Start-job -> frame analyse -> mic transcribe -> Stop-job -> non-fallback summary loop renders correctly on iPhone Safari, including error/empty states, and capture a screen-recording artifact for the handoff.\n\nConcretely:\n1. Inherits the `consent-and-recording-ux` branch (auto-wired via `dependsOn`). All consent + recording-indicator changes are already on the branch -- DO NOT re-do them. Build on top.\n2. Audit `web/components/camera-coach.tsx`, `web/components/coach-overlay.tsx`, `web/components/coach-annotations.tsx`, `web/components/coach-live-panel.tsx`, `web/components/session-summary.tsx`, and `web/components/coach-activity-feed.tsx` for empty/error states. Specifically:\n   - When `startJob` fails (no camera, no mic, no API), the error banner must be readable and recoverable (user can hit Start job again).\n   - When `endedSession` is set but `storedCounts.frames === 0`, the SessionSummary should clearly say 'No frames were analysed during this session' instead of silently rendering an empty summary -- avoid the fallback-looking summary explicitly.\n   - The coach-overlay 'Heard:' / latest-transcript row should render an explicit placeholder ('Listening...') instead of empty when `latestTranscript` is null and `micActive` is true.\n   - The status badge (Ready / Live / Analyzing… / Summarising… / Error) must always be visible while a session is active -- confirm `STATUS_LABELS` mapping in camera-coach.tsx and the overlay rendering.\n3. Polish `web/app/globals.css` for the iPhone Safari viewport: ensure the camera fills the viewport (no horizontal scroll), the control footer (Start/End/Voice/Talk buttons) is reachable above the home-indicator (use `env(safe-area-inset-bottom)`), and the consent overlay + recording indicator look good in portrait. Do not break landscape.\n4. Capture a screen recording artifact demonstrating the full happy-path walk: consent -> Start job -> 2 frames analysed -> a sentence transcribed -> End job -> non-fallback summary. Use the cloud-agent VM's browser (computerUse subagent) with the dev server (`npm run dev:web` from repo root or `cd web && npm run dev`) -- or, if API keys are unavailable in the cloud-agent VM, mock the analyse/transcribe responses by stubbing window.fetch in a temp script and record the UI behaviour only. Save the recording to /opt/cursor/artifacts/cpo_phone_walk.mp4 and reference its path in the handoff under '## Artifacts'.\n5. If a full live walk is impossible inside the cloud-agent VM (no camera, no API keys), capture a screen recording of the UI states (consent overlay, post-consent boot screen, simulated 'running' state by adding a temporary debug flag, simulated error state, simulated summary) and explicitly note in the handoff that the live AI loop was not exercised inside the VM -- list the manual steps the human reviewer can run to exercise it on their iPhone.\n6. Run `cd web && npm test` and `npm run build --workspace web` after your changes. Both must be green.\n\nCode discipline: no narrative comments. Don't rewrite working logic for stylistic reasons. Keep the diff focused on empty/error states + iPhone Safari layout polish.",
+      "pathsAllowed": [
+        "web/components/**",
+        "web/app/globals.css",
+        "web/app/page.tsx",
+        "web/app/layout.tsx"
+      ],
+      "pathsForbidden": [
+        "web/lib/**",
+        "web/app/api/**",
+        "web/middleware.ts",
+        "web/next.config.mjs",
+        "web/vercel.json",
+        "web/package.json",
+        ".orchestrate/foreman-production-ready/**"
+      ],
+      "dependsOn": [
+        "consent-and-recording-ux"
+      ],
+      "acceptance": [
+        "Engineering DoD: `cd web && npm test` passes (still passes -- you inherited the consent test from the previous worker and must not regress it).",
+        "Engineering DoD: `npm run build --workspace web` is clean on your handoff branch.",
+        "Engineering DoD: empty-session summary explicitly states 'no frames analysed' (or equivalent) when `storedCounts.frames === 0`, rather than rendering a misleading-looking populated summary.",
+        "Engineering DoD: the iPhone Safari viewport is respected -- footer controls sit above the home indicator (uses `env(safe-area-inset-bottom)` or equivalent), the camera fills the stage without horizontal scroll.",
+        "Engineering DoD: a screen-recording artifact at `/opt/cursor/artifacts/cpo_phone_walk*.mp4` is captured demonstrating either the live happy path or the UI states with a clear note in the handoff about which mode was used and how the human can finish the live verification."
+      ],
+      "verify": "## Setup\n- `git checkout <phone-walk-polish branch>` and `npm install` at repo root.\n\n## Automated\n- `cd web && npm test` (passes; consent test still green).\n- `npm run build --workspace web` (clean).\n\n## Manual / artifact\n- View the screen-recording artifact at `/opt/cursor/artifacts/cpo_phone_walk*.mp4` and confirm it shows: consent overlay -> Start job pressed -> coaching UI populated -> End job pressed -> non-fallback summary (or a clearly-labelled UI-states recording when the live loop can't run inside the VM).\n- Open `web/components/session-summary.tsx` and confirm the empty-state copy when `storedCounts.frames === 0`.\n- Open `web/app/globals.css` and confirm `env(safe-area-inset-bottom)` (or equivalent) on the footer controls.\n\n## Gotchas\n- Don't regress the consent-gate / recording-indicator tests added by the previous worker.\n- Don't touch web/lib/**, web/app/api/**, web/middleware.ts, web/next.config.mjs, web/vercel.json, or web/package.json -- the test glob is already extended by the previous worker.\n- Don't open a PR.",
+      "model": "composer-2-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "demo-script-truth-sync",
+      "type": "worker",
+      "scopedGoal": "Truth-sync PHONE_DEMO.md, YOUR_ACTIONS.md, and PHONE_TEST.md so every selector text, button label, expected status badge, and described step matches the UI on the post-consent-and-recording-ux + post-phone-walk-polish branch.\n\nConcretely:\n1. Inherits the `consent-and-recording-ux` branch (auto-wired via `dependsOn`). The recording-indicator changes will land before phone-walk-polish, so the consent overlay copy + button label + recording-indicator label are stable on this branch. The phone-walk-polish worker runs in parallel and may further tweak empty/error states, but those tweaks should not change the consent overlay copy, button label, or status badges. If phone-walk-polish's handoff (visible to a verifier later, not to you) changes one of those strings, the verifier will flag the docs and you can be re-run.\n2. Read the consent-and-recording-ux worker's handoff at `.orchestrate/cpo-product-ux/handoffs/consent-and-recording-ux.md` to get the exact final consent overlay copy, button label, and recording-indicator label. Mirror them verbatim in PHONE_DEMO.md and YOUR_ACTIONS.md.\n3. Read `web/components/camera-coach.tsx` (read-only) to confirm every button label, status badge, and on-screen string referenced in the docs is real. Specifically check: 'Start job', 'End job', 'Cue voice on/off', 'Talk live'/'End talk', 'Ready' / 'Live' / 'Analyzing…' / 'Summarising…' / 'Error' (from `STATUS_LABELS`).\n4. Rewrite the relevant sections of PHONE_DEMO.md so each step's UI claim matches the current branch. In particular: section 1 (Consent) must show the final consent copy + button text; section 2 (Start job) must reference the new recording indicator badge wording verbatim; section 3 (Coaching) must reference the real status labels.\n5. Update YOUR_ACTIONS.md to remove or mark TODO any claim that is not backed by code on this branch (e.g. if a 'training memory feed' label doesn't exist in the UI, replace it with the actual label or drop the line). Keep the operator-facing setup steps (API keys, Render deploy, Vercel `BACKEND_URL`) intact -- those are about ops, not UI.\n6. Update PHONE_TEST.md the same way -- every step that names a button or badge must match the UI verbatim.\n7. Do NOT touch web/** or backend/** -- docs only.\n\nCode discipline: no fluff. If a doc section no longer matches the UI on this branch, fix it; don't add new aspirational sections. Mark any unbacked claim with `(TODO)` and a one-line reason.",
+      "pathsAllowed": [
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md",
+        "PHONE_TEST.md"
+      ],
+      "pathsForbidden": [
+        "web/**",
+        "backend/**",
+        "shared/**",
+        ".orchestrate/foreman-production-ready/**"
+      ],
+      "dependsOn": [
+        "consent-and-recording-ux"
+      ],
+      "acceptance": [
+        "Engineering DoD: every button label and status badge named in PHONE_DEMO.md, YOUR_ACTIONS.md, and PHONE_TEST.md appears verbatim in `web/components/camera-coach.tsx` on this branch (grep-verifiable).",
+        "Engineering DoD: the consent overlay copy quoted in PHONE_DEMO.md matches the camera-coach.tsx consent overlay verbatim (including the AU privacy / sensitive-data line).",
+        "Engineering DoD: PHONE_DEMO.md section 2 explicitly describes the new recording indicator (the wording must match the recording-indicator label, e.g. 'REC' badge).",
+        "Engineering DoD: YOUR_ACTIONS.md no longer contains aspirational UI claims that aren't backed by code on this branch (any retained claim is either backed or marked `(TODO)` with a reason)."
+      ],
+      "verify": "## Setup\n- `git checkout <demo-script-truth-sync branch>`.\n\n## Automated\n- `grep -F 'Start job' web/components/camera-coach.tsx` (sanity-check that quoted labels exist).\n- `grep -E 'Australian privacy|sensitive' PHONE_DEMO.md` -- should match the consent overlay copy on this branch.\n\n## Manual\n- Read PHONE_DEMO.md end to end alongside `web/components/camera-coach.tsx` -- every UI string named in the docs must be real.\n- Read YOUR_ACTIONS.md end to end -- the UI section ('Test on your iPhone') must describe what is on this branch, not the older UI.\n\n## Gotchas\n- Don't modify web/** -- docs only.\n- Don't open a PR.",
+      "model": "composer-2-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "verify-cpo-product-ux",
+      "type": "verifier",
+      "verifies": "phone-walk-polish",
+      "scopedGoal": "Verify that the merged cpo-product-ux subtree (consent-and-recording-ux + phone-walk-polish + demo-script-truth-sync, in that dependency order) satisfies every bullet of the parent plan's `acceptanceCriteria`. The verifier inherits the most-downstream branch (phone-walk-polish), which in turn is built on consent-and-recording-ux. The docs worker (demo-script-truth-sync) builds on consent-and-recording-ux in parallel with phone-walk-polish; if its branch is not yet merged into the verifier's starting ref, run the verifier on the explicit merge of all three child branches (or accept the docs branch's changes by re-cherry-picking; document either way).\n\nRun the full automated + manual recipe in `verify` and report per CEO DoD bullet: `- [x] <criterion>: <evidence>` or `- [ ] <criterion>: <reason>`.\n\nOutput your verdict on the `## Verification` line using exactly one of: `live-ui-verified` (you actually exercised the rendered app end-to-end), `unit-test-verified` (you ran the test suite + read the source to confirm), `type-check-only` (only the build passed), `verifier-blocked` (you couldn't run the recipe because of operator-only blockers, e.g. missing API keys), `verifier-failed` (you ran the recipe and found a failed acceptance bullet).",
+      "dependsOn": [
+        "consent-and-recording-ux",
+        "phone-walk-polish",
+        "demo-script-truth-sync"
+      ],
+      "acceptance": [
+        "Verification section lists evidence for every CEO-CPO-owned bullet in the parent plan's `acceptanceCriteria` (6 items).",
+        "If the consent-and-recording-ux test does not actually exercise both contracts (cannot-be-bypassed AND recording-indicator-visible), the verifier MUST flag it as `verifier-failed` and not round up.",
+        "`## Verification` line uses one of the prescribed values."
+      ],
+      "verify": "## Setup\n- Inherits phone-walk-polish branch (auto-wired). Run `git log --oneline -10` to confirm the consent-and-recording-ux commits are present.\n- If the docs worker (demo-script-truth-sync) branch is not yet merged, run `git merge --no-edit orch/cpo-product-ux/demo-script-truth-sync` so all three children are on the verifier's working tree.\n- `npm install` at repo root.\n\n## Automated\n- `cd web && npm test` -- must pass; must show the consent-gate and recording-indicator tests running by name.\n- `npm run build --workspace web` -- clean.\n\n## Manual\n- Read `web/components/camera-coach.tsx` and confirm: (a) `startJob` has a structural guard that early-returns when consent is false, (b) the consent overlay copy mentions Australian privacy + sensitive data, (c) a `recording-indicator` element is rendered when `isActive` is true.\n- Read `web/app/globals.css` and confirm the recording-indicator styling is present and `env(safe-area-inset-bottom)` (or equivalent) is used for the footer.\n- Read PHONE_DEMO.md + YOUR_ACTIONS.md and spot-check every button label, status badge, and consent-copy quote against camera-coach.tsx.\n- View the screen-recording artifact at `/opt/cursor/artifacts/cpo_phone_walk*.mp4` and note in the handoff whether it shows the live happy path or only UI states.\n\n## CEO DoD checklist (verifier MUST report per bullet)\nFor each of the 6 acceptanceCriteria bullets on the parent plan, write `- [x] <criterion text>: <evidence>` or `- [ ] <criterion text>: <reason not met>`.\n\n## Gotchas\n- If the cloud-agent VM has no camera or no API keys, the live walk cannot be exercised inside the VM -- mark CEO DoD #2 (v) as `verifier-blocked` (not `verifier-failed`) if the screen-recording artifact at least captures the UI states and the docs explain how the human can finish the live verification on their iPhone.\n- Do NOT open a PR. The parent decides what to do with the branch.",
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    }
+  ]
+}
