@@ -51,20 +51,20 @@
       "branch": "orch/foreman-production-ready/ciso-security",
       "startingRef": "main",
       "dependsOn": [],
-      "agentId": null,
-      "runId": null,
+      "agentId": "bc-8eb9a4f0-1229-4ee6-be1b-f0e4549ca5aa",
+      "runId": "run-af27c216-eb9f-41b0-b34c-ecdd5da236c3",
       "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/ciso-security.md",
       "startedAt": "2026-06-06T03:42:42.276Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T03:42:42.276Z",
+      "finishedAt": "2026-06-06T03:53:39.042Z",
+      "lastUpdate": "2026-06-06T03:53:39.043Z",
       "note": "ciso-security demoted from subplanner to worker after 2 plan-draft deaths; same scope, same paths, no decomposition overhead so the worker spends all runtime on real security work.",
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": "unknown",
+      "failureMode": null,
       "verification": null
     },
     {
@@ -285,6 +285,14 @@
     {
       "at": "2026-06-06T03:37:59.112Z",
       "message": "ciso-security: synthetic failure handoff written to /workspace/.orchestrate/foreman-production-ready/handoffs/ciso-security-failure.md"
+    },
+    {
+      "at": "2026-06-06T03:49:43.077Z",
+      "message": "cpo-product-ux: SSE idle 347002ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T03:49:43.078Z",
+      "message": "cpo-product-ux: tool_call idle 347004ms; last=2026-06-06T03:43:56.074Z"
     }
   ]
 }
