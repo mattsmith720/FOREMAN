@@ -61,12 +61,12 @@
       "handoffPath": "handoffs/release-recipe.md",
       "startedAt": "2026-06-06T02:45:40.349Z",
       "finishedAt": "2026-06-06T02:46:21.215Z",
-      "lastUpdate": "2026-06-06T02:46:21.216Z",
+      "lastUpdate": "2026-06-06T02:46:22.165Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -81,17 +81,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:46:22.585Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:46:22.585Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "verify-qa-release",
@@ -125,6 +126,10 @@
     {
       "at": "2026-06-06T02:45:42.351Z",
       "message": "e2e-smoke-script: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:46:22.165Z",
+      "message": "release-recipe: verification self-reported (unit-test-verified)"
     }
   ]
 }
