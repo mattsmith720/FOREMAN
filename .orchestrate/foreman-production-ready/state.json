@@ -55,6 +55,10 @@
     {
       "at": "2026-06-06T01:34:02.746Z",
       "message": "cto-readiness: respawned by self-planner (was error); resuming from orch/foreman-production-ready/cto-readiness"
+    },
+    {
+      "at": "2026-06-06T01:34:20.190Z",
+      "message": "cto-readiness: spawn failed after 3 transient sub-attempts: l: [validation_error] Branch 'orch/foreman-production-ready/cto-readiness' does not exist in repository mattsmith720/FOREMAN."
     }
   ]
 }
