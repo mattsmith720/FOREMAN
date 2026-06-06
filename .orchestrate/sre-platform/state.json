@@ -55,15 +55,15 @@
       "dependsOn": [
         "cost-guards-and-payload"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-6027e477-72c4-4f56-a60d-a9f58508561d",
+      "runId": "run-ec380007-dc42-4a05-bf42-b5e5005e89e1",
+      "parentAgentId": "bc-7c1837f2-3344-4cad-bcd2-a2142f8498fe",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/health-and-deploy-docs.md",
       "startedAt": "2026-06-06T02:45:32.593Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:45:32.593Z",
+      "finishedAt": "2026-06-06T02:58:19.353Z",
+      "lastUpdate": "2026-06-06T02:58:19.354Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -103,6 +103,14 @@
     {
       "at": "2026-06-06T02:45:30.973Z",
       "message": "cost-guards-and-payload: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:53:35.789Z",
+      "message": "health-and-deploy-docs: SSE idle 356704ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T02:53:35.790Z",
+      "message": "health-and-deploy-docs: tool_call idle 356706ms; last=2026-06-06T02:47:39.084Z"
     }
   ]
 }
