@@ -35,6 +35,8 @@ services:
         value: https://foreman-phi.vercel.app
       - key: INGEST_WEBHOOK_SECRET
         sync: false
+      - key: OPS_PASSWORD
+        sync: false
       - key: INGEST_FRAME_INTERVAL_SEC
         value: "10"
       - key: INGEST_MAX_FRAMES

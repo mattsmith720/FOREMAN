@@ -47,6 +47,11 @@ function buildProxyHeaders(request: Request): Headers {
     headers.set("x-session-token", sessionToken);
   }
 
+  const opsPassword = request.headers.get("x-ops-password");
+  if (opsPassword) {
+    headers.set("x-ops-password", opsPassword);
+  }
+
   const apiKey = process.env.FOREMAN_API_KEY?.trim();
   if (apiKey) {
     headers.set(API_KEY_HEADER, apiKey);

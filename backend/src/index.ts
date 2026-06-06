@@ -18,6 +18,7 @@ import { registerLabelRoutes } from "./routes/labels.js";
 import { registerTranscribeRoutes } from "./routes/transcribe.js";
 import { registerVoiceRoutes } from "./routes/voice.js";
 import { registerIngestRoutes } from "./routes/ingest.js";
+import { registerOpsRoutes } from "./routes/ops.js";
 import { registerReadyRoute } from "./routes/ready.js";
 
 assertProductionSecurity();
@@ -179,6 +180,7 @@ await registerTranscribeRoutes(app);
 await registerLabelRoutes(app);
 await registerVoiceRoutes(app);
 await registerIngestRoutes(app);
+await registerOpsRoutes(app);
 
 const port = getListenPort();
 
