@@ -1,5 +1,18 @@
+import { z } from "zod";
+
 const WHISPER_URL = "https://api.openai.com/v1/audio/transcriptions";
 const WHISPER_MODEL = "whisper-1";
+const transcriptionResponseSchema = z.object({
+  text: z.string().optional(),
+});
+
+interface TranscribeDependencies {
+  fetchImpl: typeof fetch;
+}
+
+const defaultTranscribeDependencies: TranscribeDependencies = {
+  fetchImpl: fetch,
+};
 
 function getApiKey(): string {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -16,6 +29,7 @@ export function isTranscriptionConfigured(): boolean {
 export async function transcribeAudio(
   audio: Buffer,
   mimeType: string,
+  dependencies: TranscribeDependencies = defaultTranscribeDependencies,
 ): Promise<string> {
   const extension = mimeType.includes("webm")
     ? "webm"
@@ -40,7 +54,7 @@ export async function transcribeAudio(
   formData.append("model", WHISPER_MODEL);
   formData.append("language", "en");
 
-  const response = await fetch(WHISPER_URL, {
+  const response = await dependencies.fetchImpl(WHISPER_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${getApiKey()}`,
@@ -49,12 +63,22 @@ export async function transcribeAudio(
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Transcription failed (${response.status}): ${detail}`);
+    throw new Error(`Transcription provider request failed (${response.status})`);
   }
 
-  const body = (await response.json()) as { text?: string };
-  return (body.text ?? "").trim();
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    return "";
+  }
+
+  const parsed = transcriptionResponseSchema.safeParse(body);
+  if (!parsed.success) {
+    return "";
+  }
+
+  return (parsed.data.text ?? "").trim();
 }
 
 export function decodeAudioPayload(audio: string): {
