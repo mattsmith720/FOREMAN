@@ -55,12 +55,12 @@
       "agentId": "bc-c12e05ce-1795-4647-9758-acc20a0b58c9",
       "runId": "run-9a8b8024-cb19-4322-9538-aa0941fca89d",
       "parentAgentId": "bc-35704490-69de-4bfc-9598-415bd04c9334",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/vp-web-platform.md",
       "startedAt": "2026-06-06T02:41:54.888Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:41:57.214Z",
+      "finishedAt": "2026-06-06T02:46:56.927Z",
+      "lastUpdate": "2026-06-06T02:46:56.928Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -105,12 +105,12 @@
       "handoffPath": "handoffs/vp-native-mobile.md",
       "startedAt": "2026-06-06T02:41:57.215Z",
       "finishedAt": "2026-06-06T02:42:50.024Z",
-      "lastUpdate": "2026-06-06T02:42:50.025Z",
+      "lastUpdate": "2026-06-06T02:42:50.906Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "not-verified",
       "attempts": 1
     },
     {
@@ -164,5 +164,10 @@
       "verification": null
     }
   ],
-  "attention": []
+  "attention": [
+    {
+      "at": "2026-06-06T02:42:50.906Z",
+      "message": "vp-native-mobile: verification self-reported (not-verified)"
+    }
+  ]
 }
