@@ -44,6 +44,9 @@ export async function analyseFrame(
       sessionId: options?.sessionId,
       recentTranscript: options?.recentTranscript,
     }),
+    retry: options?.sessionId
+      ? { retries: 0 }
+      : { retries: 1, allowUnsafe: true },
   });
 
   const body = await parseApiResponse<AnalyseSuccess | AnalyseError>(response);

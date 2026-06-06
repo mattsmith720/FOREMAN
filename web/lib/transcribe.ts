@@ -44,6 +44,7 @@ export async function transcribeAudioChunk(
       sessionId,
       speaker: "worker",
     }),
+    retry: { retries: 0 },
   });
 
   const body = await parseApiResponse<{
