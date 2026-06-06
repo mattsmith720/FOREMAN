@@ -5,10 +5,14 @@ For **any network** (cellular, different Wi‑Fi, job site), deploy:
 
 | Piece | Host | Why |
 |-------|------|-----|
-| **Web** (camera + Jarvis UI) | [Vercel](https://vercel.com) | HTTPS by default — required for iPhone camera/mic |
+| **Web** (camera + coaching UI) | [Vercel](https://vercel.com) | HTTPS by default — required for iPhone camera/mic |
 | **API** (Claude + Whisper + Supabase) | [Render](https://render.com) | Long-running Node server; Claude calls can take 15–45s |
 
 Your phone opens the Vercel URL. API traffic is proxied through Vercel (`/api/*` → Render) so you never hit mixed-content or CORS issues.
+
+**Production URLs:** [https://foreman-phi.vercel.app](https://foreman-phi.vercel.app) (web) · [https://foreman-api-y31r.onrender.com](https://foreman-api-y31r.onrender.com) (API)
+
+**Vercel platform health:** Next.js projects on Vercel do not use a `healthCheckPath` in `web/vercel.json` — there is no deploy-time probe to configure. Vercel runs its own platform checks on each deployment; use `/api/health` (proxied to Render) for application-level verification.
 
 ## Prerequisites
 
@@ -29,10 +33,12 @@ Your phone opens the Vercel URL. API traffic is proxied through Vercel (`/api/*`
 | `OPENAI_API_KEY` | Your OpenAI key |
 | `SUPABASE_URL` | `https://uvlgbsiwyvtsjlqzozas.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | [Service role key](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/settings/api) (not anon) |
+| `FOREMAN_API_KEY` | Long random secret (same value on Vercel) |
+| `CORS_ORIGINS` | `https://foreman-phi.vercel.app` |
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` (optional) |
 
 5. Deploy and wait for **Healthy** on `/health`
-6. Copy the public URL, e.g. `https://foreman-api.onrender.com`
+6. Copy the public URL. Production example: `https://foreman-api-y31r.onrender.com`
 
 **Note:** Render free tier sleeps after ~15 min idle. First request after sleep may take 30–60s (cold start).
 
@@ -45,8 +51,10 @@ Your phone opens the Vercel URL. API traffic is proxied through Vercel (`/api/*`
 
 | Variable | Value | Environments |
 |----------|--------|--------------|
-| `BACKEND_URL` | `https://foreman-api.onrender.com` (your Render URL, no trailing slash) | Production, Preview, Development |
+| `BACKEND_URL` | `https://foreman-api-y31r.onrender.com` (your Render URL, no trailing slash) | Production, Preview, Development |
+| `FOREMAN_API_KEY` | Same value as Render | Production, Preview, Development |
 | `NEXT_PUBLIC_API_URL` | `same-origin` | Production, Preview, Development |
+| `ALLOWED_APP_ORIGINS` | `https://foreman-phi.vercel.app` | Production, Preview, Development |
 
 `BACKEND_URL` is baked into Next.js rewrites at **build time** — set it before the first deploy, and redeploy if you change the API URL.
 
@@ -54,13 +62,32 @@ Your phone opens the Vercel URL. API traffic is proxied through Vercel (`/api/*`
 
 ## Step 3 — Test on your iPhone (any network)
 
-1. Open Safari → your Vercel URL, e.g. `https://foreman.vercel.app`
-2. No certificate warning (unlike local HTTPS dev)
-3. Tap **I understand — enable camera & mic**
-4. Allow camera + microphone
-5. Tap **Start job**
+1. Open Safari → [https://foreman-phi.vercel.app](https://foreman-phi.vercel.app)
+2. If Render has been idle, wait ~30–60s on the first **Start job** attempt (free-tier cold start), then retry
+3. No certificate warning (unlike local HTTPS dev)
+4. Read the consent overlay, then tap **I understand — continue**
+5. Allow camera + microphone
+6. Tap **Start job**
 
 Works on cellular, home Wi‑Fi, or a job site — no Mac on the same network required.
+
+## Health and readiness
+
+| Endpoint | Auth | Purpose |
+|----------|------|---------|
+| `GET /health` | Public | Liveness — Render `healthCheckPath` and uptime probes |
+| `GET /ready` | API key when `FOREMAN_API_KEY` is set | Feature availability — returns booleans for `anthropic`, `openai`, `supabase`, `transcription` (+ `elevenlabs` when configured) |
+
+```bash
+curl https://foreman-api-y31r.onrender.com/health
+# → {"status":"ok"}
+
+curl -H "x-foreman-api-key: YOUR_KEY" https://foreman-api-y31r.onrender.com/ready
+# → {"ok":true,"anthropic":true,"openai":true,"supabase":true,"transcription":true,...}
+
+curl https://foreman-phi.vercel.app/api/health
+# → {"status":"ok"}
+```
 
 ## Architecture
 
@@ -103,7 +130,7 @@ FOREMAN_API_KEY=<server-only secret>
 ALLOWED_APP_ORIGINS=https://foreman-phi.vercel.app
 ```
 
-The Vercel `/api/*` proxy injects the key server-side. Frames are compressed client-side to stay under Vercel's body limit.
+The Vercel `/api/*` proxy injects the key server-side. Frames are compressed client-side to stay under Vercel's body limit. See [SECURITY.md](SECURITY.md).
 
 ## Local dev (unchanged)
 
@@ -115,8 +142,80 @@ npm run dev:phone
 
 See [PHONE_TEST.md](PHONE_TEST.md).
 
+## Release smoke
+
+After deploy, run the end-to-end smoke script at `scripts/smoke-e2e.sh` via `npm run smoke`. It needs `BASE_URL` (API root) and `FOREMAN_API_KEY`; it walks `/sessions/start` → `/analyse` → `/transcribe` → `/sessions/:id/stop` and exits non-zero on any failure, so it is safe to wire into CI.
+
+```bash
+# Local
+BASE_URL=http://127.0.0.1:8080 FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke
+
+# Production (via Vercel proxy)
+BASE_URL=https://foreman-phi.vercel.app/api FOREMAN_API_KEY=$FOREMAN_API_KEY npm run smoke
+```
+
 ## Costs (typical)
 
 - **Vercel** — Hobby free tier is enough for personal testing
 - **Render** — Free web service (with sleep); upgrade if you need always-on for demos
 - **Anthropic + OpenAI + Supabase** — usage-based; monitor dashboards during heavy testing
+
+## Cost guards and billing alerts
+
+Backend API cost controls are enforced server-side in Fastify:
+
+- Global default rate limit: `120 requests / minute / IP`
+- `/analyse`: `30 requests / minute / IP`
+- `/transcribe`: `20 requests / minute / IP`
+- `/voice/*` (including `/voice/config`, `/voice/speak`, `/voice/convai-url`, `/voice/advice`): `60 requests / minute / IP`
+- `/analyse` frame payload cap: `ANALYSE_FRAME_MAX_BYTES` (default `4194304` bytes of base64 payload)
+
+If a `/analyse` request exceeds `ANALYSE_FRAME_MAX_BYTES`, the API returns `413 Payload Too Large` before the analyse handler runs.
+
+Manual billing-alert operator recipe:
+
+1. Anthropic Console: `Console -> Settings -> Billing -> Usage limits`
+   - Set monthly and/or hard usage limits for the workspace used by Foreman.
+   - Configure notifications at thresholds that fit your budget policy.
+2. OpenAI Platform: `Platform -> Settings -> Limits`
+   - Set spend limits and alerts for the project/organization serving Foreman.
+   - Confirm alert recipients are the on-call/operator distribution list.
+
+## Reading production logs
+
+When debugging a failed readiness check or a user-reported issue, pull logs from both hosts.
+
+### Render (API — `foreman-api`)
+
+**Dashboard:** [Render](https://dashboard.render.com) → select the **`foreman-api`** service → **Logs** tab (live tail).
+
+**CLI** (if [Render CLI](https://render.com/docs/cli) is installed):
+
+```bash
+render logs --service foreman-api
+```
+
+API requests include an `x-request-id` response header (Fastify request id). Quote this id when escalating — it ties a browser/proxy request to a single backend log line.
+
+### Vercel (web + `/api/*` proxy)
+
+**Dashboard:** [Vercel](https://vercel.com) → your project → **Deployments** → select the latest deployment → **Logs**.
+
+**CLI** (if [Vercel CLI](https://vercel.com/docs/cli) is installed):
+
+```bash
+vercel logs https://foreman-phi.vercel.app
+```
+
+Use the deployment URL from the deployment you are inspecting if it differs from production.
+
+### Correlating with `x-request-id`
+
+1. Run `npm run check-ready` (or `curl -i https://foreman-api-y31r.onrender.com/ready`) and note the `x-request-id` value printed for the `/ready` call.
+2. In Render logs, grep for that id:
+
+```bash
+render logs --service foreman-api | grep 'YOUR-REQUEST-ID-HERE'
+```
+
+On Vercel, function logs for proxied `/api/*` routes may show the same id when the backend forwarded it; filter the deployment log stream by the id string.

@@ -5,7 +5,7 @@ and microphone watch the job; the backend analyses frames with Claude and return
 coaching in real time. See [CLAUDE.md](CLAUDE.md) for the full mission, architecture, and
 roadmap.
 
-This repository is a scaffold only — no feature logic yet (Iteration 0 onward adds it).
+**Production:** [foreman-phi.vercel.app](https://foreman-phi.vercel.app) (web) · [foreman-api-y31r.onrender.com](https://foreman-api-y31r.onrender.com) (API)
 
 ## Layout
 
@@ -48,6 +48,7 @@ Secrets live only in `.env` files (git-ignored). Never commit keys.
 ## Run on your iPhone
 
 **Any network (cellular, job site):** deploy to Vercel + Render — see [DEPLOY.md](DEPLOY.md).
+On the production stack, the first API request after Render idle sleep may take **30–60 seconds** (free-tier cold start).
 
 **Same Wi‑Fi as your Mac (local dev):**
 
@@ -60,7 +61,7 @@ Opens HTTPS on port 3000 with camera + mic support. See [PHONE_TEST.md](PHONE_TE
 ## Run (desktop / two terminals)
 
 ```bash
-npm run dev:backend   # Fastify on http://localhost:8080  (GET /health)
+npm run dev:backend   # Fastify on http://localhost:8080  (GET /health, GET /ready)
 npm run dev:web       # Next.js  on http://localhost:3000
 ```
 
@@ -72,16 +73,27 @@ See [native/ios/README.md](native/ios/README.md). Uses Meta Wearables DAT 0.7 wi
 cd native/ios && xcodegen generate && open Foreman.xcodeproj
 ```
 
+<!-- TODO: xcodegen generate requires macOS — see native/ios/README.md § Gap: xcodegen not available in CI for manual Mac smoke steps -->
+
 ## Build
 
 ```bash
 npm run build         # builds shared, backend, and web
 ```
 
+## Verify
+
+```bash
+npm run check-ready   # local keys, unit tests, production health probes
+npm run smoke         # E2E API walk: sessions → analyse → transcribe → stop (needs BASE_URL + FOREMAN_API_KEY)
+```
+
+See [DEPLOY.md](DEPLOY.md) for production smoke examples.
+
 ## What you need to do next
 
 **Phone testing — start here:** **[YOUR_ACTIONS.md](YOUR_ACTIONS.md)** (what you need to do)
 
-Run `npm run check-ready` to verify. Also: [PHONE_READY.md](PHONE_READY.md) · [SECURITY.md](SECURITY.md)
+Also: [PHONE_READY.md](PHONE_READY.md) · [PHONE_DEMO.md](PHONE_DEMO.md) · [SECURITY.md](SECURITY.md)
 
 Security posture: **[SECURITY.md](SECURITY.md)**
