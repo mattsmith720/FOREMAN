@@ -41,7 +41,7 @@ export async function apiFetch(
 
   return withRetry(doFetch, {
     retries: retry?.retries ?? 1,
-    signal: fetchInit.signal,
+    signal: fetchInit.signal ?? undefined,
     shouldRetryResult: (response) => response.status >= 500,
     shouldRetryError: (error) => {
       if (error instanceof DOMException && error.name === "AbortError") {
