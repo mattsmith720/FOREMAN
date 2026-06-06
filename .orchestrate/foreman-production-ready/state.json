@@ -184,36 +184,37 @@
       "handoffPath": "handoffs/merge-production-ready.md",
       "startedAt": "2026-06-06T04:03:01.074Z",
       "finishedAt": "2026-06-06T04:05:44.528Z",
-      "lastUpdate": "2026-06-06T04:05:44.529Z",
+      "lastUpdate": "2026-06-06T04:05:45.502Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
       "name": "verify-ceo-product-readiness",
       "type": "verifier",
       "branch": "orch/foreman-production-ready/verify-ceo-product-readiness",
-      "startingRef": "orch/foreman-production-ready/merge-production-ready",
+      "startingRef": "orch/foreman-production-ready/production-ready",
       "dependsOn": [
         "merge-production-ready"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T04:05:53.527Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T04:05:53.527Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -308,6 +309,14 @@
     {
       "at": "2026-06-06T04:02:57.889Z",
       "message": "docs-truth-sync: verification self-reported (not-verified)"
+    },
+    {
+      "at": "2026-06-06T04:05:45.501Z",
+      "message": "verify-ceo-product-readiness: startingRef reconciled orch/foreman-production-ready/merge-production-ready -> orch/foreman-production-ready/production-ready (target merge-production-ready handed off on actual branch)"
+    },
+    {
+      "at": "2026-06-06T04:05:45.502Z",
+      "message": "merge-production-ready: verification self-reported (unit-test-verified)"
     }
   ]
 }
