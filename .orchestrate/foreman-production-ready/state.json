@@ -131,12 +131,12 @@
       "handoffPath": "handoffs/docs-truth-sync.md",
       "startedAt": "2026-06-06T04:00:45.282Z",
       "finishedAt": "2026-06-06T04:02:56.880Z",
-      "lastUpdate": "2026-06-06T04:02:56.880Z",
+      "lastUpdate": "2026-06-06T04:02:57.889Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "not-verified",
       "attempts": 1
     },
     {
@@ -150,17 +150,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T04:02:58.097Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T04:02:58.097Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "merge-production-ready",
@@ -302,6 +303,10 @@
     {
       "at": "2026-06-06T04:00:42.663Z",
       "message": "cpo-product-ux: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-06-06T04:02:57.889Z",
+      "message": "docs-truth-sync: verification self-reported (not-verified)"
     }
   ]
 }
