@@ -122,6 +122,20 @@ else
   FAIL=1
 fi
 
+VOICE_CFG="$(curl -s -H "Origin: https://foreman-phi.vercel.app" https://foreman-phi.vercel.app/api/voice/config 2>/dev/null || echo "")"
+if echo "$VOICE_CFG" | grep -q '"liveAvailable":true'; then
+  green "✓ Production voice config (live agent ready)"
+else
+  yellow "○ Production voice config missing or live agent not configured"
+fi
+
+TTS_CODE="$(curl -s -o /dev/null -w "%{http_code}" -H "Origin: https://foreman-phi.vercel.app" -H "Content-Type: application/json" -X POST https://foreman-phi.vercel.app/api/voice/speak -d '{"text":"Ready check"}' 2>/dev/null || echo "000")"
+if [ "$TTS_CODE" = "200" ]; then
+  green "✓ Production cue voice TTS"
+else
+  yellow "○ Production TTS returned HTTP $TTS_CODE — check ELEVENLABS_API_KEY on Render"
+fi
+
 echo ""
 if [ "$FAIL" -eq 0 ]; then
   green "Ready for phone testing."

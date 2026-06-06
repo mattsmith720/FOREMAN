@@ -1,4 +1,4 @@
-import { isLiveCoachActive } from "./coach-live";
+import { isLiveCoachBusy } from "./coach-live";
 import { fetchVoiceConfig } from "./voice-config";
 import { fetchVoiceSpeak } from "./voice-speak";
 import { playAudioBlob, stopVoicePlayback } from "./voice-player";
@@ -52,7 +52,7 @@ export async function speakCoachLine(text: string, _severity?: string): Promise<
     !enabled ||
     !ttsAvailable ||
     typeof window === "undefined" ||
-    isLiveCoachActive()
+    isLiveCoachBusy()
   ) {
     return;
   }
@@ -63,7 +63,7 @@ export async function speakCoachLine(text: string, _severity?: string): Promise<
     if (
       generation !== speakGeneration ||
       !enabled ||
-      isLiveCoachActive()
+      isLiveCoachBusy()
     ) {
       return;
     }

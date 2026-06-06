@@ -16,6 +16,7 @@ export interface LiveCoachCallbacks {
 
 let activeSession: LiveConversation | null = null;
 let sessionGeneration = 0;
+let connecting = false;
 let lastContextFingerprint = "";
 let lastContextAt = 0;
 
@@ -48,6 +49,11 @@ export function isLiveCoachActive(): boolean {
   return activeSession !== null && activeSession.isOpen();
 }
 
+/** True while connecting or in an open live session (suppress cue TTS). */
+export function isLiveCoachBusy(): boolean {
+  return connecting || isLiveCoachActive();
+}
+
 function resetVisionSyncState(): void {
   lastContextFingerprint = "";
   lastContextAt = 0;
@@ -64,7 +70,7 @@ export function sendLiveVisionContext(text: string): boolean {
     return false;
   }
 
-  const fingerprint = body.slice(0, 240);
+  const fingerprint = `${body.length}:${body}`;
   const now = Date.now();
 
   if (
@@ -102,7 +108,7 @@ export async function startLiveCoach(
   callbacks: LiveCoachCallbacks,
   initialVisionContext?: string | null,
 ): Promise<void> {
-  if (isLiveCoachActive()) {
+  if (isLiveCoachBusy()) {
     return;
   }
 
@@ -114,6 +120,7 @@ export async function startLiveCoach(
     return;
   }
 
+  connecting = true;
   stopVoicePlayback();
   resetVisionSyncState();
   callbacks.onModeChange?.("connecting");
@@ -132,6 +139,7 @@ export async function startLiveCoach(
           return;
         }
 
+        connecting = false;
         callbacks.onModeChange?.("listening");
         callbacks.onVisionLinked?.(true);
         sendLiveSessionBootstrap(initialVisionContext ?? null);
@@ -172,6 +180,7 @@ export async function startLiveCoach(
     activeSession = session;
   } catch (err) {
     if (isGenerationCurrent(generation)) {
+      connecting = false;
       callbacks.onModeChange?.("idle");
       callbacks.onVisionLinked?.(false);
       const message =
@@ -179,10 +188,15 @@ export async function startLiveCoach(
       callbacks.onError?.(message);
       throw err;
     }
+  } finally {
+    if (!isLiveCoachActive()) {
+      connecting = false;
+    }
   }
 }
 
 export async function endLiveCoach(): Promise<void> {
   sessionGeneration++;
+  connecting = false;
   await disposeActiveSession();
 }

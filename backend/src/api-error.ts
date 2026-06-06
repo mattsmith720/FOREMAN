@@ -33,7 +33,24 @@ export function toClientError(err: unknown, fallback: string): {
     ) {
       return { statusCode: 503, message: "AI service is not configured" };
     }
-    if (err.message.includes("Supabase") || err.message.includes("Failed to")) {
+    if (err.message.includes("ElevenLabs")) {
+      const statusMatch = err.message.match(/\((\d{3})\)/);
+      const upstream = statusMatch ? Number(statusMatch[1]) : 502;
+      const statusCode =
+        upstream === 401 || upstream === 403
+          ? 503
+          : upstream >= 400 && upstream < 600
+            ? upstream
+            : 502;
+      return {
+        statusCode,
+        message: "Voice synthesis unavailable — check ElevenLabs API key and voice ID on Render",
+      };
+    }
+    if (
+      err.message.includes("Supabase") ||
+      (err.message.includes("Failed to") && !err.message.includes("ElevenLabs"))
+    ) {
       return { statusCode: 503, message: "Storage service unavailable" };
     }
     if (err.message.includes("invalid input syntax for type uuid")) {

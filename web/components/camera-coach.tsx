@@ -25,7 +25,11 @@ import {
   type SessionRow,
 } from "../lib/sessions";
 import { transcribeAudioChunk } from "../lib/transcribe";
-import { releaseWakeLock, requestWakeLock } from "../lib/wake-lock";
+import {
+  refreshWakeLockIfNeeded,
+  releaseWakeLock,
+  requestWakeLock,
+} from "../lib/wake-lock";
 import { CoachAnnotations } from "./coach-annotations";
 import { CoachOverlay } from "./coach-overlay";
 import {
@@ -60,6 +64,23 @@ const EMPTY_HEALTH: CaptureHealthStats = {
   chunkKb: null,
 };
 
+function formatStartJobError(err: unknown): string {
+  if (typeof window !== "undefined" && !window.isSecureContext) {
+    return "Open the https:// URL — camera and microphone require a secure connection.";
+  }
+
+  if (err instanceof DOMException) {
+    if (err.name === "NotAllowedError") {
+      return "Allow camera and microphone in your browser settings, then try again.";
+    }
+    if (err.name === "NotFoundError") {
+      return "No camera found on this device.";
+    }
+  }
+
+  return err instanceof Error ? err.message : "Could not start job";
+}
+
 export function CameraCoach() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -68,6 +89,7 @@ export function CameraCoach() {
   const analysingRef = useRef(false);
   const pendingFrameRef = useRef<string | null>(null);
   const transcribingRef = useRef(false);
+  const pendingAudioChunkRef = useRef<Blob | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef<string[]>([]);
   const lastHeroRef = useRef<string>("");
@@ -81,7 +103,6 @@ export function CameraCoach() {
   const [hasConsented, setHasConsented] = useState(false);
   const [endedSession, setEndedSession] = useState<SessionRow | null>(null);
   const [storedCounts, setStoredCounts] = useState<SessionCounts | null>(null);
-  const [memoryTotal, setMemoryTotal] = useState(0);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [frameCount, setFrameCount] = useState(0);
   const [lastAnalyseMs, setLastAnalyseMs] = useState<number | null>(null);
@@ -98,7 +119,6 @@ export function CameraCoach() {
     (kind: ActivityItem["kind"], message: string) => {
       const item = createActivity(kind, message);
       setActivity((current) => [...current.slice(-19), item]);
-      setMemoryTotal((count) => count + 1);
     },
     [],
   );
@@ -132,17 +152,14 @@ export function CameraCoach() {
   }, []);
 
   const pauseJobAudio = useCallback(async () => {
-    await audioSourceRef.current?.stop();
+    const audio = audioSourceRef.current;
+    audioSourceRef.current = null;
+    await audio?.stop();
     setMicActive(false);
   }, []);
 
-  const handleAudioChunk = useCallback(
-    async (blob: Blob) => {
-      const sessionId = sessionIdRef.current;
-      if (!sessionId || transcribingRef.current) {
-        return;
-      }
-
+  const transcribeChunk = useCallback(
+    async (blob: Blob, sessionId: string) => {
       if (debugMode) {
         setHealthStats((current) => ({
           ...current,
@@ -151,34 +168,56 @@ export function CameraCoach() {
         }));
       }
 
+      const result = await transcribeAudioChunk(blob, sessionId);
+      if (result.text) {
+        setTranscriptLines((current) => {
+          const next = [...current.slice(-7), result.text];
+          transcriptRef.current = next;
+          return next;
+        });
+        pushActivity("transcript", result.text);
+        syncLiveVisionContext({
+          coaching,
+          recentTranscript: transcriptRef.current,
+        });
+        if (result.persisted) {
+          pushActivity("saved", "Transcript stored");
+        }
+      }
+    },
+    [coaching, debugMode, pushActivity],
+  );
+
+  const handleAudioChunk = useCallback(
+    async (blob: Blob) => {
+      const sessionId = sessionIdRef.current;
+      if (!sessionId) {
+        return;
+      }
+
+      if (transcribingRef.current) {
+        pendingAudioChunkRef.current = blob;
+        return;
+      }
+
       transcribingRef.current = true;
 
       try {
-        const result = await transcribeAudioChunk(blob, sessionId);
-        if (result.text) {
-          setTranscriptLines((current) => {
-            const next = [...current.slice(-7), result.text];
-            transcriptRef.current = next;
-            return next;
-          });
-          pushActivity("transcript", result.text);
-          syncLiveVisionContext({
-            coaching,
-            recentTranscript: transcriptRef.current,
-          });
-          if (result.persisted) {
-            pushActivity("saved", "Transcript stored");
-          }
-        }
+        await transcribeChunk(blob, sessionId);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Transcription failed";
         setWarningMessage(message);
       } finally {
         transcribingRef.current = false;
+        const pending = pendingAudioChunkRef.current;
+        pendingAudioChunkRef.current = null;
+        if (pending) {
+          void handleAudioChunk(pending);
+        }
       }
     },
-    [coaching, debugMode, pushActivity],
+    [transcribeChunk],
   );
 
   const resumeJobAudio = useCallback(async () => {
@@ -369,8 +408,8 @@ export function CameraCoach() {
     transcriptRef.current = [];
     setEndedSession(null);
     setStoredCounts(null);
-    setMemoryTotal(0);
     setActivity([]);
+    pendingAudioChunkRef.current = null;
     setFrameCount(0);
     setLastAnalyseMs(null);
     setActiveCalloutIndex(0);
@@ -433,12 +472,23 @@ export function CameraCoach() {
       if (orphanedSessionId) {
         void stopSession(orphanedSessionId).catch(() => undefined);
       }
-      const message =
-        err instanceof Error ? err.message : "Could not start job";
-      setErrorMessage(message);
+      setErrorMessage(formatStartJobError(err));
       setStatus("error");
     }
   }, [handleAudioChunk, handleFrame, pushActivity]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (status === "running" || status === "analysing") {
+        void refreshWakeLockIfNeeded();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [status]);
 
   useEffect(() => {
     return () => {
@@ -514,14 +564,8 @@ export function CameraCoach() {
             activeCalloutIndex={activeCalloutIndex}
             onCalloutSelect={setActiveCalloutIndex}
             voiceReady={isCoachVoiceAvailable()}
-            liveAvailable={voiceConfig?.liveAvailable ?? false}
             livePanelOpen={livePanelOpen}
-            onTalkToCoach={() => {
-              if (livePanelOpen) {
-                return;
-              }
-              setLivePanelOpen(true);
-            }}
+            showPipeline={debugMode}
             onSectionOpen={() => setLivePanelOpen(false)}
           />
         )}
@@ -534,7 +578,17 @@ export function CameraCoach() {
       </div>
 
       {endedSession && storedCounts && (
-        <SessionSummary session={endedSession} stored={storedCounts} />
+        <SessionSummary
+          session={endedSession}
+          stored={storedCounts}
+          onStartNew={() => {
+            setEndedSession(null);
+            setStoredCounts(null);
+            setErrorMessage(null);
+            setWarningMessage(null);
+            setStatus("idle");
+          }}
+        />
       )}
 
       {errorMessage && (
@@ -577,7 +631,7 @@ export function CameraCoach() {
         >
           End job
         </button>
-        {hasConsented && isCoachVoiceAvailable() && (
+        {activeSessionId && isCoachVoiceAvailable() && (
           <button
             type="button"
             className={`button button-voice ${voiceOn ? "on" : ""}`}
@@ -588,11 +642,10 @@ export function CameraCoach() {
             Cue voice {voiceOn ? "on" : "off"}
           </button>
         )}
-        {hasConsented && voiceConfig?.liveAvailable && (
+        {activeSessionId && voiceConfig?.liveAvailable && (
           <button
             type="button"
             className={`button button-voice ${livePanelOpen ? "on" : ""}`}
-            disabled={!activeSessionId}
             onClick={() => setLivePanelOpen((open) => !open)}
           >
             {livePanelOpen ? "End talk" : "Talk live"}

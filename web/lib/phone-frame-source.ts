@@ -13,6 +13,7 @@ export class PhoneFrameSource implements FrameSource {
   private stream: MediaStream | null = null;
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private handlers: FrameHandler[] = [];
+  private warmupAttempts = 0;
 
   constructor(
     private readonly video: HTMLVideoElement,
@@ -61,8 +62,14 @@ export class PhoneFrameSource implements FrameSource {
   private captureFrame(): void {
     const data = captureCompressedJpeg(this.video, this.canvas);
     if (!data) {
+      if (this.warmupAttempts < 4) {
+        this.warmupAttempts += 1;
+        setTimeout(() => this.captureFrame(), 400);
+      }
       return;
     }
+
+    this.warmupAttempts = 0;
 
     const frame: Frame = {
       data,

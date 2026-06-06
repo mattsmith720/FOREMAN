@@ -5,6 +5,7 @@ import type { CoachingResponse } from "@foreman/shared";
 import {
   endLiveCoach,
   isLiveCoachActive,
+  isLiveCoachBusy,
   startLiveCoach,
   type LiveCoachMode,
 } from "../lib/coach-live";
@@ -22,7 +23,7 @@ interface CoachLivePanelProps {
   coaching: CoachingResponse | null;
   mediaStream: MediaStream | null;
   onClose: () => void;
-  onPauseJobAudio?: () => void;
+  onPauseJobAudio?: () => void | Promise<void>;
   onResumeJobAudio?: () => void;
 }
 
@@ -61,7 +62,7 @@ export function CoachLivePanel({
 
   const startLive = useCallback(async () => {
     setError(null);
-    onPauseJobAudio?.();
+    await onPauseJobAudio?.();
 
     try {
       const initialContext = formatVisionContext({
@@ -107,7 +108,7 @@ export function CoachLivePanel({
       return;
     }
 
-    if (isLiveCoachActive()) {
+    if (isLiveCoachBusy()) {
       return;
     }
 

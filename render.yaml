@@ -10,7 +10,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build:shared && npm run build --workspace backend
+    buildCommand: npm ci && npm run build:shared && npm run build --workspace backend
     startCommand: npm run start --workspace backend
     healthCheckPath: /health
     envVars:

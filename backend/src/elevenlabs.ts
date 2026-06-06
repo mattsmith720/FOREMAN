@@ -1,7 +1,7 @@
 /** Charlie — Australian male, casual (ElevenLabs premade). */
 export const DEFAULT_AU_VOICE_ID = "IKne3meq5aSn9XLyUdCD";
 
-const TTS_MODEL = "eleven_turbo_v2_5";
+const TTS_MODELS = ["eleven_turbo_v2_5", "eleven_multilingual_v2"] as const;
 
 export function isElevenLabsConfigured(): boolean {
   return Boolean(process.env.ELEVENLABS_API_KEY?.trim());
@@ -24,8 +24,11 @@ function getApiKey(): string {
   return key;
 }
 
-export async function synthesizeSpeech(text: string): Promise<Buffer> {
-  const voiceId = getElevenLabsVoiceId();
+async function synthesizeWithModel(
+  text: string,
+  voiceId: string,
+  modelId: string,
+): Promise<Buffer> {
   const url = new URL(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
   );
@@ -40,7 +43,7 @@ export async function synthesizeSpeech(text: string): Promise<Buffer> {
     },
     body: JSON.stringify({
       text,
-      model_id: TTS_MODEL,
+      model_id: modelId,
       voice_settings: {
         stability: 0.45,
         similarity_boost: 0.8,
@@ -57,6 +60,21 @@ export async function synthesizeSpeech(text: string): Promise<Buffer> {
 
   const bytes = await response.arrayBuffer();
   return Buffer.from(bytes);
+}
+
+export async function synthesizeSpeech(text: string): Promise<Buffer> {
+  const voiceId = getElevenLabsVoiceId();
+  let lastError: Error | null = null;
+
+  for (const modelId of TTS_MODELS) {
+    try {
+      return await synthesizeWithModel(text, voiceId, modelId);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error("ElevenLabs TTS failed");
+    }
+  }
+
+  throw lastError ?? new Error("ElevenLabs TTS failed");
 }
 
 export async function getConvaiSignedUrl(): Promise<string> {

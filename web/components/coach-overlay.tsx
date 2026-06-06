@@ -27,9 +27,8 @@ interface CoachOverlayProps {
   activeCalloutIndex: number;
   onCalloutSelect: (index: number) => void;
   voiceReady: boolean;
-  liveAvailable: boolean;
   livePanelOpen?: boolean;
-  onTalkToCoach?: () => void;
+  showPipeline?: boolean;
   onSectionOpen?: () => void;
 }
 
@@ -127,9 +126,8 @@ export function CoachOverlay({
   activeCalloutIndex,
   onCalloutSelect,
   voiceReady,
-  liveAvailable,
   livePanelOpen = false,
-  onTalkToCoach,
+  showPipeline = false,
   onSectionOpen,
 }: CoachOverlayProps) {
   const [openSection, setOpenSection] = useState<CoachPanelSection | null>(
@@ -177,17 +175,19 @@ export function CoachOverlay({
           </div>
         </header>
 
-        <div className="coach-pipeline" aria-label="Pipeline">
-          <span className={`pipe-step ${isWatching ? "on" : ""}`}>
-            Cap {frameCount || "—"}
-          </span>
-          <span className="pipe-arrow">·</span>
-          <span className={`pipe-step ${isAnalysing ? "on" : ""}`}>
-            {isAnalysing ? "AI…" : lastAnalyseMs ? `${lastAnalyseMs}ms` : "AI"}
-          </span>
-          <span className="pipe-arrow">·</span>
-          <span className={`pipe-step ${coaching ? "on" : ""}`}>Coach</span>
-        </div>
+        {showPipeline && (
+          <div className="coach-pipeline" aria-label="Pipeline">
+            <span className={`pipe-step ${isWatching ? "on" : ""}`}>
+              Cap {frameCount || "—"}
+            </span>
+            <span className="pipe-arrow">·</span>
+            <span className={`pipe-step ${isAnalysing ? "on" : ""}`}>
+              {isAnalysing ? "AI…" : lastAnalyseMs ? `${lastAnalyseMs}ms` : "AI"}
+            </span>
+            <span className="pipe-arrow">·</span>
+            <span className={`pipe-step ${coaching ? "on" : ""}`}>Coach</span>
+          </div>
+        )}
 
         <div className="coach-dock">
           <div
@@ -196,6 +196,13 @@ export function CoachOverlay({
             <p className="coach-card-label">{hero.label}</p>
             <p className="coach-card-text">{hero.text}</p>
           </div>
+
+          {latestTranscript && (
+            <div className="coach-heard">
+              <span className="coach-heard-label">Heard</span>
+              <p className="coach-heard-text">{latestTranscript}</p>
+            </div>
+          )}
 
           <nav className="coach-toolbar" aria-label="Coaching panels">
             <button
@@ -233,15 +240,6 @@ export function CoachOverlay({
             >
               Feed
             </button>
-            {liveAvailable && onTalkToCoach && (
-              <button
-                type="button"
-                className="toolbar-btn toolbar-btn-talk"
-                onClick={onTalkToCoach}
-              >
-                Talk
-              </button>
-            )}
           </nav>
         </div>
       </div>
