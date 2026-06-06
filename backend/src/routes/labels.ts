@@ -10,10 +10,10 @@ const LABEL_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
 const LABEL_VALUE_LIMIT_BYTES = 32 * 1024;
 
 const confirmLabelSchema = z.object({
-  sessionId: z.string().uuid(),
+  sessionId: z.uuid(),
   key: z.string().min(1).max(200),
   value: z.string().min(1).max(2000),
-  frameId: z.string().uuid().optional(),
+  frameId: z.uuid().optional(),
   correctedValue: z.string().max(2000).optional(),
 });
 

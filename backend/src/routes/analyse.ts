@@ -18,7 +18,7 @@ const ANALYSE_RAW_IMAGE_LIMIT_BYTES = 5 * 1024 * 1024;
 
 const analyseRequestSchema = z.object({
   image: z.string().min(1).max(20_000_000),
-  sessionId: z.string().uuid().optional(),
+  sessionId: z.uuid().optional(),
   recentTranscript: z.array(z.string().max(2000)).max(20).optional(),
   context: z
     .object({
