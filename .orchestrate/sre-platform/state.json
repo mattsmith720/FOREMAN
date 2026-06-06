@@ -1,0 +1,97 @@
+{
+  "rootSlug": "sre-platform",
+  "tasks": [
+    {
+      "name": "ready-and-logging",
+      "type": "worker",
+      "branch": "orch/sre-platform/ready-and-logging",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-06-06T02:38:55.787Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-06-06T02:38:55.787Z",
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null,
+      "attempts": 1
+    },
+    {
+      "name": "cost-guards-and-payload",
+      "type": "worker",
+      "branch": "orch/sre-platform/cost-guards-and-payload",
+      "startingRef": "cursor/orch/sre-platform/ready-and-logging",
+      "dependsOn": [
+        "ready-and-logging"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "health-and-deploy-docs",
+      "type": "worker",
+      "branch": "orch/sre-platform/health-and-deploy-docs",
+      "startingRef": "cursor/orch/sre-platform/cost-guards-and-payload",
+      "dependsOn": [
+        "cost-guards-and-payload"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "verify-sre-platform",
+      "type": "verifier",
+      "branch": "orch/sre-platform/verify-sre-platform",
+      "startingRef": "orch/sre-platform/health-and-deploy-docs",
+      "dependsOn": [
+        "health-and-deploy-docs"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": []
+}
