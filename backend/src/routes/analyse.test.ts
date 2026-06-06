@@ -93,3 +93,58 @@ test("POST /analyse returns clean 5xx when provider throws", async () => {
   assert.equal(body.error.includes("secret"), false);
   await app.close();
 });
+
+test("POST /analyse returns coaching with persistError when storage fails", async () => {
+  const sessionId = "f5e2d446-71e8-48cf-b13a-2f3ecf781f40";
+  const app = Fastify();
+  await registerAnalyseRoutes(app, {
+    isAnalysisConfigured: () => true,
+    decodeImagePayload: () => ({
+      base64: Buffer.from("image").toString("base64"),
+      mediaType: "image/jpeg",
+    }),
+    validateImageBytes: () => ({ mediaType: "image/jpeg" }),
+    requireSessionToken: () => true,
+    isSupabaseConfigured: () => true,
+    assertActiveSession: async () => ({
+      id: sessionId,
+      started_at: new Date().toISOString(),
+      ended_at: null,
+      worker: null,
+      job_type: null,
+      notes: null,
+      summary: null,
+    }),
+    getRecentSessionTranscript: async () => {
+      throw new Error("should not fetch transcript when client sends recentTranscript");
+    },
+    analyseImage: async () => minimalCoaching,
+    persistFrame: async () => {
+      throw new Error("storage unavailable");
+    },
+  });
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/analyse",
+    payload: {
+      image: "abc",
+      sessionId,
+      recentTranscript: ["Customer asked about savings."],
+    },
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    coaching: CoachingResponse;
+    persisted?: unknown;
+    persistError?: string;
+  };
+  assert.equal(body.coaching.nextSteps[0], "Continue install.");
+  assert.equal(body.persisted, undefined);
+  assert.equal(
+    body.persistError,
+    "Frame coaching was not saved to storage",
+  );
+  await app.close();
+});

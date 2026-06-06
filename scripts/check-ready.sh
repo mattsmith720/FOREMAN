@@ -240,6 +240,16 @@ else
   FAIL=1
 fi
 
+RENDER_READY="$(curl -s -o /dev/null -w "%{http_code}" https://foreman-api-y31r.onrender.com/ready 2>/dev/null || echo "000")"
+if [ "$RENDER_READY" = "200" ]; then
+  green "✓ https://foreman-api-y31r.onrender.com/ready (no auth)"
+  print_ready_breakdown "https://foreman-api-y31r.onrender.com/ready" 1
+elif [ "$RENDER_READY" = "401" ]; then
+  yellow "○ Render /ready requires API key — redeploy latest main on Render (auth exemption missing)"
+else
+  yellow "○ Render /ready returned HTTP $RENDER_READY"
+fi
+
 echo ""
 if [ "$FAIL" -eq 0 ]; then
   green "Ready for phone testing."
