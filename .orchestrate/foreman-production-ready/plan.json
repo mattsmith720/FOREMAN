@@ -134,8 +134,8 @@
     },
     {
       "name": "ciso-security",
-      "type": "subplanner",
-      "scopedGoal": "You are the CISO. Own CEO DoD #3 (security posture is clean). Decompose into 2-3 broad workers + a verify-ciso-security verifier. Suggested workers: (W1) `secrets-and-leak-audit` = run gitleaks against current HEAD + last 50 commits, wire `.github/workflows/gitleaks.yml` if missing, fix any high-severity finding (or document with rationale if false-positive), produce a remediation note in SECURITY.md; (W2) `boot-and-runtime-guards` = backend production boot refuses to start without FOREMAN_API_KEY/CORS_ORIGINS (covered by an integration test on backend/src/assert-production-security.ts), CORS allowlist is strict in production (test covers env-driven behaviour), Vercel /api/* origin gate (web/middleware.ts) blocks calls without a valid app origin (test covers this); (W3) `rate-limit-and-no-leak` = per-IP rate limits effective on /analyse, /transcribe, /voice (tests prove returning 429 after the cap), and a repo-wide grep confirms NO `NEXT_PUBLIC_*` env vars referencing AI/Supabase keys in the web bundle. Each child MUST carry its own engineering DoD in `acceptance`. SHIP-FAST: commit and push a minimal plan.json within the first 10 minutes. MODEL CONSTRAINTS: every child MUST set `tasks[].model` to one of `claude-opus-4-7`, `gpt-5.3-codex-high-fast`, or `composer-2-fast`. Do NOT open PRs from inside the subtree.",
+      "type": "worker",
+      "scopedGoal": "You are the CISO. Own CEO DoD #3 (security posture is clean). NOTE: two prior subplanner attempts at this scope died mid-plan-draft -- you are now a direct worker so you can spend ALL your runtime DOING the work instead of decomposing it. Tackle these four security slices in priority order; commit + push as you go so partial progress is preserved: (1) GITLEAKS AUDIT + CI -- run gitleaks against current HEAD + last 50 commits (install via `curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz -C /tmp && sudo mv /tmp/gitleaks /usr/local/bin/`), fix or document any high-severity finding, add `.github/workflows/gitleaks.yml` if missing (must run on push + pull_request), add `.gitleaks.toml` baseline if helpful. (2) BOOT-AND-RUNTIME GUARDS TESTS -- write `backend/src/assert-production-security.test.ts` that asserts the backend refuses to start (throws or process.exits non-zero) when `NODE_ENV=production` and either `FOREMAN_API_KEY` or `CORS_ORIGINS` is missing; the test should also confirm `CORS_ORIGINS` defaults are strict in production. (3) VERCEL ORIGIN GATE TEST -- add or improve a test that exercises `web/middleware.ts` to confirm /api/* calls without a valid app origin/referer are blocked. (4) RATE-LIMIT + NO-CLIENT-SECRETS PROOF -- add integration tests in backend/src that hit /analyse and /transcribe N+1 times within the window and assert 429 on the over-the-cap call; run `rg 'NEXT_PUBLIC_(FOREMAN_API_KEY|ANTHROPIC|OPENAI|SUPABASE_SERVICE_ROLE|SUPABASE_URL)' web/` and confirm zero matches in real code (test fixtures don't count). Finally update SECURITY.md to reflect what landed on this branch (no aspirational claims). Run `cd backend && npm test` and `cd web && npm test` -- they must pass. Push your branch and self-report `## Verification: unit-test-verified` in the handoff. If you run out of time, ship whatever is done with `Status: partial` and list the unfinished slices under `## Notes`.",
       "pathsAllowed": [
         "backend/src/auth.ts",
         "backend/src/assert-production-security.ts",
@@ -148,8 +148,7 @@
         ".github/**",
         ".gitleaks.toml",
         "SECURITY.md",
-        "SECURITY_INCIDENT.md",
-        ".orchestrate/ciso-security/**"
+        "SECURITY_INCIDENT.md"
       ],
       "pathsForbidden": [
         "backend/src/index.ts",
