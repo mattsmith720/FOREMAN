@@ -14,6 +14,10 @@ import {
   transcribeAudio,
 } from "../transcribe.js";
 import { validateAudioBytes } from "../validate-media.js";
+import {
+  isAudioPersistEnabled,
+  persistAudioSegment,
+} from "../db/audio-segments.js";
 
 const TRANSCRIBE_BODY_LIMIT_BYTES = 15 * 1024 * 1024;
 // Route-local fallback until shared body-size limits are centralized in config.ts.
@@ -158,6 +162,20 @@ export async function registerTranscribeRoutes(
             text,
             speaker: parsed.data.speaker,
           });
+
+          // Optional raw-audio moat (AUDIO_PERSIST=true). Fire-and-forget so a
+          // storage hiccup never blocks or fails transcription.
+          if (isAudioPersistEnabled()) {
+            const audioSessionId = parsed.data.sessionId;
+            void persistAudioSegment({
+              sessionId: audioSessionId,
+              bytes,
+              mimeType,
+              transcriptSegmentId: segment?.id,
+            }).catch((audioErr) => {
+              request.log.error(audioErr, "audio segment persist failed");
+            });
+          }
         }
 
         return reply.send({

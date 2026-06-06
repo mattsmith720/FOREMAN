@@ -191,6 +191,7 @@ export async function registerAnalyseRoutes(
               base64,
               mediaType,
               coaching,
+              transcriptWindow: context?.recentTranscript,
             })
             .then((persisted) => {
               request.log.info({ sessionId, frameId: persisted.frameId }, "frame persisted");

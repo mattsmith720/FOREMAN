@@ -10,6 +10,8 @@ export interface PersistFrameInput {
   base64: string;
   mediaType: string;
   coaching: CoachingResponse;
+  /** Recent transcript lines aligned to this frame (Iteration A training signal). */
+  transcriptWindow?: string[];
 }
 
 export interface PersistFrameResult {
@@ -38,13 +40,28 @@ export async function persistFrame(
     throw new Error(`Failed to upload frame: ${upload.error.message}`);
   }
 
-  const frameInsert = await supabase.from("frames").insert({
+  const baseRow = {
     id: frameId,
     session_id: input.sessionId,
     ts: ts.toISOString(),
     storage_ref: storageRef,
     analysis: input.coaching,
-  });
+  };
+  const rowWithWindow =
+    input.transcriptWindow && input.transcriptWindow.length > 0
+      ? { ...baseRow, transcript_window: input.transcriptWindow }
+      : baseRow;
+
+  let frameInsert = await supabase.from("frames").insert(rowWithWindow);
+  // frames.transcript_window arrives with training-iteration-a.sql; retry
+  // without it if the migration hasn't been applied so frames still persist.
+  if (
+    frameInsert.error &&
+    (frameInsert.error.code === "PGRST204" ||
+      frameInsert.error.message.includes("transcript_window"))
+  ) {
+    frameInsert = await supabase.from("frames").insert(baseRow);
+  }
 
   if (frameInsert.error) {
     await supabase.storage.from(FRAMES_BUCKET).remove([storageRef]);

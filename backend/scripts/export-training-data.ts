@@ -6,7 +6,7 @@
  */
 import "dotenv/config";
 import { createWriteStream } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getSupabase } from "../src/db/supabase.js";
 
@@ -47,6 +47,8 @@ async function main() {
   await mkdir(path.dirname(path.resolve(out)), { recursive: true });
   const stream = createWriteStream(out, { encoding: "utf8" });
   let rowCount = 0;
+  const labelSourceCounts: Record<string, number> = {};
+  const sessionTypeCounts: Record<string, number> = {};
 
   for (const session of sessions ?? []) {
     const [framesRes, labelsRes, transcriptsRes] = await Promise.all([
@@ -68,6 +70,14 @@ async function main() {
 
     if (framesRes.error) {
       throw new Error(framesRes.error.message);
+    }
+
+    const sessionType =
+      session.job_type === "site_video_import" ? "site_video_import" : "live";
+    sessionTypeCounts[sessionType] = (sessionTypeCounts[sessionType] ?? 0) + 1;
+    for (const label of labelsRes.data ?? []) {
+      const source = (label.label_source as string | null) ?? "claude";
+      labelSourceCounts[source] = (labelSourceCounts[source] ?? 0) + 1;
     }
 
     for (const frame of framesRes.data ?? []) {
@@ -105,7 +115,22 @@ async function main() {
     stream.on("error", reject);
   });
 
+  const meta = {
+    generated_at: new Date().toISOString(),
+    frame_records: rowCount,
+    sessions: {
+      total: (sessions ?? []).length,
+      ...sessionTypeCounts,
+    },
+    label_sources: labelSourceCounts,
+  };
+  const metaPath = `${out}.meta.json`;
+  await writeFile(metaPath, `${JSON.stringify(meta, null, 2)}\n`, "utf8");
+
   console.log(`Exported ${rowCount} frame records to ${out}`);
+  console.log(`Label sources: ${JSON.stringify(labelSourceCounts)}`);
+  console.log(`Sessions: ${JSON.stringify(meta.sessions)}`);
+  console.log(`Wrote export metadata to ${metaPath}`);
 }
 
 main().catch((err) => {
