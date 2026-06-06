@@ -10,12 +10,12 @@
       "agentId": "bc-06515bf6-ec32-4595-84fd-6c3f135eddfd",
       "runId": "run-434e8936-3832-46a4-9c19-a0221d746344",
       "parentAgentId": "bc-148267c7-6299-48db-b84b-1fc6cbebadfc",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/e2e-smoke-script.md",
       "startedAt": "2026-06-06T02:40:25.054Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:40:27.796Z",
+      "finishedAt": "2026-06-06T02:45:39.327Z",
+      "lastUpdate": "2026-06-06T02:45:39.328Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -37,12 +37,12 @@
       "handoffPath": "handoffs/test-suite-green.md",
       "startedAt": "2026-06-06T02:40:27.799Z",
       "finishedAt": "2026-06-06T02:42:10.763Z",
-      "lastUpdate": "2026-06-06T02:42:10.764Z",
+      "lastUpdate": "2026-06-06T02:42:11.740Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -116,5 +116,10 @@
       "verification": null
     }
   ],
-  "attention": []
+  "attention": [
+    {
+      "at": "2026-06-06T02:42:11.741Z",
+      "message": "test-suite-green: verification self-reported (unit-test-verified)"
+    }
+  ]
 }
