@@ -32,6 +32,7 @@ export async function startSession(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input ?? {}),
+    retry: { retries: 0 },
   });
 
   const body = await parseApiResponse<{
@@ -50,6 +51,7 @@ export async function stopSession(sessionId: string): Promise<{
 }> {
   const response = await apiFetch(`/sessions/${sessionId}/stop`, {
     method: "POST",
+    retry: { retries: 0 },
   });
 
   const result = await parseApiResponse<{
@@ -64,7 +66,9 @@ export async function getSession(sessionId: string): Promise<{
   session: SessionRow;
   stored: SessionCounts;
 }> {
-  const response = await apiFetch(`/sessions/${sessionId}`);
+  const response = await apiFetch(`/sessions/${sessionId}`, {
+    retry: { retries: 1 },
+  });
   return parseApiResponse<{ session: SessionRow; stored: SessionCounts }>(
     response,
   );
