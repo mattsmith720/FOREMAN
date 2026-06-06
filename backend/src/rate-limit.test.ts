@@ -90,8 +90,11 @@ async function registerUnconfiguredRoutes(app: FastifyInstance): Promise<void> {
     assertActiveSession: async () => {
       throw new Error("not expected");
     },
-    decodeAudioPayload: () => ({ base64: "", mediaType: "audio/wav" }),
-    validateAudioBytes: () => ({ mediaType: "audio/wav" }),
+    decodeAudioPayload: () => ({
+      bytes: Buffer.alloc(0),
+      mimeType: "audio/wav",
+    }),
+    validateAudioBytes: () => ({ mimeType: "audio/wav" }),
     transcribeAudio: async () => "not expected",
     persistTranscriptSegment: async () => ({ id: "t" } as never),
   });
