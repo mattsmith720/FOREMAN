@@ -1,0 +1,64 @@
+{
+  "rootSlug": "foreman-production-ready",
+  "tasks": [
+    {
+      "name": "cto-readiness",
+      "type": "subplanner",
+      "branch": "orch/foreman-production-ready/cto-readiness",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-06-06T01:35:55.768Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-06-06T01:35:55.768Z",
+      "note": "manual reset: prior 2 spawn attempts hit (1) invalid_model on default subplanner slug then (2) resume-from-nonexistent-placeholder-branch; attempts zeroed so the first new attempt starts from `main`.",
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "verify-ceo-product-readiness",
+      "type": "verifier",
+      "branch": "orch/foreman-production-ready/verify-ceo-product-readiness",
+      "startingRef": "orch/foreman-production-ready/cto-readiness",
+      "dependsOn": [
+        "cto-readiness"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": [
+    {
+      "at": "2026-06-06T01:32:06.713Z",
+      "message": "cto-readiness: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'claude-opus-4-7' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents."
+    },
+    {
+      "at": "2026-06-06T01:34:02.746Z",
+      "message": "cto-readiness: respawned by self-planner (was error); resuming from orch/foreman-production-ready/cto-readiness"
+    },
+    {
+      "at": "2026-06-06T01:34:20.190Z",
+      "message": "cto-readiness: spawn failed after 3 transient sub-attempts: l: [validation_error] Branch 'orch/foreman-production-ready/cto-readiness' does not exist in repository mattsmith720/FOREMAN."
+    }
+  ]
+}
