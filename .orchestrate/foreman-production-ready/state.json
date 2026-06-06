@@ -26,18 +26,18 @@
     {
       "name": "cto-engineering",
       "type": "subplanner",
-      "branch": "orch/foreman-production-ready/cto-engineering",
+      "branch": "orch/cto-engineering/cto-deliverable",
       "startingRef": "main",
       "dependsOn": [],
       "agentId": "bc-35704490-69de-4bfc-9598-415bd04c9334",
       "runId": "run-4e4061b1-1614-4e6d-97e9-0507b2d5f02d",
       "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/cto-engineering.md",
       "startedAt": "2026-06-06T02:34:12.575Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:34:14.835Z",
+      "finishedAt": "2026-06-06T02:58:20.356Z",
+      "lastUpdate": "2026-06-06T02:58:20.356Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -103,12 +103,12 @@
       "handoffPath": "handoffs/qa-release.md",
       "startedAt": "2026-06-06T02:34:19.623Z",
       "finishedAt": "2026-06-06T02:58:13.776Z",
-      "lastUpdate": "2026-06-06T02:58:13.776Z",
+      "lastUpdate": "2026-06-06T02:58:14.728Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -233,6 +233,10 @@
     {
       "at": "2026-06-06T02:47:16.183Z",
       "message": "cto-engineering: tool_call idle 324682ms; last=2026-06-06T02:41:51.501Z"
+    },
+    {
+      "at": "2026-06-06T02:58:14.728Z",
+      "message": "qa-release: verification self-reported (unit-test-verified)"
     }
   ]
 }
