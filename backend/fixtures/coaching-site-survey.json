@@ -1,0 +1,28 @@
+{
+  "observations": ["Tiled roof, north-facing, light shading from a gum tree to the west."],
+  "installQualityFlags": [
+    {
+      "message": "Cracked tile near the proposed penetration zone — note for the install plan.",
+      "severity": "warning"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Survey covering the main roof plane.",
+  "nextSteps": [
+    "Measure the available north plane area.",
+    "Photograph the switchboard and meter for the design."
+  ],
+  "visualCallouts": [
+    {
+      "label": "Shading",
+      "message": "Gum tree may shade the array after 3pm",
+      "category": "quality",
+      "severity": "info",
+      "x": 0.1,
+      "y": 0.2,
+      "w": 0.2,
+      "h": 0.3,
+      "shape": "box"
+    }
+  ]
+}

@@ -127,9 +127,11 @@ export function CameraCoach() {
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null);
   const [voiceOn, setVoiceOn] = useState(true);
   const [backendStatus, setBackendStatus] = useState<BackendStatus>("unknown");
+  const [workerName, setWorkerName] = useState("");
   const [livePanelOpen, setLivePanelOpen] = useState(false);
   const [jobPhase, setJobPhase] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
   const jobPhaseRef = useRef<JobPhaseId>(DEFAULT_JOB_PHASE);
+  const workerNameRef = useRef<string>("");
 
   const pushActivity = useCallback(
     (kind: ActivityItem["kind"], message: string) => {
@@ -180,6 +182,10 @@ export function CameraCoach() {
   }, [jobPhase]);
 
   useEffect(() => {
+    workerNameRef.current = workerName;
+  }, [workerName]);
+
+  useEffect(() => {
     setCoachVoiceEnabled(true);
     void (async () => {
       await initCoachVoice();
@@ -217,7 +223,11 @@ export function CameraCoach() {
         }));
       }
 
-      const result = await transcribeAudioChunk(blob, sessionId);
+      const result = await transcribeAudioChunk(
+        blob,
+        sessionId,
+        workerNameRef.current.trim() || "worker",
+      );
       if (result.text) {
         setTranscriptLines((current) => {
           const next = [...current.slice(-7), result.text];
@@ -496,6 +506,7 @@ export function CameraCoach() {
       await checkApiHealth();
 
       const session = await startSession({
+        worker: workerNameRef.current.trim() || undefined,
         jobType: jobPhaseRef.current,
         notes: `Phone session — ${jobPhaseLabel(jobPhaseRef.current)}`,
         consentAt: consentAtRef.current ?? undefined,
@@ -599,6 +610,15 @@ export function CameraCoach() {
             <p className="boot-title">Foreman</p>
             <p className="boot-sub">What are you doing on site?</p>
             <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
+            <input
+              className="worker-name-input"
+              type="text"
+              value={workerName}
+              onChange={(event) => setWorkerName(event.target.value)}
+              placeholder="Your name (optional)"
+              autoComplete="name"
+              aria-label="Your name"
+            />
             {backendStatus === "waking" || backendStatus === "slow" ? (
               <p className="boot-muted boot-waking" role="status">
                 {backendStatusMessage(backendStatus)}

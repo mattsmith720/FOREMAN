@@ -1,3 +1,5 @@
+import { phaseGuidance } from "./analysis-phases.js";
+
 export interface SessionContext {
   jobType?: string;
   worker?: string;
@@ -64,6 +66,10 @@ export function buildAnalysisUserPrompt(context?: SessionContext): string {
 
   if (context?.jobType) {
     lines.push(`Job type: ${context.jobType}`);
+    const guidance = phaseGuidance(context.jobType);
+    if (guidance) {
+      lines.push("", guidance);
+    }
   }
   if (context?.worker) {
     lines.push(`Worker: ${context.worker}`);

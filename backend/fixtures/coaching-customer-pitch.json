@@ -1,0 +1,32 @@
+{
+  "observations": ["Worker at the front door speaking with the homeowner."],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [
+    {
+      "message": "Good rapport, but you led with price before the savings — frame payback first.",
+      "severity": "warning"
+    },
+    {
+      "message": "Try: 'Most homes like yours cut their bill by about a third — want me to run your roof's numbers?'",
+      "severity": "info"
+    }
+  ],
+  "timeOnTaskNote": "Conversation running long; aim to book the survey.",
+  "nextSteps": [
+    "Book a site survey time before leaving.",
+    "Leave a one-page savings estimate."
+  ],
+  "visualCallouts": [
+    {
+      "label": "Upsell",
+      "message": "Mention battery rebate eligibility",
+      "category": "upsell",
+      "severity": "info",
+      "x": 0.5,
+      "y": 0.5,
+      "w": 0.1,
+      "h": 0.1,
+      "shape": "pointer"
+    }
+  ]
+}

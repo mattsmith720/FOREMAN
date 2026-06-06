@@ -1,0 +1,32 @@
+{
+  "observations": ["Worker on the north roof fixing mid-clamps to the rail."],
+  "installQualityFlags": [
+    {
+      "message": "No harness anchor visible near the roof edge — stop and clip on.",
+      "severity": "critical"
+    },
+    {
+      "message": "Mid-clamp looks under-torqued on the third panel.",
+      "severity": "warning"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Clamping pace is on track for a 6.6kW array.",
+  "nextSteps": [
+    "Clip the harness to the anchor before moving up-roof.",
+    "Torque-check the last three mid-clamps."
+  ],
+  "visualCallouts": [
+    {
+      "label": "No anchor",
+      "message": "Harness not clipped on",
+      "category": "safety",
+      "severity": "critical",
+      "x": 0.4,
+      "y": 0.3,
+      "w": 0.2,
+      "h": 0.2,
+      "shape": "circle"
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import {
   buildAnalysisUserPrompt,
   type SessionContext,
 } from "./prompts/analysis.js";
+import { maxCalloutsForPhase } from "./prompts/analysis-phases.js";
 
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
 const DEFAULT_MAX_TOKENS = 512;
@@ -79,6 +80,23 @@ function extractTextContent(
   return text;
 }
 
+function capCallouts(
+  coaching: CoachingResponse,
+  jobType?: string,
+): CoachingResponse {
+  const cap = maxCalloutsForPhase(jobType);
+  const callouts = coaching.visualCallouts ?? [];
+  if (callouts.length <= cap) {
+    return coaching;
+  }
+  // Keep the most severe callouts so the cap drops noise, not safety.
+  const rank: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+  const trimmed = [...callouts]
+    .sort((a, b) => (rank[a.severity] ?? 3) - (rank[b.severity] ?? 3))
+    .slice(0, cap);
+  return { ...coaching, visualCallouts: trimmed };
+}
+
 export async function analyseImage(
   input: AnalyseImageInput,
   dependencies: AnalyseImageDependencies = defaultAnalyseImageDependencies,
@@ -118,7 +136,7 @@ export async function analyseImage(
       const raw = extractTextContent(response.content);
       const parsed = dependencies.parseResponse(raw);
       if (!parsed.usedFallback || attempt === MAX_RETRIES) {
-        return parsed.coaching;
+        return capCallouts(parsed.coaching, input.context?.jobType);
       }
     } catch (err) {
       lastError = err;

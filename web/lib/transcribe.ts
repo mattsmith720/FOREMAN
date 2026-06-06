@@ -30,6 +30,7 @@ async function blobToDataUrl(blob: Blob): Promise<string> {
 export async function transcribeAudioChunk(
   blob: Blob,
   sessionId: string,
+  speaker = "worker",
 ): Promise<TranscribeResult> {
   if (blob.size > MAX_AUDIO_BYTES) {
     return { text: "", persisted: false };
@@ -42,7 +43,7 @@ export async function transcribeAudioChunk(
     body: JSON.stringify({
       audio,
       sessionId,
-      speaker: "worker",
+      speaker,
     }),
     retry: { retries: 0 },
   });

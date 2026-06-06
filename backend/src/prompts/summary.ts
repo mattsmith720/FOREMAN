@@ -30,10 +30,17 @@ export function buildSummaryUserPrompt(data: {
     speaker: string | null;
   }>;
 }): string {
+  const phaseFocus =
+    data.jobType === "customer_pitch"
+      ? "Focus the summary on the sales conversation: what landed, what missed, and 1-2 stronger lines."
+      : data.jobType === "site_survey"
+        ? "Focus the summary on the site assessment: roof, shading, access, and what it means for the install plan."
+        : "Focus the summary on install safety and workmanship quality, then pacing.";
   const lines = [
     "Write an end-of-job summary from this session data.",
     `Worker: ${data.worker ?? "unknown"}`,
     `Job type: ${data.jobType ?? "solar_install"}`,
+    phaseFocus,
   ];
 
   if (data.notes) {
