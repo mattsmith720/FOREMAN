@@ -1,0 +1,26 @@
+name: keep-warm
+
+# Pings the Render API /health every 10 minutes so the free-tier dyno does not
+# cold-start (30–60s) when a tradie opens the app on site. No secrets required.
+# Disable this (or widen the cron) if you move Render off the free tier.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render /health
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 \
+            https://foreman-api-y31r.onrender.com/health || echo 000)
+          echo "Render /health -> $code"
+          # A single cold-start blip should not fail the workflow.
+          if [ "$code" != "200" ]; then
+            echo "::warning::Render /health returned $code"
+          fi
