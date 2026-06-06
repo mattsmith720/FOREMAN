@@ -101,7 +101,6 @@ async function registerUnconfiguredRoutes(app: FastifyInstance): Promise<void> {
 
   await registerVoiceRoutes(app, {
     isElevenLabsConfigured: () => false,
-    isOpenAiTtsConfigured: () => false,
     getElevenLabsAgentId: () => undefined,
     getElevenLabsVoiceId: () => "voice",
     getConvaiSignedUrl: async () => {

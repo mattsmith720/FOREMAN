@@ -227,7 +227,7 @@ TTS_CODE="$(curl -s -o /dev/null -w "%{http_code}" -H "Origin: https://foreman-p
 if [ "$TTS_CODE" = "200" ]; then
   green "✓ Production cue voice TTS"
 else
-  yellow "○ Production TTS returned HTTP $TTS_CODE — check ELEVENLABS_API_KEY on Render"
+  yellow "○ Production TTS returned HTTP $TTS_CODE — check ELEVENLABS_API_KEY on Vercel"
 fi
 
 echo ""

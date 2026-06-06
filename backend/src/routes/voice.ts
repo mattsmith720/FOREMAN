@@ -8,7 +8,6 @@ import {
   isElevenLabsConfigured,
   synthesizeSpeech,
 } from "../elevenlabs.js";
-import { isOpenAiTtsConfigured } from "../openai-tts.js";
 import { answerVoiceAdvice } from "../voice-advice.js";
 
 const VOICE_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
@@ -31,7 +30,6 @@ interface VoiceRouteDependencies {
   getElevenLabsAgentId: typeof getElevenLabsAgentId;
   getElevenLabsVoiceId: typeof getElevenLabsVoiceId;
   isElevenLabsConfigured: typeof isElevenLabsConfigured;
-  isOpenAiTtsConfigured: typeof isOpenAiTtsConfigured;
   synthesizeSpeech: typeof synthesizeSpeech;
   answerVoiceAdvice: typeof answerVoiceAdvice;
 }
@@ -41,7 +39,6 @@ const defaultDependencies: VoiceRouteDependencies = {
   getElevenLabsAgentId,
   getElevenLabsVoiceId,
   isElevenLabsConfigured,
-  isOpenAiTtsConfigured,
   synthesizeSpeech,
   answerVoiceAdvice,
 };
@@ -72,9 +69,7 @@ export async function registerVoiceRoutes(
     const agentConfigured = Boolean(dependencies.getElevenLabsAgentId());
 
     return reply.send({
-      ttsAvailable:
-        dependencies.isElevenLabsConfigured() ||
-        dependencies.isOpenAiTtsConfigured(),
+      ttsAvailable: dependencies.isElevenLabsConfigured(),
       liveAvailable: dependencies.isElevenLabsConfigured() && agentConfigured,
       agentConfigured,
       voiceId: dependencies.getElevenLabsVoiceId(),
@@ -111,13 +106,9 @@ export async function registerVoiceRoutes(
       },
     },
     async (request, reply) => {
-      if (
-        !dependencies.isElevenLabsConfigured() &&
-        !dependencies.isOpenAiTtsConfigured()
-      ) {
+      if (!dependencies.isElevenLabsConfigured()) {
         return reply.status(503).send({
-          error:
-            "Voice synthesis is not configured (set ELEVENLABS_API_KEY or OPENAI_API_KEY on Render)",
+          error: "ELEVENLABS_API_KEY is not set for voice synthesis",
         });
       }
 
@@ -220,8 +211,7 @@ export async function registerVoiceRoutes(
 
         if (
           parsed.data.includeAudio !== false &&
-          (dependencies.isElevenLabsConfigured() ||
-            dependencies.isOpenAiTtsConfigured())
+          dependencies.isElevenLabsConfigured()
         ) {
           let audio: Buffer;
           try {

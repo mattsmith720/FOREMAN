@@ -1,24 +1,14 @@
-import { z } from "zod";
-
 /** Charlie — Australian male, casual (ElevenLabs premade). */
 export const DEFAULT_AU_VOICE_ID = "IKne3meq5aSn9XLyUdCD";
 
 const TTS_MODELS = ["eleven_turbo_v2_5", "eleven_multilingual_v2"] as const;
-const convaiSignedUrlSchema = z.object({
-  signed_url: z.string().min(1),
-});
 
-export function isElevenLabsConfigured(): boolean {
+export function isElevenLabsTtsConfigured(): boolean {
   return Boolean(process.env.ELEVENLABS_API_KEY?.trim());
 }
 
 export function getElevenLabsVoiceId(): string {
   return process.env.ELEVENLABS_VOICE_ID?.trim() || DEFAULT_AU_VOICE_ID;
-}
-
-export function getElevenLabsAgentId(): string | undefined {
-  const id = process.env.ELEVENLABS_AGENT_ID?.trim();
-  return id || undefined;
 }
 
 function getApiKey(): string {
@@ -33,13 +23,14 @@ async function synthesizeWithModel(
   text: string,
   voiceId: string,
   modelId: string,
-): Promise<Buffer> {
+  fetchImpl: typeof fetch,
+): Promise<ArrayBuffer> {
   const url = new URL(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
   );
   url.searchParams.set("output_format", "mp3_44100_128");
 
-  const response = await fetch(url, {
+  const response = await fetchImpl(url, {
     method: "POST",
     headers: {
       "xi-api-key": getApiKey(),
@@ -63,49 +54,23 @@ async function synthesizeWithModel(
     throw new Error(`ElevenLabs TTS failed (${response.status}): ${detail}`);
   }
 
-  const bytes = await response.arrayBuffer();
-  return Buffer.from(bytes);
+  return response.arrayBuffer();
 }
 
-export async function synthesizeSpeech(text: string): Promise<Buffer> {
+export async function synthesizeElevenLabsSpeech(
+  text: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ArrayBuffer> {
   const voiceId = getElevenLabsVoiceId();
   let lastError: Error | null = null;
 
   for (const modelId of TTS_MODELS) {
     try {
-      return await synthesizeWithModel(text, voiceId, modelId);
+      return await synthesizeWithModel(text, voiceId, modelId, fetchImpl);
     } catch (err) {
       lastError = err instanceof Error ? err : new Error("ElevenLabs TTS failed");
     }
   }
 
   throw lastError ?? new Error("ElevenLabs TTS failed");
-}
-
-export async function getConvaiSignedUrl(): Promise<string> {
-  const agentId = getElevenLabsAgentId();
-  if (!agentId) {
-    throw new Error("ELEVENLABS_AGENT_ID is not set for live voice coach");
-  }
-
-  const url = new URL(
-    "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",
-  );
-  url.searchParams.set("agent_id", agentId);
-
-  const response = await fetch(url, {
-    method: "GET",
-    headers: { "xi-api-key": getApiKey() },
-  });
-
-  if (!response.ok) {
-    throw new Error(`ElevenLabs signed URL failed (${response.status})`);
-  }
-
-  const data = convaiSignedUrlSchema.safeParse(await response.json());
-  if (!data.success) {
-    throw new Error("ElevenLabs signed URL response missing signed_url");
-  }
-
-  return data.data.signed_url;
 }

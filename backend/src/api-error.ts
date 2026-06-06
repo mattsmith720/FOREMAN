@@ -39,7 +39,7 @@ export function toClientError(err: unknown, fallback: string): {
     ) {
       return { statusCode: 503, message: "AI service is not configured" };
     }
-    if (err.message.includes("ElevenLabs") || err.message.includes("OpenAI TTS")) {
+    if (err.message.includes("ElevenLabs")) {
       const statusMatch = err.message.match(/\((\d{3})\)/);
       const upstream = statusMatch ? Number(statusMatch[1]) : 502;
       const statusCode =
@@ -48,12 +48,10 @@ export function toClientError(err: unknown, fallback: string): {
           : upstream >= 400 && upstream < 600
             ? upstream
             : 502;
-      const cloudBlock = err.message.includes("unusual_activity");
       return {
         statusCode,
-        message: cloudBlock
-          ? "Voice synthesis blocked from cloud hosting — upgrade ElevenLabs or ensure OPENAI_API_KEY is set on Render"
-          : "Voice synthesis unavailable — check ElevenLabs/OpenAI keys on Render",
+        message:
+          "Voice synthesis unavailable — cue TTS is handled on Vercel; check ELEVENLABS_API_KEY there",
       };
     }
     if (
