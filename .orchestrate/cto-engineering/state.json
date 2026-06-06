@@ -130,17 +130,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:51:54.369Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:51:54.369Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "verify-cto-engineering",
