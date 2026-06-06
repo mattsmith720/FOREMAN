@@ -15,6 +15,7 @@
     "dev:web": "npm run dev --workspace web",
     "dev:phone": "bash scripts/dev-phone.sh",
     "check-ready": "bash scripts/check-ready.sh",
+    "smoke": "bash scripts/smoke-e2e.sh",
     "postinstall": "npm run build:shared"
   },
   "engines": {
