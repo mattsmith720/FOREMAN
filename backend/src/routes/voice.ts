@@ -1,6 +1,6 @@
 import type { FastifyError, FastifyInstance } from "fastify";
 import { z } from "zod";
-import { toClientError } from "../api-error.js";
+import { isRateLimitError, toClientError } from "../api-error.js";
 import {
   getConvaiSignedUrl,
   getElevenLabsAgentId,
@@ -92,6 +92,9 @@ export async function registerVoiceRoutes(
         return undefined;
       },
       errorHandler: (error, request, reply) => {
+        if (isRateLimitError(error)) {
+          throw error;
+        }
         if (isPayloadTooLargeError(error)) {
           return reply.status(413).send({ error: "Payload too large" });
         }
@@ -170,6 +173,9 @@ export async function registerVoiceRoutes(
         return undefined;
       },
       errorHandler: (error, request, reply) => {
+        if (isRateLimitError(error)) {
+          throw error;
+        }
         if (isPayloadTooLargeError(error)) {
           return reply.status(413).send({ error: "Payload too large" });
         }

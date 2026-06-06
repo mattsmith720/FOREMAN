@@ -18,7 +18,7 @@ function safeEqual(a: string, b: string): boolean {
 
 function isPublicPath(url: string): boolean {
   const path = url.split("?")[0];
-  return path === "/health";
+  return path === "/health" || path === "/ready";
 }
 
 export async function registerAuthHook(app: FastifyInstance): Promise<void> {

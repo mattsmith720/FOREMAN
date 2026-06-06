@@ -1,3 +1,9 @@
+import type { FastifyError } from "fastify";
+
+export function isRateLimitError(error: FastifyError): boolean {
+  return error.statusCode === 429 || error.code === "FST_ERR_RATE_LIMIT";
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,

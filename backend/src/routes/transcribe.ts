@@ -1,6 +1,6 @@
 import type { FastifyError, FastifyInstance } from "fastify";
 import { z } from "zod";
-import { toClientError } from "../api-error.js";
+import { isRateLimitError, toClientError } from "../api-error.js";
 import { assertActiveSession } from "../db/sessions.js";
 import {
   persistTranscriptSegment,
@@ -84,6 +84,9 @@ export async function registerTranscribeRoutes(
         return undefined;
       },
       errorHandler: (error, request, reply) => {
+        if (isRateLimitError(error)) {
+          throw error;
+        }
         if (isPayloadTooLargeError(error)) {
           return reply.status(413).send({ error: "Payload too large" });
         }

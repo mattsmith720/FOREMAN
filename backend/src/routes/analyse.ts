@@ -1,7 +1,7 @@
 import type { FastifyError, FastifyInstance } from "fastify";
 import type { CoachingResponse } from "@foreman/shared";
 import { z } from "zod";
-import { toClientError } from "../api-error.js";
+import { isRateLimitError, toClientError } from "../api-error.js";
 import { analyseImage, decodeImagePayload } from "../analyse.js";
 import { isAnalysisConfigured } from "../config.js";
 import { persistFrame } from "../db/persist-frame.js";
@@ -90,6 +90,9 @@ export async function registerAnalyseRoutes(
         return undefined;
       },
       errorHandler: (error, request, reply) => {
+        if (isRateLimitError(error)) {
+          throw error;
+        }
         if (isPayloadTooLargeError(error)) {
           return reply.status(413).send({ error: "Payload too large" });
         }

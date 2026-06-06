@@ -66,10 +66,55 @@ after(() => {
   restoreEnv(originalEnv);
 });
 
+async function registerUnconfiguredRoutes(app: FastifyInstance): Promise<void> {
+  await registerAnalyseRoutes(app, {
+    isAnalysisConfigured: () => false,
+    decodeImagePayload: () => ({ base64: "", mediaType: "image/jpeg" }),
+    validateImageBytes: () => ({ mediaType: "image/jpeg" }),
+    requireSessionToken: () => true,
+    isSupabaseConfigured: () => false,
+    assertActiveSession: async () => {
+      throw new Error("not expected");
+    },
+    getRecentSessionTranscript: async () => [],
+    analyseImage: async () => {
+      throw new Error("not expected");
+    },
+    persistFrame: async () => ({ frameId: "f", storageRef: "s" }),
+  });
+
+  await registerTranscribeRoutes(app, {
+    isTranscriptionConfigured: () => false,
+    requireSessionToken: () => true,
+    isSupabaseConfigured: () => false,
+    assertActiveSession: async () => {
+      throw new Error("not expected");
+    },
+    decodeAudioPayload: () => ({ base64: "", mediaType: "audio/wav" }),
+    validateAudioBytes: () => ({ mediaType: "audio/wav" }),
+    transcribeAudio: async () => "not expected",
+    persistTranscriptSegment: async () => ({ id: "t" } as never),
+  });
+
+  await registerVoiceRoutes(app, {
+    isElevenLabsConfigured: () => false,
+    getElevenLabsAgentId: () => undefined,
+    getElevenLabsVoiceId: () => "voice",
+    getConvaiSignedUrl: async () => {
+      throw new Error("not configured");
+    },
+    synthesizeSpeech: async () => {
+      throw new Error("not configured");
+    },
+    answerVoiceAdvice: async () => "not expected",
+  });
+}
+
 async function buildApp(clientIp: string): Promise<FastifyInstance> {
   const app = Fastify({ logger: false, trustProxy: true });
 
   await app.register(rateLimit, {
+    global: false,
     max: 120,
     timeWindow: "1 minute",
     keyGenerator: (request) =>
@@ -84,9 +129,7 @@ async function buildApp(clientIp: string): Promise<FastifyInstance> {
     request.headers["x-forwarded-for"] = clientIp;
   });
 
-  await registerAnalyseRoutes(app);
-  await registerTranscribeRoutes(app);
-  await registerVoiceRoutes(app);
+  await registerUnconfiguredRoutes(app);
 
   await app.ready();
   return app;

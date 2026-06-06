@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "tsx --test src/**/*.test.ts",
+    "test": "tsx --test 'src/**/*.test.ts' 'src/*.test.ts'",
     "analyse-sample": "tsx scripts/analyse-sample.ts",
     "confirm-session": "tsx scripts/confirm-session.ts",
     "export-training": "tsx scripts/export-training-data.ts"
