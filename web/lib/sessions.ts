@@ -1,6 +1,6 @@
 import { apiFetch } from "./api-fetch";
 import { parseApiResponse } from "./parse-api-response";
-import { clearSessionToken, setSessionToken } from "./session-auth";
+import { setSessionToken } from "./session-auth";
 
 export interface SessionRow {
   id: string;
@@ -62,7 +62,8 @@ export async function stopSession(sessionId: string): Promise<{
     session: SessionRow;
     stored: SessionCounts;
   }>(response);
-  clearSessionToken();
+  // Keep the session token alive after stop so the post-job review can read the
+  // session and confirm labels. Cleared when the worker starts a new job.
   return result;
 }
 

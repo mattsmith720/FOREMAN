@@ -47,6 +47,8 @@ import {
 } from "./job-phase-picker";
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
 import { SessionSummary } from "./session-summary";
+import { PostJobReview } from "./post-job-review";
+import { clearSessionToken } from "../lib/session-auth";
 import {
   backendStatusMessage,
   type BackendStatus,
@@ -686,17 +688,21 @@ export function CameraCoach() {
       </div>
 
       {endedSession && storedCounts && (
-        <SessionSummary
-          session={endedSession}
-          stored={storedCounts}
-          onStartNew={() => {
-            setEndedSession(null);
-            setStoredCounts(null);
-            setErrorMessage(null);
-            setWarningMessage(null);
-            setStatus("idle");
-          }}
-        />
+        <>
+          <SessionSummary
+            session={endedSession}
+            stored={storedCounts}
+            onStartNew={() => {
+              clearSessionToken();
+              setEndedSession(null);
+              setStoredCounts(null);
+              setErrorMessage(null);
+              setWarningMessage(null);
+              setStatus("idle");
+            }}
+          />
+          <PostJobReview sessionId={endedSession.id} />
+        </>
       )}
 
       {errorMessage && (

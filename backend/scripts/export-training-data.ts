@@ -80,6 +80,25 @@ async function main() {
       labelSourceCounts[source] = (labelSourceCounts[source] ?? 0) + 1;
     }
 
+    const allLabels = labelsRes.data ?? [];
+    const humanVerifiedKeys = new Set(
+      allLabels
+        .filter(
+          (label) =>
+            label.label_source === "human" ||
+            label.label_source === "corrected",
+        )
+        .map((label) => label.key),
+    );
+    // Prefer human/corrected over claude: once a key is human-verified, drop the
+    // claude rows for that key from the export.
+    const preferredLabels = allLabels.filter(
+      (label) =>
+        label.label_source === "human" ||
+        label.label_source === "corrected" ||
+        !humanVerifiedKeys.has(label.key),
+    );
+
     for (const frame of framesRes.data ?? []) {
       let imageUrl: string | null = null;
       if (frame.storage_ref) {

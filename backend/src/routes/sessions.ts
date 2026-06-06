@@ -7,6 +7,7 @@ import {
   claimSessionEnd,
   createSession,
   getSession,
+  getSessionCoachingEvents,
   getSessionCounts,
   type SessionRow,
   updateSessionSummary,
@@ -248,6 +249,45 @@ export async function registerSessionRoutes(
         err,
         "Failed to fetch session",
       );
+      return reply.status(statusCode).send({ error: message });
+    }
+  });
+
+  app.get("/sessions/:id/review", async (request, reply) => {
+    if (!dependencies.isSupabaseConfigured()) {
+      return supabaseUnavailable(reply);
+    }
+
+    const params = sessionIdSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.status(400).send({ error: "Invalid session id" });
+    }
+
+    const { id } = params.data;
+
+    if (!dependencies.requireSessionToken(request, reply, id)) {
+      return;
+    }
+
+    try {
+      const session = await dependencies.getSession(id);
+      const events = await getSessionCoachingEvents(id);
+      const severityRank: Record<string, number> = {
+        critical: 0,
+        warning: 1,
+        info: 2,
+      };
+      // Surface the most actionable calls first; cap at 5 for the in-van review.
+      const items = [...events]
+        .sort(
+          (a, b) =>
+            (severityRank[a.severity] ?? 3) - (severityRank[b.severity] ?? 3),
+        )
+        .slice(0, 5);
+      return reply.send({ session, items });
+    } catch (err) {
+      request.log.error(err);
+      const { statusCode, message } = toClientError(err, "Failed to load review");
       return reply.status(statusCode).send({ error: message });
     }
   });
