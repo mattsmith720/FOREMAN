@@ -169,7 +169,9 @@ export function CoachOverlay({
           <div className="coach-status">
             <span className={`coach-dot ${isWatching ? "on" : ""}`}>Cam</span>
             <span className={`coach-dot ${isListening ? "on" : ""}`}>Mic</span>
-            <span className={`coach-pill ${isAnalysing ? "analysing" : ""}`}>
+            <span
+              className={`coach-pill ${isAnalysing ? "analysing" : ""} ${status === "Error" ? "status-error" : ""}`}
+            >
               {status}
             </span>
           </div>
@@ -197,10 +199,14 @@ export function CoachOverlay({
             <p className="coach-card-text">{hero.text}</p>
           </div>
 
-          {latestTranscript && (
+          {(latestTranscript || isListening) && (
             <div className="coach-heard">
               <span className="coach-heard-label">Heard</span>
-              <p className="coach-heard-text">{latestTranscript}</p>
+              <p
+                className={`coach-heard-text ${!latestTranscript && isListening ? "coach-heard-placeholder" : ""}`}
+              >
+                {latestTranscript ?? "Listening…"}
+              </p>
             </div>
           )}
 

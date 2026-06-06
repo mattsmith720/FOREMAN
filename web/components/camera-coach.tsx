@@ -40,13 +40,13 @@ import { endLiveCoach } from "../lib/coach-live";
 import { syncLiveVisionContext } from "../lib/live-vision-sync";
 import { CoachLivePanel } from "./coach-live-panel";
 import { SessionSummary } from "./session-summary";
+import {
+  canCapture,
+  recordingIndicatorVisible,
+  type CaptureStatus,
+} from "./consent-gate-policy";
 
-type CoachStatus =
-  | "idle"
-  | "running"
-  | "analysing"
-  | "summarising"
-  | "error";
+type CoachStatus = CaptureStatus;
 
 const STATUS_LABELS: Record<CoachStatus, string> = {
   idle: "Ready",
@@ -101,6 +101,7 @@ export function CameraCoach() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [hasConsented, setHasConsented] = useState(false);
+  const hasConsentedRef = useRef(hasConsented);
   const [endedSession, setEndedSession] = useState<SessionRow | null>(null);
   const [storedCounts, setStoredCounts] = useState<SessionCounts | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
@@ -129,6 +130,10 @@ export function CameraCoach() {
     }
     setDebugMode(new URLSearchParams(window.location.search).has("debug"));
   }, []);
+
+  useEffect(() => {
+    hasConsentedRef.current = hasConsented;
+  }, [hasConsented]);
 
   useEffect(() => {
     setCoachVoiceEnabled(true);
@@ -221,6 +226,10 @@ export function CameraCoach() {
   );
 
   const resumeJobAudio = useCallback(async () => {
+    if (!canCapture(hasConsentedRef.current)) {
+      return;
+    }
+
     const stream = mediaStream;
     const sessionId = sessionIdRef.current;
     if (!stream || !sessionId || audioSourceRef.current) {
@@ -394,6 +403,12 @@ export function CameraCoach() {
   }, [pushActivity]);
 
   const startJob = useCallback(async () => {
+    if (!canCapture(hasConsentedRef.current)) {
+      setErrorMessage("Consent required");
+      setStatus("error");
+      return;
+    }
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
@@ -502,10 +517,7 @@ export function CameraCoach() {
     };
   }, []);
 
-  const isActive =
-    status === "running" ||
-    status === "analysing" ||
-    status === "summarising";
+  const isActive = recordingIndicatorVisible(status);
 
   const latestTranscript =
     transcriptLines[transcriptLines.length - 1] ?? null;
@@ -530,7 +542,11 @@ export function CameraCoach() {
         {!hasConsented && (
           <div className="camera-placeholder consent-overlay boot-screen">
             <p className="boot-title">Foreman</p>
-            <p>Live vision and audio coaching. Recording starts when you begin a job.</p>
+            <p>
+              Foreman captures camera, microphone, and job context. Recordings
+              are treated as sensitive personal data under Australian privacy
+              rules (see CLAUDE.md). Tap I understand to continue.
+            </p>
             <button
               type="button"
               className="button button-primary"
@@ -538,6 +554,17 @@ export function CameraCoach() {
             >
               I understand — continue
             </button>
+          </div>
+        )}
+        {isActive && (
+          <div
+            className="recording-indicator"
+            data-testid="recording-indicator"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="recording-indicator-dot" aria-hidden="true" />
+            <span>REC</span>
           </div>
         )}
 

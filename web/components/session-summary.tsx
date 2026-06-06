@@ -13,11 +13,20 @@ export function SessionSummary({
 }: SessionSummaryProps) {
   const summaryFailed =
     session.summary?.startsWith("Summarising job") ?? false;
+  const noFrames = stored.frames === 0;
 
   return (
     <section className="summary-panel">
-      <h2>{summaryFailed ? "Job ended" : "Job complete"}</h2>
-      <p className="summary-text">{session.summary ?? "No summary generated."}</p>
+      <h2>{summaryFailed || noFrames ? "Job ended" : "Job complete"}</h2>
+      {noFrames ? (
+        <p className="summary-text summary-empty">
+          No frames were analysed during this session.
+        </p>
+      ) : (
+        <p className="summary-text">
+          {session.summary ?? "No summary generated."}
+        </p>
+      )}
       <div className="stored-counts">
         <p>
           <strong>Saved to this job</strong>

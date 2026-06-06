@@ -19,7 +19,9 @@ function formatTime(ts: number): string {
 
 export function CoachActivityFeed({ items }: CoachActivityFeedProps) {
   if (items.length === 0) {
-    return null;
+    return (
+      <p className="detail-prose">No activity yet — frames and speech will appear here.</p>
+    );
   }
 
   return (
