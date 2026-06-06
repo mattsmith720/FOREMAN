@@ -60,12 +60,12 @@
       "handoffPath": "handoffs/vp-web-platform.md",
       "startedAt": "2026-06-06T02:41:54.888Z",
       "finishedAt": "2026-06-06T02:46:56.927Z",
-      "lastUpdate": "2026-06-06T02:46:56.928Z",
+      "lastUpdate": "2026-06-06T02:46:57.927Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -79,17 +79,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:46:59.564Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:46:59.564Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "vp-native-mobile",
@@ -168,6 +169,10 @@
     {
       "at": "2026-06-06T02:42:50.906Z",
       "message": "vp-native-mobile: verification self-reported (not-verified)"
+    },
+    {
+      "at": "2026-06-06T02:46:57.927Z",
+      "message": "vp-web-platform: verification self-reported (unit-test-verified)"
     }
   ]
 }
