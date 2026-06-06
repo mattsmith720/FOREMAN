@@ -26,6 +26,11 @@ interface AnalyseError {
   error: string;
 }
 
+// Cap each analyse so a stalled request on a weak 4G link can't freeze the
+// capture loop. On timeout we abort; the caller surfaces the frame as failed
+// and immediately captures the next one.
+const ANALYSE_TIMEOUT_MS = 8000;
+
 export async function analyseFrame(
   image: string,
   options?: {
@@ -34,27 +39,34 @@ export async function analyseFrame(
     recentTranscript?: string[];
   },
 ): Promise<AnalyseResult> {
-  const response = await apiFetch("/analyse", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      image,
-      context: options?.context,
-      sessionId: options?.sessionId,
-      recentTranscript: options?.recentTranscript,
-    }),
-    retry: options?.sessionId
-      ? { retries: 0 }
-      : { retries: 1, allowUnsafe: true },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ANALYSE_TIMEOUT_MS);
+  try {
+    const response = await apiFetch("/analyse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image,
+        context: options?.context,
+        sessionId: options?.sessionId,
+        recentTranscript: options?.recentTranscript,
+      }),
+      signal: controller.signal,
+      retry: options?.sessionId
+        ? { retries: 0 }
+        : { retries: 1, allowUnsafe: true },
+    });
 
-  const body = await parseApiResponse<AnalyseSuccess | AnalyseError>(response);
+    const body = await parseApiResponse<AnalyseSuccess | AnalyseError>(response);
 
-  if (!("coaching" in body)) {
-    throw new Error("Analysis response was missing coaching data");
+    if (!("coaching" in body)) {
+      throw new Error("Analysis response was missing coaching data");
+    }
+
+    return {
+      coaching: coachingResponseSchema.parse(body.coaching),
+    };
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return {
-    coaching: coachingResponseSchema.parse(body.coaching),
-  };
 }

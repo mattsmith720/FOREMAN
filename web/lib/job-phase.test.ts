@@ -18,3 +18,11 @@ test("jobPhaseLabel returns human label", () => {
 test("JOB_PHASES includes all field modes", () => {
   assert.equal(JOB_PHASES.length, 3);
 });
+
+test("every job phase has a non-empty label and hint", () => {
+  for (const phase of JOB_PHASES) {
+    assert.ok(phase.label.length > 0, `${phase.id} label`);
+    assert.ok(phase.hint.length > 0, `${phase.id} hint`);
+    assert.equal(jobPhaseLabel(phase.id), phase.label);
+  }
+});

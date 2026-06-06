@@ -19,6 +19,7 @@ import { pickActiveCalloutIndex } from "../lib/pick-active-callout";
 import { PhoneAudioSource } from "../lib/phone-audio-source";
 import { PhoneFrameSource } from "../lib/phone-frame-source";
 import {
+  getSession,
   startSession,
   stopSession,
   type SessionCounts,
@@ -47,6 +48,8 @@ import {
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
 import { SessionSummary } from "./session-summary";
 import {
+  backendStatusMessage,
+  type BackendStatus,
   canCapture,
   recordingIndicatorVisible,
   type CaptureStatus,
@@ -121,6 +124,7 @@ export function CameraCoach() {
   const [healthStats, setHealthStats] = useState<CaptureHealthStats>(EMPTY_HEALTH);
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null);
   const [voiceOn, setVoiceOn] = useState(true);
+  const [backendStatus, setBackendStatus] = useState<BackendStatus>("unknown");
   const [livePanelOpen, setLivePanelOpen] = useState(false);
   const [jobPhase, setJobPhase] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
   const jobPhaseRef = useRef<JobPhaseId>(DEFAULT_JOB_PHASE);
@@ -140,12 +144,34 @@ export function CameraCoach() {
     setDebugMode(new URLSearchParams(window.location.search).has("debug"));
   }, []);
 
+  const prewarmBackend = useCallback(async () => {
+    // Render free tier cold-starts in 30–60s. Wake it as soon as the worker
+    // consents so the first Start job isn't a confusing dead wait.
+    setBackendStatus("waking");
+    let settled = false;
+    const slowTimer = setTimeout(() => {
+      if (!settled) {
+        setBackendStatus("slow");
+      }
+    }, 8000);
+    try {
+      await checkApiHealth();
+      settled = true;
+      setBackendStatus("ready");
+    } catch {
+      settled = true;
+      setBackendStatus("slow");
+    } finally {
+      clearTimeout(slowTimer);
+    }
+  }, []);
+
   useEffect(() => {
     hasConsentedRef.current = hasConsented;
     if (hasConsented) {
-      void checkApiHealth().catch(() => undefined);
+      void prewarmBackend();
     }
-  }, [hasConsented]);
+  }, [hasConsented, prewarmBackend]);
 
   useEffect(() => {
     jobPhaseRef.current = jobPhase;
@@ -401,11 +427,37 @@ export function CameraCoach() {
         "system",
         `Job complete — ${result.stored.frames} frames saved`,
       );
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to end session";
-      setErrorMessage(message);
-      setStatus("error");
+    } catch {
+      // Never dead-end the worker: the job data is already saved server-side.
+      // Try to show whatever counts we can and mark the summary as pending.
+      try {
+        const fallback = await getSession(sessionId);
+        sessionIdRef.current = null;
+        setActiveSessionId(null);
+        setEndedSession(
+          fallback.session.summary &&
+            !fallback.session.summary.startsWith("Summarising")
+            ? fallback.session
+            : {
+                ...fallback.session,
+                summary: "Summary pending — your job data is saved.",
+              },
+        );
+        setStoredCounts(fallback.stored);
+        setCoaching(null);
+        setStatus("idle");
+        setWarningMessage(
+          "Job saved. The summary is still finalising in the background.",
+        );
+      } catch {
+        sessionIdRef.current = null;
+        setActiveSessionId(null);
+        setCoaching(null);
+        setStatus("idle");
+        setWarningMessage(
+          "Job ended and your data is saved. Couldn't reach the server to finalise the summary — it will finish in the background.",
+        );
+      }
     }
   }, [pushActivity]);
 
@@ -545,7 +597,22 @@ export function CameraCoach() {
             <p className="boot-title">Foreman</p>
             <p className="boot-sub">What are you doing on site?</p>
             <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
-            <p className="boot-muted">Tap Start job when you are ready</p>
+            {backendStatus === "waking" || backendStatus === "slow" ? (
+              <p className="boot-muted boot-waking" role="status">
+                {backendStatusMessage(backendStatus)}
+                {backendStatus === "slow" && (
+                  <button
+                    type="button"
+                    className="button button-secondary boot-retry"
+                    onClick={() => void prewarmBackend()}
+                  >
+                    Retry
+                  </button>
+                )}
+              </p>
+            ) : (
+              <p className="boot-muted">Tap Start job when you are ready</p>
+            )}
           </div>
         )}
         {!hasConsented && (

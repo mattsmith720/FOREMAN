@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  backendStatusMessage,
   canCapture,
   recordingIndicatorVisible,
   type CaptureStatus,
@@ -23,5 +24,12 @@ describe("camera coach consent and recording policy", () => {
     for (const status of hidden) {
       assert.equal(recordingIndicatorVisible(status), false);
     }
+  });
+
+  it("backend status message guides cold-start UX", () => {
+    assert.equal(backendStatusMessage("ready"), null);
+    assert.equal(backendStatusMessage("unknown"), null);
+    assert.equal(backendStatusMessage("waking"), "Waking Foreman…");
+    assert.match(backendStatusMessage("slow") ?? "", /cold start/i);
   });
 });
