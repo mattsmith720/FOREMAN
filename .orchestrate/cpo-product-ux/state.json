@@ -34,12 +34,12 @@
       "agentId": "bc-fa9a9251-1f8b-45fe-a17c-373a0ad6bd58",
       "runId": "run-d3a4dfea-fbf5-43a1-a0fa-ece13bce27d5",
       "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/phone-walk-polish.md",
       "startedAt": "2026-06-06T02:51:42.056Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:51:44.563Z",
+      "finishedAt": "2026-06-06T03:10:02.151Z",
+      "lastUpdate": "2026-06-06T03:10:02.151Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -63,12 +63,12 @@
       "handoffPath": "handoffs/demo-script-truth-sync.md",
       "startedAt": "2026-06-06T02:51:44.564Z",
       "finishedAt": "2026-06-06T02:53:03.723Z",
-      "lastUpdate": "2026-06-06T02:53:03.723Z",
+      "lastUpdate": "2026-06-06T02:53:04.695Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "type-check-only",
       "attempts": 1
     },
     {
@@ -101,6 +101,18 @@
     {
       "at": "2026-06-06T02:51:37.729Z",
       "message": "consent-and-recording-ux: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:53:04.695Z",
+      "message": "demo-script-truth-sync: verification self-reported (type-check-only)"
+    },
+    {
+      "at": "2026-06-06T02:59:45.810Z",
+      "message": "phone-walk-polish: SSE idle 324091ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T02:59:45.811Z",
+      "message": "phone-walk-polish: tool_call idle 324092ms; last=2026-06-06T02:54:21.719Z"
     }
   ]
 }
