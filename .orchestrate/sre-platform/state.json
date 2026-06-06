@@ -63,12 +63,12 @@
       "handoffPath": "handoffs/health-and-deploy-docs.md",
       "startedAt": "2026-06-06T02:45:32.593Z",
       "finishedAt": "2026-06-06T02:58:19.353Z",
-      "lastUpdate": "2026-06-06T02:58:19.354Z",
+      "lastUpdate": "2026-06-06T02:58:22.330Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -82,17 +82,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:58:24.909Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:58:24.909Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -111,6 +112,10 @@
     {
       "at": "2026-06-06T02:53:35.790Z",
       "message": "health-and-deploy-docs: tool_call idle 356706ms; last=2026-06-06T02:47:39.084Z"
+    },
+    {
+      "at": "2026-06-06T02:58:22.330Z",
+      "message": "health-and-deploy-docs: verification self-reported (unit-test-verified)"
     }
   ]
 }
