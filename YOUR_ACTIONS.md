@@ -1,6 +1,6 @@
 # What you need to do — Foreman phone testing
 
-**Last updated:** 2026-06-05
+**Last updated:** 2026-06-06
 
 Everything below is **your** side only. The repo, Vercel UI, Supabase database, security hardening, and deploy pipeline are already built and pushed.
 
@@ -10,7 +10,7 @@ Everything below is **your** side only. The repo, Vercel UI, Supabase database, 
 
 | Item | Status |
 |------|--------|
-| Monorepo — backend API, Jarvis web client, shared schema, iOS skeleton | ✅ |
+| Monorepo — backend API, Foreman web client, shared schema, iOS skeleton | ✅ |
 | Supabase project `uvlgbsiwyvtsjlqzozas` — 5 tables, RLS, private `frames` bucket | ✅ |
 | GitHub repo | ✅ [github.com/mattsmith720/FOREMAN](https://github.com/mattsmith720/FOREMAN) |
 | Vercel production UI | ✅ [foreman-phi.vercel.app](https://foreman-phi.vercel.app) |
@@ -31,7 +31,7 @@ Everything below is **your** side only. The repo, Vercel UI, Supabase database, 
 | **Render API not deployed** | No public backend for your phone to reach |
 | **`BACKEND_URL` missing on Vercel** | Vercel can't proxy API calls → errors on Start job |
 
-Until those three are done, the Jarvis UI loads but **Start job will fail**.
+Until those three are done, the Foreman UI loads but **Start job will fail**.
 
 ---
 
@@ -134,20 +134,23 @@ npm run check-ready
 **Works on any network** (cellular, job site, different Wi‑Fi):
 
 1. iPhone Safari → **https://foreman-phi.vercel.app**
-2. Tap **I understand — enable camera & mic**
+2. Read the consent overlay (Australian privacy / sensitive-data wording), then tap **I understand — continue**
 3. Allow **camera** and **microphone**
 4. Tap **Start job**
-5. Point camera at a scene and talk through what you're doing
+5. Confirm the red **REC** badge appears top-left while the session runs
+6. Point camera at a scene and talk through what you're doing
 
 **Try saying:**
 
 > "Installing rail brackets on the north roof. Checking fall protection. Customer asked about payback — quoted thirty percent bill savings."
 
 **You should see:**
-- Jarvis HUD with coaching cues (~every 4s)
-- **Heard:** line when you speak
-- **Training memory** feed
-- **Stop job** → session summary
+- Foreman coach overlay with hero cue updating (~every 4s)
+- Status pill cycling **Live** → **Analyzing…**
+- **Heard** line when you speak
+- Tap **Feed** → **Live feed** with Frame, AI, Coach, and Saved entries
+- Optional: **Cue voice on/off** and **Talk live** / **End talk** when voice routes are configured
+- **End job** → **Job complete** summary with frame/transcript counts
 
 **Confirm data in Supabase (optional):**  
 [Table Editor](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/editor) → `sessions`, `frames`, `transcript_segments` should have rows.
@@ -166,7 +169,7 @@ npm run dev:phone
 ```
 
 3. On iPhone Safari → **`https://YOUR-MAC-IP:3000`** (script prints IP, e.g. `https://192.168.0.88:3000`).
-4. Accept certificate warning → consent → **Start job**.
+4. Accept certificate warning → tap **I understand — continue** → **Start job**.
 
 This does **not** work on cellular or a different network.
 
