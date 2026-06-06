@@ -53,7 +53,6 @@
       "dependsOn": [
         "ready-and-logging"
       ],
-      "startingRef": "cursor/orch/sre-platform/ready-and-logging",
       "pathsAllowed": [
         "backend/src/index.ts",
         "backend/src/config.ts",
@@ -79,7 +78,6 @@
         "DEPLOY.md documents the per-route caps with the numeric values used.",
         "Frame-size cap enforced server-side: a POST /analyse with an `image` data-URL larger than the configured cap returns 413 before the analyse handler runs; cap value lives in `backend/src/config.ts` as `getAnalyseFrameByteCap()` with sensible default and env override.",
         "Billing-alert operator recipe added to DEPLOY.md (a new `## Cost guards and billing alerts` section) describing the operator steps for Anthropic + OpenAI billing alerts (link or path, not automation).",
-        "If the actual startingRef branch name does not match `cursor/orch/sre-platform/ready-and-logging` at spawn time, the worker MUST rebase or re-target onto the real ready-and-logging branch (auto-wired by orchestrate via dependsOn) and note that in its handoff.",
         "`npm run build --workspace backend` clean on the worker branch.",
         "`cd backend && npm test` passes on the worker branch.",
         "SECURITY.md is NOT modified by this worker (forbidden path)."
@@ -95,7 +93,6 @@
       "dependsOn": [
         "cost-guards-and-payload"
       ],
-      "startingRef": "cursor/orch/sre-platform/cost-guards-and-payload",
       "pathsAllowed": [
         "scripts/check-ready.sh",
         "render.yaml",
