@@ -17,11 +17,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-06-06T02:34:12.573Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "cto-engineering",
@@ -39,11 +39,11 @@
       "finishedAt": "2026-06-06T02:58:20.356Z",
       "lastUpdate": "2026-06-06T02:58:21.261Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "ciso-security",
@@ -51,21 +51,21 @@
       "branch": "orch/foreman-production-ready/ciso-security",
       "startingRef": "main",
       "dependsOn": [],
-      "agentId": "bc-4af1d5d3-26f6-4d0a-8214-3710855ce0ef",
-      "runId": "run-f3b29f58-edee-46a7-bab6-5344cff7e917",
+      "agentId": null,
+      "runId": null,
       "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
-      "status": "error",
-      "resultStatus": "error",
-      "handoffPath": "handoffs/ciso-security.md",
-      "startedAt": "2026-06-06T02:34:14.836Z",
-      "finishedAt": "2026-06-06T03:03:52.220Z",
-      "lastUpdate": "2026-06-06T03:03:52.220Z",
-      "note": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-06-06T03:07:59.533Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-06-06T03:07:59.533Z",
+      "note": "ciso-security manual reset: first attempt died mid-plan-draft with unknown failure mode; retry as-is per orchestrate guidance, attempts zeroed so first new attempt starts from main.",
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": "unknown",
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "sre-platform",
@@ -83,11 +83,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-06-06T02:34:19.623Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "qa-release",
@@ -105,11 +105,11 @@
       "finishedAt": "2026-06-06T02:58:13.776Z",
       "lastUpdate": "2026-06-06T02:58:14.728Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "docs-truth-sync",
