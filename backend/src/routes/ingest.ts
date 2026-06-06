@@ -31,7 +31,7 @@ const driveWebhookSchema = z.object({
   byteSize: z.number().int().positive().optional(),
   worker: z.string().max(200).optional(),
   jobType: z.string().max(200).optional(),
-  downloadUrl: z.string().url().optional(),
+  downloadUrl: z.url().optional(),
 });
 
 function ingestWebhookAuthorized(request: {

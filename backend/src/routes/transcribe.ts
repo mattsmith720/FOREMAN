@@ -21,7 +21,7 @@ const TRANSCRIBE_RAW_AUDIO_LIMIT_BYTES = 10 * 1024 * 1024;
 
 const transcribeRequestSchema = z.object({
   audio: z.string().min(1).max(20_000_000),
-  sessionId: z.string().uuid().optional(),
+  sessionId: z.uuid().optional(),
   speaker: z.string().max(100).optional(),
 });
 

@@ -28,7 +28,7 @@ const startSessionSchema = z.object({
 });
 
 const sessionIdSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 function supabaseUnavailable(reply: {
