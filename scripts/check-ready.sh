@@ -9,6 +9,91 @@ red() { printf "\033[31m%s\033[0m\n" "$1"; }
 green() { printf "\033[32m%s\033[0m\n" "$1"; }
 yellow() { printf "\033[33m%s\033[0m\n" "$1"; }
 
+print_ready_breakdown() {
+  local url="$1"
+  local expect_elevenlabs="${2:-0}"
+  local api_key="${3:-}"
+  local body_file header_file request_id curl_args
+  body_file="$(mktemp)"
+  header_file="$(mktemp)"
+  curl_args=(-sS -D "$header_file" -o "$body_file")
+  if [ -n "$api_key" ]; then
+    curl_args+=(-H "x-foreman-api-key: $api_key")
+  fi
+
+  if ! curl "${curl_args[@]}" "$url" 2>/dev/null; then
+    yellow "○ /ready request failed ($url)"
+    rm -f "$body_file" "$header_file"
+    return
+  fi
+
+  request_id="$(grep -i '^x-request-id:' "$header_file" 2>/dev/null | tail -1 | cut -d' ' -f2- | tr -d '\r' || true)"
+  if [ -n "$request_id" ]; then
+    echo "  x-request-id: $request_id"
+  fi
+
+  while IFS= read -r line; do
+    case "$line" in
+      ERROR:*)
+        yellow "○ /ready ${line#ERROR:}"
+        ;;
+      KEY:*)
+        local key="${line#KEY:}"
+        key="${key%%:*}"
+        local state="${line##*:}"
+        case "$state" in
+          true) green "✓ $key ready" ;;
+          false) red "✗ $key not configured" ;;
+          missing) yellow "○ $key key missing from /ready response" ;;
+        esac
+        ;;
+      OK:*)
+        if [ "${line#OK:}" = "true" ]; then
+          green "✓ /ready ok"
+        else
+          yellow "○ /ready ok=false (one or more features unavailable)"
+        fi
+        ;;
+    esac
+  done < <(
+    python3 - "$expect_elevenlabs" "$body_file" <<'PY'
+import json
+import sys
+
+expect_elevenlabs = sys.argv[1] == "1"
+path = sys.argv[2]
+
+try:
+    with open(path, encoding="utf-8") as handle:
+        data = json.load(handle)
+except (OSError, json.JSONDecodeError):
+    print("ERROR:returned invalid JSON")
+    sys.exit(0)
+
+if isinstance(data, dict) and data.get("error"):
+    print(f"ERROR:{data['error']}")
+    sys.exit(0)
+
+required = ("anthropic", "openai", "supabase", "transcription")
+for key in required:
+    if key not in data:
+        print(f"KEY:{key}:missing")
+    else:
+        print(f"KEY:{key}:{'true' if data[key] else 'false'}")
+
+if "elevenlabs" in data:
+    print(f"KEY:elevenlabs:{'true' if data['elevenlabs'] else 'false'}")
+elif expect_elevenlabs:
+    print("KEY:elevenlabs:missing")
+
+if "ok" in data:
+    print(f"OK:{'true' if data['ok'] else 'false'}")
+PY
+  )
+
+  rm -f "$body_file" "$header_file"
+}
+
 check_env_key() {
   local key="$1"
   local label="$2"
@@ -61,7 +146,16 @@ echo ""
 echo "Local backend health"
 if curl -sf http://127.0.0.1:8080/health >/dev/null 2>&1; then
   green "✓ Backend running at http://127.0.0.1:8080"
-  curl -s http://127.0.0.1:8080/ready | python3 -m json.tool 2>/dev/null || true
+  echo "Local /ready breakdown"
+  ELEVENLABS_EXPECTED=0
+  READY_API_KEY=""
+  if [ -f "$ENV_FILE" ]; then
+    if grep -q "^ELEVENLABS_API_KEY=" "$ENV_FILE" 2>/dev/null && [ -n "$(grep "^ELEVENLABS_API_KEY=" "$ENV_FILE" 2>/dev/null | cut -d= -f2-)" ]; then
+      ELEVENLABS_EXPECTED=1
+    fi
+    READY_API_KEY="$(grep "^FOREMAN_API_KEY=" "$ENV_FILE" 2>/dev/null | cut -d= -f2- | tr -d '"' || true)"
+  fi
+  print_ready_breakdown "http://127.0.0.1:8080/ready" "$ELEVENLABS_EXPECTED" "$READY_API_KEY"
 
   if [ -f "$ENV_FILE" ]; then
     API_KEY="$(grep "^FOREMAN_API_KEY=" "$ENV_FILE" 2>/dev/null | cut -d= -f2- | tr -d '"' || true)"
@@ -134,6 +228,16 @@ if [ "$TTS_CODE" = "200" ]; then
   green "✓ Production cue voice TTS"
 else
   yellow "○ Production TTS returned HTTP $TTS_CODE — check ELEVENLABS_API_KEY on Render"
+fi
+
+echo ""
+echo "Production (Render)"
+RENDER_HEALTH="$(curl -s -o /dev/null -w "%{http_code}" https://foreman-api-y31r.onrender.com/health 2>/dev/null || echo "000")"
+if [ "$RENDER_HEALTH" = "200" ]; then
+  green "✓ https://foreman-api-y31r.onrender.com/health"
+else
+  red "✗ Render API not healthy (HTTP $RENDER_HEALTH)"
+  FAIL=1
 fi
 
 echo ""

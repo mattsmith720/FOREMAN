@@ -1,4 +1,5 @@
 const DEFAULT_PORT = 8080;
+const DEFAULT_ANALYSE_FRAME_MAX_BYTES = 4 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -6,12 +7,43 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/webp",
 ]);
 
+function cleanEnv(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  return trimmed.replace(/^['"]|['"]$/g, "");
+}
+
 export function isAnalysisConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+  return Boolean(cleanEnv(process.env.ANTHROPIC_API_KEY));
+}
+
+export function isOpenAiConfigured(): boolean {
+  return Boolean(cleanEnv(process.env.OPENAI_API_KEY));
 }
 
 export function isTranscriptionConfigured(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY?.trim());
+  return isOpenAiConfigured();
+}
+
+export function isSupabaseConfigured(): boolean {
+  const url = cleanEnv(process.env.SUPABASE_URL);
+  const serviceRoleKey = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (!url || !serviceRoleKey) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+export function isElevenLabsConfigured(): boolean {
+  return Boolean(cleanEnv(process.env.ELEVENLABS_API_KEY));
 }
 
 export function getCorsOrigins(): string[] | true {
@@ -35,6 +67,20 @@ export function getListenPort(): number {
     return DEFAULT_PORT;
   }
   return port;
+}
+
+export function getAnalyseFrameByteCap(): number {
+  const raw = process.env.ANALYSE_FRAME_MAX_BYTES?.trim();
+  if (!raw) {
+    return DEFAULT_ANALYSE_FRAME_MAX_BYTES;
+  }
+
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return DEFAULT_ANALYSE_FRAME_MAX_BYTES;
+  }
+
+  return parsed;
 }
 
 export function isAllowedImageType(mediaType: string): boolean {
