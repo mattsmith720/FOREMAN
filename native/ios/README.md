@@ -196,3 +196,21 @@ native/ios/Foreman/
     ├── CoachingView.swift
     └── SessionSummaryView.swift
 ```
+
+## Gap: xcodegen not available in CI
+
+`xcodegen generate` could not be executed in the cloud-agent VM (Linux, no Homebrew, no `xcodegen` binary). CEO DoD #9 (iOS / glasses path scaffold not regressed) therefore requires a manual smoke on a Mac.
+
+**Manual smoke steps (Mac):**
+
+1. `brew install xcodegen`
+2. `cd native/ios && xcodegen generate`
+3. `open Foreman.xcodeproj`
+4. Build for an iPhone 16 Simulator destination (Xcode: Product → Destination → iPhone 16).
+
+**DAT SDK reference (verified in `project.yml`):**
+
+- Package: `MetaWearablesDAT`
+- URL: `https://github.com/facebook/meta-wearables-dat-ios`
+- Version: `from: 0.7.0`
+- Products: `MWDATCore`, `MWDATCamera`, `MWDATMockDevice`
