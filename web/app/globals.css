@@ -102,6 +102,32 @@ body {
   margin: 0;
 }
 
+.recording-indicator {
+  position: absolute;
+  top: calc(0.85rem + env(safe-area-inset-top));
+  left: 0.85rem;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  background: rgba(127, 29, 29, 0.8);
+  color: #fecaca;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.recording-indicator-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #ef4444;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 .capture-canvas {
   display: none;
 }
