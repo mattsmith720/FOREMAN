@@ -86,36 +86,37 @@
       "handoffPath": "handoffs/merge-qa-release.md",
       "startedAt": "2026-06-06T02:46:22.585Z",
       "finishedAt": "2026-06-06T02:50:30.273Z",
-      "lastUpdate": "2026-06-06T02:50:30.274Z",
+      "lastUpdate": "2026-06-06T02:50:31.218Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
       "name": "verify-qa-release",
       "type": "verifier",
       "branch": "orch/qa-release/verify-qa-release",
-      "startingRef": "orch/qa-release/merge-qa-release",
+      "startingRef": "orch/qa-release/qa-release",
       "dependsOn": [
         "merge-qa-release"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:50:34.996Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:50:34.996Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -130,6 +131,14 @@
     {
       "at": "2026-06-06T02:46:22.165Z",
       "message": "release-recipe: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:50:31.218Z",
+      "message": "verify-qa-release: startingRef reconciled orch/qa-release/merge-qa-release -> orch/qa-release/qa-release (target merge-qa-release handed off on actual branch)"
+    },
+    {
+      "at": "2026-06-06T02:50:31.218Z",
+      "message": "merge-qa-release: verification self-reported (unit-test-verified)"
     }
   ]
 }
