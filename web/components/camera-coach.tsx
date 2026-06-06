@@ -65,7 +65,7 @@ const STATUS_LABELS: Record<CoachStatus, string> = {
 const EMPTY_HEALTH: CaptureHealthStats = {
   frameKb: null,
   analyseMs: null,
-  lastPersisted: null,
+  persistQueued: false,
   micMime: null,
   chunkKb: null,
 };
@@ -322,12 +322,11 @@ export function CameraCoach() {
           setHealthStats((current) => ({
             ...current,
             analyseMs,
-            lastPersisted: result.persisted ? true : false,
+            persistQueued: true,
           }));
-        }
-
-        if (debugMode && result.persisted) {
-          pushActivity("saved", "Frame + coaching saved to job log");
+          // Persistence is fire-and-forget on the backend; the frame is queued
+          // for the job log here and confirmed by the stored counts at job end.
+          pushActivity("saved", "Frame queued for job log");
         }
 
         const hero =
