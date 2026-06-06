@@ -1,9 +1,10 @@
 import type { Frame, FrameHandler, FrameSource } from "@foreman/shared";
 import { captureCompressedJpeg } from "./compress-frame";
 
-/** First frame fast; steady interval while Claude catches up. */
-const SAMPLE_INTERVAL_MS = 5000;
-const FIRST_FRAME_DELAY_MS = 800;
+/** Steady interval while idle; adaptive captureNow() fires sooner after each analyse. */
+const SAMPLE_INTERVAL_MS = 6000;
+const FIRST_FRAME_DELAY_MS = 500;
+const MIN_CAPTURE_GAP_MS = 2800;
 
 interface PhoneFrameSourceOptions {
   includeAudio?: boolean;
@@ -14,6 +15,7 @@ export class PhoneFrameSource implements FrameSource {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private handlers: FrameHandler[] = [];
   private warmupAttempts = 0;
+  private lastCaptureAt = 0;
 
   constructor(
     private readonly video: HTMLVideoElement,
@@ -29,11 +31,19 @@ export class PhoneFrameSource implements FrameSource {
     return this.stream;
   }
 
+  /** Capture as soon as the pipeline is ready (after analyse completes). */
+  captureNow(): void {
+    if (Date.now() - this.lastCaptureAt < MIN_CAPTURE_GAP_MS) {
+      return;
+    }
+    this.captureFrame();
+  }
+
   async start(): Promise<void> {
     this.stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
-        width: { ideal: 640, max: 1280 },
+        width: { ideal: 640, max: 960 },
         height: { ideal: 480, max: 720 },
       },
       audio: this.options.includeAudio
@@ -70,6 +80,7 @@ export class PhoneFrameSource implements FrameSource {
     }
 
     this.warmupAttempts = 0;
+    this.lastCaptureAt = Date.now();
 
     const frame: Frame = {
       data,

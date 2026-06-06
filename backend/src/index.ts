@@ -17,6 +17,7 @@ import { registerSessionRoutes } from "./routes/sessions.js";
 import { registerLabelRoutes } from "./routes/labels.js";
 import { registerTranscribeRoutes } from "./routes/transcribe.js";
 import { registerVoiceRoutes } from "./routes/voice.js";
+import { registerIngestRoutes } from "./routes/ingest.js";
 import { registerReadyRoute } from "./routes/ready.js";
 
 assertProductionSecurity();
@@ -173,7 +174,12 @@ await app.register(helmet, {
 await app.register(cors, {
   origin: getCorsOrigins(),
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-foreman-api-key", "x-session-token"],
+  allowedHeaders: [
+    "Content-Type",
+    "x-foreman-api-key",
+    "x-session-token",
+    "x-ingest-webhook-secret",
+  ],
 });
 
 await app.register(rateLimit, {
@@ -195,6 +201,7 @@ await registerSessionRoutes(app);
 await registerTranscribeRoutes(app);
 await registerLabelRoutes(app);
 await registerVoiceRoutes(app);
+await registerIngestRoutes(app);
 
 const port = getListenPort();
 

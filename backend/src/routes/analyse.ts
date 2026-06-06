@@ -180,24 +180,24 @@ export async function registerAnalyseRoutes(
           return reply.status(statusCode).send({ error: message });
         }
 
-        let persisted: { frameId: string; storageRef: string } | undefined;
-        let persistError: string | undefined;
-
         if (parsed.data.sessionId) {
-          try {
-            persisted = await dependencies.persistFrame({
-              sessionId: parsed.data.sessionId,
+          const sessionId = parsed.data.sessionId;
+          void dependencies
+            .persistFrame({
+              sessionId,
               base64,
               mediaType,
               coaching,
+            })
+            .then((persisted) => {
+              request.log.info({ sessionId, frameId: persisted.frameId }, "frame persisted");
+            })
+            .catch((persistErr) => {
+              request.log.error(persistErr, "frame persist failed");
             });
-          } catch (persistErr) {
-            request.log.error(persistErr);
-            persistError = "Frame coaching was not saved to storage";
-          }
         }
 
-        return reply.send({ coaching, persisted, persistError });
+        return reply.send({ coaching });
       } catch (err) {
         request.log.error(err);
         const { statusCode, message } = toClientError(err, "Analysis failed");

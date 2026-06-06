@@ -1,17 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CoachingResponse, VisualCallout } from "@foreman/shared";
 import type { ActivityItem } from "../lib/activity-feed";
+import type { JobPhaseId } from "../lib/job-phase";
+import { jobPhaseLabel } from "../lib/job-phase";
 import { CoachActivityFeed } from "./coach-activity-feed";
 import { CoachDetailPanel } from "./coach-detail-panel";
-
-export type CoachPanelSection =
-  | "seeing"
-  | "hearing"
-  | "advice"
-  | "highlights"
-  | "feed";
 
 interface CoachOverlayProps {
   coaching: CoachingResponse | null;
@@ -19,6 +14,7 @@ interface CoachOverlayProps {
   isListening: boolean;
   isWatching: boolean;
   isAnalysing: boolean;
+  jobPhase: JobPhaseId;
   latestTranscript: string | null;
   frameCount: number;
   lastAnalyseMs: number | null;
@@ -26,16 +22,16 @@ interface CoachOverlayProps {
   callouts: VisualCallout[];
   activeCalloutIndex: number;
   onCalloutSelect: (index: number) => void;
-  voiceReady: boolean;
   livePanelOpen?: boolean;
   showPipeline?: boolean;
-  onSectionOpen?: () => void;
+  onDetailsOpen?: () => void;
 }
 
 function pickHeroCue(
   coaching: CoachingResponse | null,
   callouts: VisualCallout[],
   activeCalloutIndex: number,
+  jobPhase: JobPhaseId,
 ): {
   text: string;
   severity: "info" | "warning" | "critical";
@@ -51,11 +47,13 @@ function pickHeroCue(
   }
 
   if (!coaching) {
-    return {
-      text: "Point the camera at the job.",
-      severity: "info",
-      label: "Foreman",
-    };
+    const idle =
+      jobPhase === "customer_pitch"
+        ? "Point the camera at the customer conversation."
+        : jobPhase === "site_survey"
+          ? "Walk the site — Foreman will coach from what it sees."
+          : "Point the camera at the job.";
+    return { text: idle, severity: "info", label: "Foreman" };
   }
 
   const critical = coaching.installQualityFlags.find(
@@ -72,8 +70,15 @@ function pickHeroCue(
     return { text: warning.message, severity: "warning", label: "Quality" };
   }
 
+  if (jobPhase === "customer_pitch") {
+    const pitch = coaching.salesPitchFeedback[0];
+    if (pitch) {
+      return { text: pitch.message, severity: pitch.severity, label: "Pitch" };
+    }
+  }
+
   const pitch = coaching.salesPitchFeedback[0];
-  if (pitch) {
+  if (pitch && jobPhase !== "solar_install") {
     return { text: pitch.message, severity: pitch.severity, label: "Pitch" };
   }
 
@@ -94,6 +99,73 @@ function pickHeroCue(
   };
 }
 
+type HeroCue = {
+  text: string;
+  severity: "info" | "warning" | "critical";
+  label: string;
+};
+
+function collectCues(
+  coaching: CoachingResponse | null,
+  callouts: VisualCallout[],
+): HeroCue[] {
+  if (!coaching) {
+    return [];
+  }
+
+  const cues: HeroCue[] = [];
+
+  for (const callout of callouts) {
+    cues.push({
+      text: callout.message,
+      severity: callout.severity,
+      label: callout.label,
+    });
+  }
+
+  for (const flag of coaching.installQualityFlags) {
+    cues.push({
+      text: flag.message,
+      severity: flag.severity,
+      label: flag.severity === "critical" ? "Safety" : "Quality",
+    });
+  }
+
+  for (const pitch of coaching.salesPitchFeedback) {
+    cues.push({
+      text: pitch.message,
+      severity: pitch.severity,
+      label: "Pitch",
+    });
+  }
+
+  for (const step of coaching.nextSteps) {
+    cues.push({ text: step, severity: "info", label: "Next" });
+  }
+
+  for (const observation of coaching.observations) {
+    cues.push({ text: observation, severity: "info", label: "Seeing" });
+  }
+
+  if (coaching.timeOnTaskNote) {
+    cues.push({
+      text: coaching.timeOnTaskNote,
+      severity: "info",
+      label: "Pacing",
+    });
+  }
+
+  const seen = new Set<string>();
+  return cues.filter((cue) => {
+    const key = `${cue.label}:${cue.text}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 const CALLOUT_CATEGORY_LABELS: Record<VisualCallout["category"], string> = {
   quality: "Quality",
   safety: "Safety",
@@ -104,159 +176,40 @@ const CALLOUT_CATEGORY_LABELS: Record<VisualCallout["category"], string> = {
   time: "Time",
 };
 
-const PANEL_TITLES: Record<CoachPanelSection, string> = {
-  seeing: "What Foreman sees",
-  hearing: "What Foreman hears",
-  advice: "Coaching advice",
-  highlights: "On-screen highlights",
-  feed: "Live activity feed",
-};
+interface CoachDetailsBodyProps {
+  coaching: CoachingResponse | null;
+  isAnalysing: boolean;
+  isListening: boolean;
+  latestTranscript: string | null;
+  callouts: VisualCallout[];
+  activeCalloutIndex: number;
+  onCalloutSelect: (index: number) => void;
+  activity: ActivityItem[];
+  showActivityFeed: boolean;
+}
 
-export function CoachOverlay({
+function CoachDetailsBody({
   coaching,
-  status,
-  isListening,
-  isWatching,
   isAnalysing,
+  isListening,
   latestTranscript,
-  frameCount,
-  lastAnalyseMs,
-  activity,
   callouts,
   activeCalloutIndex,
   onCalloutSelect,
-  voiceReady,
-  livePanelOpen = false,
-  showPipeline = false,
-  onSectionOpen,
-}: CoachOverlayProps) {
-  const [openSection, setOpenSection] = useState<CoachPanelSection | null>(
-    null,
-  );
-
-  const hero = pickHeroCue(coaching, callouts, activeCalloutIndex);
+  activity,
+  showActivityFeed,
+}: CoachDetailsBodyProps) {
   const seeing = coaching?.observations[0] ?? null;
 
-  useEffect(() => {
-    if (livePanelOpen) {
-      setOpenSection(null);
-    }
-  }, [livePanelOpen]);
-
-  const toggleSection = (section: CoachPanelSection) => {
-    onSectionOpen?.();
-    setOpenSection((current) => (current === section ? null : section));
-  };
-
   return (
-    <>
-      <div className="coach-overlay" aria-live="polite">
-        <header className="coach-top">
-          <div className="coach-brand-block">
-            <span className="coach-brand">Foreman</span>
-            {isWatching && (
-              <span className="coach-live-badge">
-                <span className="coach-rec-dot" />
-                LIVE
-              </span>
-            )}
-            {voiceReady && (
-              <span className="coach-voice-badge" title="ElevenLabs voice ready">
-                Voice
-              </span>
-            )}
-          </div>
-          <div className="coach-status">
-            <span className={`coach-dot ${isWatching ? "on" : ""}`}>Cam</span>
-            <span className={`coach-dot ${isListening ? "on" : ""}`}>Mic</span>
-            <span
-              className={`coach-pill ${isAnalysing ? "analysing" : ""} ${status === "Error" ? "status-error" : ""}`}
-            >
-              {status}
-            </span>
-          </div>
-        </header>
-
-        {showPipeline && (
-          <div className="coach-pipeline" aria-label="Pipeline">
-            <span className={`pipe-step ${isWatching ? "on" : ""}`}>
-              Cap {frameCount || "—"}
-            </span>
-            <span className="pipe-arrow">·</span>
-            <span className={`pipe-step ${isAnalysing ? "on" : ""}`}>
-              {isAnalysing ? "AI…" : lastAnalyseMs ? `${lastAnalyseMs}ms` : "AI"}
-            </span>
-            <span className="pipe-arrow">·</span>
-            <span className={`pipe-step ${coaching ? "on" : ""}`}>Coach</span>
-          </div>
-        )}
-
-        <div className="coach-dock">
-          <div
-            className={`coach-card severity-${hero.severity} ${isAnalysing ? "tracking" : ""}`}
-          >
-            <p className="coach-card-label">{hero.label}</p>
-            <p className="coach-card-text">{hero.text}</p>
-          </div>
-
-          {(latestTranscript || isListening) && (
-            <div className="coach-heard">
-              <span className="coach-heard-label">Heard</span>
-              <p
-                className={`coach-heard-text ${!latestTranscript && isListening ? "coach-heard-placeholder" : ""}`}
-              >
-                {latestTranscript ?? "Listening…"}
-              </p>
-            </div>
-          )}
-
-          <nav className="coach-toolbar" aria-label="Coaching panels">
-            <button
-              type="button"
-              className={`toolbar-btn ${openSection === "seeing" ? "active" : ""}`}
-              onClick={() => toggleSection("seeing")}
-            >
-              Seeing
-            </button>
-            <button
-              type="button"
-              className={`toolbar-btn ${openSection === "hearing" ? "active" : ""}`}
-              onClick={() => toggleSection("hearing")}
-            >
-              Hearing
-            </button>
-            <button
-              type="button"
-              className={`toolbar-btn ${openSection === "advice" ? "active" : ""}`}
-              onClick={() => toggleSection("advice")}
-            >
-              Advice
-            </button>
-            <button
-              type="button"
-              className={`toolbar-btn ${openSection === "highlights" ? "active" : ""} ${callouts.length > 0 ? "has-data" : ""}`}
-              onClick={() => toggleSection("highlights")}
-            >
-              Marks
-            </button>
-            <button
-              type="button"
-              className={`toolbar-btn ${openSection === "feed" ? "active" : ""}`}
-              onClick={() => toggleSection("feed")}
-            >
-              Feed
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      <CoachDetailPanel
-        open={openSection === "seeing"}
-        title={PANEL_TITLES.seeing}
-        onClose={() => setOpenSection(null)}
-      >
+    <div className="coach-details-sheet">
+      <section className="details-section">
+        <h4>Seeing</h4>
         <p className="detail-prose">
-          {seeing ?? (isAnalysing ? "Scanning the current frame…" : "No scene yet — start the job and point the camera.")}
+          {seeing ??
+            (isAnalysing
+              ? "Scanning the current frame…"
+              : "No scene yet — point the camera at the job.")}
         </p>
         {coaching && coaching.observations.length > 1 && (
           <ul className="detail-list">
@@ -265,26 +218,20 @@ export function CoachOverlay({
             ))}
           </ul>
         )}
-      </CoachDetailPanel>
+      </section>
 
-      <CoachDetailPanel
-        open={openSection === "hearing"}
-        title={PANEL_TITLES.hearing}
-        onClose={() => setOpenSection(null)}
-      >
+      <section className="details-section">
+        <h4>Heard</h4>
         <p className="detail-prose">
           {latestTranscript ??
             (isListening
               ? "Microphone active — waiting for speech."
               : "Microphone off or unavailable.")}
         </p>
-      </CoachDetailPanel>
+      </section>
 
-      <CoachDetailPanel
-        open={openSection === "advice"}
-        title={PANEL_TITLES.advice}
-        onClose={() => setOpenSection(null)}
-      >
+      <section className="details-section">
+        <h4>Advice</h4>
         {coaching ? (
           <div className="coach-advice-grid">
             {coaching.installQualityFlags.length > 0 && (
@@ -327,15 +274,12 @@ export function CoachOverlay({
             )}
           </div>
         ) : (
-          <p className="detail-prose">Advice appears after the first frame analysis.</p>
+          <p className="detail-prose">Advice appears after the first analysis.</p>
         )}
-      </CoachDetailPanel>
+      </section>
 
-      <CoachDetailPanel
-        open={openSection === "highlights"}
-        title={PANEL_TITLES.highlights}
-        onClose={() => setOpenSection(null)}
-      >
+      <section className="details-section">
+        <h4>Marks</h4>
         {callouts.length === 0 ? (
           <p className="detail-prose">No on-screen marks for this frame yet.</p>
         ) : (
@@ -356,14 +300,161 @@ export function CoachOverlay({
             ))}
           </div>
         )}
-      </CoachDetailPanel>
+      </section>
+
+      {showActivityFeed && (
+        <section className="details-section">
+          <h4>Activity</h4>
+          <CoachActivityFeed items={activity} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+export function CoachOverlay({
+  coaching,
+  status,
+  isListening,
+  isWatching,
+  isAnalysing,
+  jobPhase,
+  latestTranscript,
+  frameCount,
+  lastAnalyseMs,
+  activity,
+  callouts,
+  activeCalloutIndex,
+  onCalloutSelect,
+  livePanelOpen = false,
+  showPipeline = false,
+  onDetailsOpen,
+}: CoachOverlayProps) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [manualCueIndex, setManualCueIndex] = useState(0);
+
+  const defaultHero = pickHeroCue(
+    coaching,
+    callouts,
+    activeCalloutIndex,
+    jobPhase,
+  );
+  const allCues = useMemo(
+    () => collectCues(coaching, callouts),
+    [coaching, callouts],
+  );
+
+  const hero =
+    allCues.length > 0
+      ? allCues[manualCueIndex % allCues.length]
+      : defaultHero;
+
+  const hasDetails =
+    Boolean(coaching) ||
+    Boolean(latestTranscript) ||
+    callouts.length > 0 ||
+    activity.length > 0;
+
+  useEffect(() => {
+    setManualCueIndex(0);
+  }, [coaching]);
+
+  useEffect(() => {
+    if (livePanelOpen) {
+      setDetailsOpen(false);
+    }
+  }, [livePanelOpen]);
+
+  const openDetails = () => {
+    onDetailsOpen?.();
+    setDetailsOpen(true);
+  };
+
+  return (
+    <>
+      <div className="coach-overlay" aria-live="polite">
+        {isWatching && (
+          <header className="coach-top coach-top-minimal">
+            <span className="coach-phase-chip">{jobPhaseLabel(jobPhase)}</span>
+            <span
+              className={`coach-pill ${isAnalysing ? "analysing" : ""} ${status === "Error" ? "status-error" : ""}`}
+            >
+              {status}
+            </span>
+          </header>
+        )}
+
+        {showPipeline && isWatching && (
+          <div className="coach-pipeline" aria-label="Pipeline">
+            <span className={`pipe-step ${isWatching ? "on" : ""}`}>
+              Cap {frameCount || "—"}
+            </span>
+            <span className="pipe-arrow">·</span>
+            <span className={`pipe-step ${isAnalysing ? "on" : ""}`}>
+              {isAnalysing ? "AI…" : lastAnalyseMs ? `${lastAnalyseMs}ms` : "AI"}
+            </span>
+            <span className="pipe-arrow">·</span>
+            <span className={`pipe-step ${coaching ? "on" : ""}`}>Coach</span>
+          </div>
+        )}
+
+        <div className="coach-dock">
+          <button
+            type="button"
+            className={`coach-card severity-${hero.severity} ${isAnalysing ? "tracking" : ""}`}
+            onClick={() => {
+              if (allCues.length > 1) {
+                setManualCueIndex((current) => (current + 1) % allCues.length);
+              }
+            }}
+            aria-label={
+              allCues.length > 1
+                ? "Coaching cue, tap to cycle"
+                : "Coaching cue"
+            }
+          >
+            <p className="coach-card-label">
+              {hero.label}
+              {allCues.length > 1 && (
+                <span className="coach-cue-index">
+                  {(manualCueIndex % allCues.length) + 1}/{allCues.length}
+                </span>
+              )}
+            </p>
+            <p className="coach-card-text" key={hero.text}>
+              {hero.text}
+            </p>
+          </button>
+
+          {isWatching && (
+            <button
+              type="button"
+              className={`toolbar-btn details-btn ${detailsOpen ? "active" : ""} ${hasDetails ? "has-data" : ""}`}
+              onClick={openDetails}
+              aria-expanded={detailsOpen}
+            >
+              Details
+            </button>
+          )}
+        </div>
+      </div>
 
       <CoachDetailPanel
-        open={openSection === "feed"}
-        title={PANEL_TITLES.feed}
-        onClose={() => setOpenSection(null)}
+        open={detailsOpen}
+        title="Job details"
+        onClose={() => setDetailsOpen(false)}
       >
-        <CoachActivityFeed items={activity} />
+        <CoachDetailsBody
+          coaching={coaching}
+          isAnalysing={isAnalysing}
+          isListening={isListening}
+          latestTranscript={latestTranscript}
+          callouts={callouts}
+          activeCalloutIndex={activeCalloutIndex}
+          onCalloutSelect={onCalloutSelect}
+          activity={activity}
+          showActivityFeed={showPipeline}
+        />
       </CoachDetailPanel>
     </>
   );

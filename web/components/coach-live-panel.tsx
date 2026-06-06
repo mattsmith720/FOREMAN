@@ -19,6 +19,7 @@ interface CoachLivePanelProps {
   open: boolean;
   liveAvailable: boolean;
   sessionId: string | null;
+  jobType?: string;
   recentTranscript: string[];
   coaching: CoachingResponse | null;
   mediaStream: MediaStream | null;
@@ -31,6 +32,7 @@ export function CoachLivePanel({
   open,
   liveAvailable,
   sessionId,
+  jobType = "solar_install",
   recentTranscript,
   coaching,
   mediaStream,
@@ -147,7 +149,7 @@ export function CoachLivePanel({
 
       const advice = await fetchVoiceAdvice({
         question,
-        jobType: "solar_install",
+        jobType,
         recentTranscript,
       });
 

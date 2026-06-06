@@ -32,6 +32,7 @@ import {
 } from "../lib/wake-lock";
 import { CoachAnnotations } from "./coach-annotations";
 import { CoachOverlay } from "./coach-overlay";
+import { CoachScanOverlay } from "./coach-scan-overlay";
 import {
   CaptureHealth,
   type CaptureHealthStats,
@@ -39,6 +40,11 @@ import {
 import { endLiveCoach } from "../lib/coach-live";
 import { syncLiveVisionContext } from "../lib/live-vision-sync";
 import { CoachLivePanel } from "./coach-live-panel";
+import {
+  DEFAULT_JOB_PHASE,
+  JobPhasePicker,
+} from "./job-phase-picker";
+import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
 import { SessionSummary } from "./session-summary";
 import {
   canCapture,
@@ -115,6 +121,8 @@ export function CameraCoach() {
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null);
   const [voiceOn, setVoiceOn] = useState(true);
   const [livePanelOpen, setLivePanelOpen] = useState(false);
+  const [jobPhase, setJobPhase] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
+  const jobPhaseRef = useRef<JobPhaseId>(DEFAULT_JOB_PHASE);
 
   const pushActivity = useCallback(
     (kind: ActivityItem["kind"], message: string) => {
@@ -133,7 +141,14 @@ export function CameraCoach() {
 
   useEffect(() => {
     hasConsentedRef.current = hasConsented;
+    if (hasConsented) {
+      void checkApiHealth().catch(() => undefined);
+    }
   }, [hasConsented]);
+
+  useEffect(() => {
+    jobPhaseRef.current = jobPhase;
+  }, [jobPhase]);
 
   useEffect(() => {
     setCoachVoiceEnabled(true);
@@ -267,7 +282,6 @@ export function CameraCoach() {
       analysingRef.current = true;
       setStatus("analysing");
       setFrameCount((count) => count + 1);
-      pushActivity("capture", "Frame sent to coach");
 
       const frameKb = Math.round((image.length * 3) / 4 / 1024);
       const startedAt = performance.now();
@@ -279,7 +293,7 @@ export function CameraCoach() {
       try {
         const result = await analyseFrame(image, {
           sessionId: sessionIdRef.current,
-          context: { jobType: "solar_install" },
+          context: { jobType: jobPhaseRef.current },
           recentTranscript: transcriptRef.current,
         });
 
@@ -294,15 +308,9 @@ export function CameraCoach() {
         const highlightIndex = pickActiveCalloutIndex(callouts);
         setActiveCalloutIndex(highlightIndex);
 
-        pushActivity("analyse", `Vision scan complete (${analyseMs}ms)`);
-
         const seeing = result.coaching.observations[0];
         if (seeing) {
           pushActivity("coaching", seeing);
-        }
-
-        for (const callout of callouts.slice(0, 2)) {
-          pushActivity("coaching", `${callout.label}: ${callout.message}`);
         }
 
         syncLiveVisionContext({
@@ -318,10 +326,8 @@ export function CameraCoach() {
           }));
         }
 
-        if (result.persisted) {
+        if (debugMode && result.persisted) {
           pushActivity("saved", "Frame + coaching saved to job log");
-        } else if (result.persistError) {
-          setWarningMessage(result.persistError);
         }
 
         const hero =
@@ -338,7 +344,6 @@ export function CameraCoach() {
             callouts[highlightIndex]?.severity ??
             result.coaching.installQualityFlags[0]?.severity ??
             "info";
-          pushActivity("voice", "Speaking coaching cue");
           void speakCoachLine(hero, severity);
         }
       } catch (err) {
@@ -351,6 +356,8 @@ export function CameraCoach() {
         pendingFrameRef.current = null;
         if (pending) {
           void handleFrame(pending);
+        } else {
+          frameSourceRef.current?.captureNow();
         }
       }
     },
@@ -435,8 +442,8 @@ export function CameraCoach() {
       await checkApiHealth();
 
       const session = await startSession({
-        jobType: "solar_install",
-        notes: "Phone session — camera + mic",
+        jobType: jobPhaseRef.current,
+        notes: `Phone session — ${jobPhaseLabel(jobPhaseRef.current)}`,
       });
       sessionIdRef.current = session.id;
       setActiveSessionId(session.id);
@@ -535,7 +542,8 @@ export function CameraCoach() {
         {!isActive && hasConsented && (
           <div className="camera-placeholder boot-screen">
             <p className="boot-title">Foreman</p>
-            <p className="boot-sub">Live coaching for field work</p>
+            <p className="boot-sub">What are you doing on site?</p>
+            <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
             <p className="boot-muted">Tap Start job when you are ready</p>
           </div>
         )}
@@ -556,6 +564,8 @@ export function CameraCoach() {
             </button>
           </div>
         )}
+        {isActive && status === "analysing" && <CoachScanOverlay active />}
+
         {isActive && (
           <div
             className="recording-indicator"
@@ -583,6 +593,7 @@ export function CameraCoach() {
             isListening={micActive}
             isWatching={isActive}
             isAnalysing={status === "analysing"}
+            jobPhase={jobPhase}
             latestTranscript={latestTranscript}
             frameCount={frameCount}
             lastAnalyseMs={lastAnalyseMs}
@@ -590,10 +601,9 @@ export function CameraCoach() {
             callouts={coaching?.visualCallouts ?? []}
             activeCalloutIndex={activeCalloutIndex}
             onCalloutSelect={setActiveCalloutIndex}
-            voiceReady={isCoachVoiceAvailable()}
             livePanelOpen={livePanelOpen}
             showPipeline={debugMode}
-            onSectionOpen={() => setLivePanelOpen(false)}
+            onDetailsOpen={() => setLivePanelOpen(false)}
           />
         )}
 
@@ -633,6 +643,7 @@ export function CameraCoach() {
         open={livePanelOpen}
         liveAvailable={voiceConfig?.liveAvailable ?? false}
         sessionId={activeSessionId}
+        jobType={jobPhase}
         recentTranscript={transcriptLines}
         coaching={coaching}
         mediaStream={mediaStream}
@@ -647,8 +658,9 @@ export function CameraCoach() {
           className="button button-primary"
           disabled={!hasConsented || isActive}
           onClick={() => void startJob()}
+          title={`Start ${jobPhaseLabel(jobPhase)} job`}
         >
-          Start job
+          Start {jobPhaseLabel(jobPhase).toLowerCase()}
         </button>
         <button
           type="button"

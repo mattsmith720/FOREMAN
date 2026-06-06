@@ -94,8 +94,9 @@ test("POST /analyse returns clean 5xx when provider throws", async () => {
   await app.close();
 });
 
-test("POST /analyse returns coaching with persistError when storage fails", async () => {
+test("POST /analyse returns coaching immediately without waiting on persist", async () => {
   const sessionId = "f5e2d446-71e8-48cf-b13a-2f3ecf781f40";
+  let persistStarted = false;
   const app = Fastify();
   await registerAnalyseRoutes(app, {
     isAnalysisConfigured: () => true,
@@ -120,7 +121,9 @@ test("POST /analyse returns coaching with persistError when storage fails", asyn
     },
     analyseImage: async () => minimalCoaching,
     persistFrame: async () => {
-      throw new Error("storage unavailable");
+      persistStarted = true;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      return { frameId: "f", storageRef: "s" };
     },
   });
 
@@ -138,13 +141,9 @@ test("POST /analyse returns coaching with persistError when storage fails", asyn
   const body = response.json() as {
     coaching: CoachingResponse;
     persisted?: unknown;
-    persistError?: string;
   };
   assert.equal(body.coaching.nextSteps[0], "Continue install.");
   assert.equal(body.persisted, undefined);
-  assert.equal(
-    body.persistError,
-    "Frame coaching was not saved to storage",
-  );
+  assert.equal(persistStarted, true);
   await app.close();
 });

@@ -11,7 +11,8 @@
     "test": "tsx --test 'src/**/*.test.ts' 'src/*.test.ts'",
     "analyse-sample": "tsx scripts/analyse-sample.ts",
     "confirm-session": "tsx scripts/confirm-session.ts",
-    "export-training": "tsx scripts/export-training-data.ts"
+    "export-training": "tsx scripts/export-training-data.ts",
+    "process-videos": "tsx scripts/process-pending-videos.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.3",

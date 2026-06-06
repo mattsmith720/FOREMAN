@@ -33,3 +33,11 @@ services:
         sync: false
       - key: CORS_ORIGINS
         value: https://foreman-phi.vercel.app
+      - key: INGEST_WEBHOOK_SECRET
+        sync: false
+      - key: INGEST_FRAME_INTERVAL_SEC
+        value: "10"
+      - key: INGEST_MAX_FRAMES
+        value: "60"
+      - key: INGEST_ANALYSE_FRAMES
+        value: "false"

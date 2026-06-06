@@ -6,8 +6,8 @@ export function dataUrlWithinLimit(dataUrl: string): boolean {
 }
 
 /** Fast path for phone — one encode when possible. */
-const DEFAULT_MAX_WIDTH = 480;
-const DEFAULT_QUALITY = 0.5;
+const DEFAULT_MAX_WIDTH = 384;
+const DEFAULT_QUALITY = 0.45;
 
 const FALLBACK_WIDTHS = [400, 320] as const;
 const FALLBACK_QUALITIES = [0.38, 0.28] as const;

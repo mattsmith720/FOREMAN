@@ -16,6 +16,7 @@ import {
 } from "./prompts/analysis.js";
 
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
+const DEFAULT_MAX_TOKENS = 512;
 const MAX_RETRIES = 3;
 
 type ImageMediaType = (typeof ALLOWED_IMAGE_MIME_TYPES)[number];
@@ -53,6 +54,15 @@ function getModel(): string {
   return process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
 }
 
+function getMaxTokens(): number {
+  const raw = process.env.ANTHROPIC_MAX_TOKENS?.trim();
+  if (!raw) {
+    return DEFAULT_MAX_TOKENS;
+  }
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_TOKENS;
+}
+
 function extractTextContent(
   content: Anthropic.Messages.ContentBlock[],
 ): string {
@@ -82,7 +92,7 @@ export async function analyseImage(
     try {
       const response = await client.messages.create({
         model,
-        max_tokens: 1024,
+        max_tokens: getMaxTokens(),
         system: ANALYSIS_SYSTEM_PROMPT,
         messages: [
           {
