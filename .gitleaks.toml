@@ -1,0 +1,30 @@
+# Gitleaks config for Foreman.
+# Inherit the upstream default rules and only add an allowlist for known
+# false positives (public identifiers that look like high-entropy secrets).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Foreman repo allowlist"
+
+paths = [
+  '''package-lock\.json$''',
+  '''node_modules/''',
+]
+
+regexes = [
+  # ElevenLabs publishes voice IDs (e.g. "Charlie" = IKne3meq5aSn9XLyUdCD) on
+  # the public dashboard. They are not secrets, but the alphanumeric form
+  # trips the generic-api-key entropy heuristic.
+  '''ELEVENLABS_VOICE_ID\s*=\s*[A-Za-z0-9]{20}''',
+  # Anthropic public model identifier.
+  '''ANTHROPIC_MODEL\s*=\s*claude-[a-z0-9-]+''',
+  # Public Supabase project URL — the host is meant to be shared; the secret
+  # is the service role JWT, not the URL itself.
+  '''SUPABASE_URL\s*=\s*https://[a-z0-9]+\.supabase\.co''',
+]
+
+stopwords = [
+  "example",
+  "EXAMPLE",
+]
