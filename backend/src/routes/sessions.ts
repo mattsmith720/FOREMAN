@@ -10,6 +10,7 @@ import {
   getSessionCoachingEvents,
   getSessionCounts,
   type SessionRow,
+  updateSessionNotes,
   updateSessionSummary,
 } from "../db/sessions.js";
 import { requireSessionToken } from "../require-session-token.js";
@@ -288,6 +289,34 @@ export async function registerSessionRoutes(
     } catch (err) {
       request.log.error(err);
       const { statusCode, message } = toClientError(err, "Failed to load review");
+      return reply.status(statusCode).send({ error: message });
+    }
+  });
+
+  app.post("/sessions/:id/notes", async (request, reply) => {
+    if (!dependencies.isSupabaseConfigured()) {
+      return supabaseUnavailable(reply);
+    }
+    const params = sessionIdSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.status(400).send({ error: "Invalid session id" });
+    }
+    const { id } = params.data;
+    if (!dependencies.requireSessionToken(request, reply, id)) {
+      return;
+    }
+    const body = z
+      .object({ notes: z.string().max(2000) })
+      .safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ error: "Invalid request" });
+    }
+    try {
+      const session = await updateSessionNotes(id, body.data.notes);
+      return reply.send({ session });
+    } catch (err) {
+      request.log.error(err);
+      const { statusCode, message } = toClientError(err, "Failed to save notes");
       return reply.status(statusCode).send({ error: message });
     }
   });

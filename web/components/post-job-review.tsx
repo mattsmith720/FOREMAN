@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { confirmLabel, getSessionReview, type ReviewItem } from "../lib/review";
+import {
+  confirmLabel,
+  getSessionReview,
+  saveSessionNotes,
+  type ReviewItem,
+} from "../lib/review";
 
 type ItemState = "open" | "saving" | "confirmed" | "corrected";
 
@@ -13,6 +18,10 @@ type ItemState = "open" | "saving" | "confirmed" | "corrected";
 export function PostJobReview({ sessionId }: { sessionId: string }) {
   const [items, setItems] = useState<ReviewItem[] | null>(null);
   const [states, setStates] = useState<Record<number, ItemState>>({});
+  const [notes, setNotes] = useState("");
+  const [notesState, setNotesState] = useState<"idle" | "saving" | "saved">(
+    "idle",
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +127,33 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
           );
         })}
       </ul>
+      <div className="review-notes">
+        <label htmlFor="job-notes">Job notes (roof type, panel brand…)</label>
+        <textarea
+          id="job-notes"
+          className="review-notes-input"
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="e.g. tile roof, Trina 440W, Sungrow inverter"
+          rows={2}
+        />
+        <button
+          type="button"
+          className="button button-secondary review-btn"
+          disabled={notesState === "saving" || notes.trim().length === 0}
+          onClick={async () => {
+            setNotesState("saving");
+            try {
+              await saveSessionNotes(sessionId, notes.trim());
+              setNotesState("saved");
+            } catch {
+              setNotesState("idle");
+            }
+          }}
+        >
+          {notesState === "saved" ? "✓ Saved" : "Save notes"}
+        </button>
+      </div>
     </section>
   );
 }

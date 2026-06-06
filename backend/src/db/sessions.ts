@@ -189,6 +189,25 @@ export async function updateSessionSummary(
   return update.data as SessionRow;
 }
 
+export async function updateSessionNotes(
+  sessionId: string,
+  notes: string,
+): Promise<SessionRow> {
+  const supabase = getSupabase();
+  const update = await supabase
+    .from("sessions")
+    .update({ notes })
+    .eq("id", sessionId)
+    .select("*")
+    .single();
+
+  if (update.error || !update.data) {
+    throw new Error(update.error?.message ?? "Failed to update session notes");
+  }
+
+  return update.data as SessionRow;
+}
+
 export async function getSessionFrames(
   sessionId: string,
 ): Promise<Array<{ ts: string; analysis: CoachingResponse | null }>> {

@@ -37,3 +37,17 @@ export async function confirmLabel(input: {
   });
   await parseApiResponse<{ ok: boolean }>(response);
 }
+
+/** Save free-text job metadata (roof type, panel brand) to session.notes. */
+export async function saveSessionNotes(
+  sessionId: string,
+  notes: string,
+): Promise<void> {
+  const response = await apiFetch(`/sessions/${sessionId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notes }),
+    retry: { retries: 0 },
+  });
+  await parseApiResponse<{ session: unknown }>(response);
+}
