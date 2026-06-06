@@ -17,11 +17,11 @@
       "finishedAt": "2026-06-06T02:51:34.816Z",
       "lastUpdate": "2026-06-06T02:51:37.729Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "phone-walk-polish",
@@ -41,11 +41,11 @@
       "finishedAt": "2026-06-06T03:10:02.151Z",
       "lastUpdate": "2026-06-06T03:10:03.282Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "live-ui-verified",
-      "attempts": 1
+      "verification": "live-ui-verified"
     },
     {
       "name": "demo-script-truth-sync",
@@ -65,16 +65,16 @@
       "finishedAt": "2026-06-06T02:53:03.723Z",
       "lastUpdate": "2026-06-06T02:53:04.695Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "type-check-only",
-      "attempts": 1
+      "verification": "type-check-only"
     },
     {
       "name": "verify-cpo-product-ux",
       "type": "verifier",
-      "branch": "orch/cpo-product-ux/verify-cpo-product-ux",
+      "branch": "`cursor/verify-cpo-product-ux-b7d1` (verifier branch built on `orch/cpo-product-ux/phone-walk-polish` with `orch/cpo-product-ux/demo-script-truth-sync` merged in via `git merge --no-edit`; pushed to origin so the planner can inspect the integrated tree).",
       "startingRef": "orch/cpo-product-ux/phone-walk-polish",
       "dependsOn": [
         "consent-and-recording-ux",
@@ -84,18 +84,18 @@
       "agentId": "bc-18a7e908-c4b8-4db4-853c-65a18879b7d1",
       "runId": "run-63a6012a-efd3-4ad5-81d4-5360f71313ef",
       "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-cpo-product-ux.md",
       "startedAt": "2026-06-06T03:10:07.030Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T03:10:09.292Z",
+      "finishedAt": "2026-06-06T03:53:45.376Z",
+      "lastUpdate": "2026-06-06T03:53:45.376Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
