@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseCoachingResponse } from "./parse-coaching.js";
+import {
+  parseCoachingResponse,
+  parseCoachingResponseWithFallback,
+} from "./parse-coaching.js";
 
 const validPayload = JSON.stringify({
   observations: ["Worker is on the roof securing rail brackets."],
@@ -41,4 +44,11 @@ test("parseCoachingResponse strips markdown fences", () => {
 
 test("parseCoachingResponse rejects invalid shape", () => {
   assert.throws(() => parseCoachingResponse('{"observations":[]}'));
+});
+
+test("parseCoachingResponseWithFallback returns fallback on invalid output", () => {
+  const result = parseCoachingResponseWithFallback('{"observations":[]}');
+  assert.equal(result.usedFallback, true);
+  assert.equal(result.coaching.installQualityFlags.length, 0);
+  assert.equal(result.coaching.nextSteps.length > 0, true);
 });

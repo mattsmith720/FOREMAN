@@ -1,4 +1,5 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyError, FastifyInstance } from "fastify";
+import type { CoachingResponse } from "@foreman/shared";
 import { z } from "zod";
 import { toClientError } from "../api-error.js";
 import { analyseImage, decodeImagePayload } from "../analyse.js";
@@ -10,6 +11,10 @@ import { getRecentSessionTranscript } from "../db/transcript.js";
 import type { SessionContext } from "../prompts/analysis.js";
 import { requireSessionToken } from "../require-session-token.js";
 import { validateImageBytes } from "../validate-media.js";
+
+const ANALYSE_BODY_LIMIT_BYTES = 8 * 1024 * 1024;
+// Route-local fallback until shared body-size limits are centralized in config.ts.
+const ANALYSE_RAW_IMAGE_LIMIT_BYTES = 5 * 1024 * 1024;
 
 const analyseRequestSchema = z.object({
   image: z.string().min(1).max(20_000_000),
@@ -24,16 +29,79 @@ const analyseRequestSchema = z.object({
     .optional(),
 });
 
-export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void> {
+interface AnalyseRouteDependencies {
+  isAnalysisConfigured: typeof isAnalysisConfigured;
+  decodeImagePayload: typeof decodeImagePayload;
+  validateImageBytes: typeof validateImageBytes;
+  requireSessionToken: typeof requireSessionToken;
+  isSupabaseConfigured: typeof isSupabaseConfigured;
+  assertActiveSession: typeof assertActiveSession;
+  getRecentSessionTranscript: typeof getRecentSessionTranscript;
+  analyseImage: typeof analyseImage;
+  persistFrame: typeof persistFrame;
+}
+
+const defaultDependencies: AnalyseRouteDependencies = {
+  isAnalysisConfigured,
+  decodeImagePayload,
+  validateImageBytes,
+  requireSessionToken,
+  isSupabaseConfigured,
+  assertActiveSession,
+  getRecentSessionTranscript,
+  analyseImage,
+  persistFrame,
+};
+
+function contentLength(request: { headers: Record<string, unknown> }): number | null {
+  const header = request.headers["content-length"];
+  const raw = Array.isArray(header) ? header[0] : header;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function isPayloadTooLargeError(error: FastifyError): boolean {
+  return error.statusCode === 413 || error.code === "FST_ERR_CTP_BODY_TOO_LARGE";
+}
+
+function isMalformedJsonError(error: FastifyError): boolean {
+  return (
+    error.code === "FST_ERR_CTP_INVALID_JSON_BODY" ||
+    error.message.toLowerCase().includes("json")
+  );
+}
+
+export async function registerAnalyseRoutes(
+  app: FastifyInstance,
+  dependencies: AnalyseRouteDependencies = defaultDependencies,
+): Promise<void> {
   app.post(
     "/analyse",
     {
       config: {
         rateLimit: { max: 20, timeWindow: "1 minute" },
       },
+      bodyLimit: ANALYSE_BODY_LIMIT_BYTES,
+      preValidation: async (request, reply) => {
+        const headerLength = contentLength(request);
+        if (headerLength !== null && headerLength > ANALYSE_BODY_LIMIT_BYTES) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        return undefined;
+      },
+      errorHandler: (error, request, reply) => {
+        if (isPayloadTooLargeError(error)) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        if (isMalformedJsonError(error)) {
+          return reply.status(400).send({ error: "Malformed JSON body" });
+        }
+        request.log.error(error);
+        return reply.status(500).send({ error: "Analysis request failed" });
+      },
     },
     async (request, reply) => {
-      if (!isAnalysisConfigured()) {
+      if (!dependencies.isAnalysisConfigured()) {
         return reply.status(503).send({
           error: "ANTHROPIC_API_KEY is not set for vision coaching",
         });
@@ -45,32 +113,37 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
       }
 
       try {
-        const { base64, mediaType: declaredType } = decodeImagePayload(
+        const { base64, mediaType: declaredType } = dependencies.decodeImagePayload(
           parsed.data.image,
         );
         const imageBytes = Buffer.from(base64, "base64");
-        const { mediaType } = validateImageBytes(imageBytes, declaredType);
+        if (imageBytes.length > ANALYSE_RAW_IMAGE_LIMIT_BYTES) {
+          return reply.status(413).send({ error: "Image payload too large" });
+        }
+        const { mediaType } = dependencies.validateImageBytes(imageBytes, declaredType);
 
         let context: SessionContext | undefined = parsed.data.context;
         if (parsed.data.sessionId) {
-          if (!requireSessionToken(request, reply, parsed.data.sessionId)) {
+          if (
+            !dependencies.requireSessionToken(request, reply, parsed.data.sessionId)
+          ) {
             return;
           }
 
-          if (!isSupabaseConfigured()) {
+          if (!dependencies.isSupabaseConfigured()) {
             return reply.status(503).send({
               error: "Supabase is not configured for session logging",
             });
           }
 
-          const session = await assertActiveSession(parsed.data.sessionId);
+          const session = await dependencies.assertActiveSession(parsed.data.sessionId);
           const clientTranscript = parsed.data.recentTranscript ?? [];
           let recentTranscript: string[];
 
           if (clientTranscript.length > 0) {
             recentTranscript = clientTranscript.slice(-8);
           } else {
-            const storedTranscript = await getRecentSessionTranscript(
+            const storedTranscript = await dependencies.getRecentSessionTranscript(
               parsed.data.sessionId,
             );
             recentTranscript = storedTranscript.slice(-8);
@@ -88,18 +161,28 @@ export async function registerAnalyseRoutes(app: FastifyInstance): Promise<void>
           };
         }
 
-        const coaching = await analyseImage({
-          base64,
-          mediaType,
-          context,
-        });
+        let coaching: CoachingResponse;
+        try {
+          coaching = await dependencies.analyseImage({
+            base64,
+            mediaType,
+            context,
+          });
+        } catch (providerErr) {
+          request.log.error(providerErr);
+          const { statusCode, message } = toClientError(
+            providerErr,
+            "Analysis provider unavailable",
+          );
+          return reply.status(statusCode).send({ error: message });
+        }
 
         let persisted: { frameId: string; storageRef: string } | undefined;
         let persistError: string | undefined;
 
         if (parsed.data.sessionId) {
           try {
-            persisted = await persistFrame({
+            persisted = await dependencies.persistFrame({
               sessionId: parsed.data.sessionId,
               base64,
               mediaType,

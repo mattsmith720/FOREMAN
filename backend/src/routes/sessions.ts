@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyError, FastifyInstance } from "fastify";
 import { z } from "zod";
 import { toClientError } from "../api-error.js";
 import { isAnalysisConfigured } from "../config.js";
@@ -16,6 +16,10 @@ import { signSessionToken } from "../session-token.js";
 import { summariseSession } from "../summarise-session.js";
 
 import { needsSummaryRetry } from "../stuck-summary.js";
+
+const SESSION_START_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
+// Route-local fallback until shared body-size limits are centralized in config.ts.
+const SESSION_NOTES_LIMIT_BYTES = 64 * 1024;
 
 const startSessionSchema = z.object({
   worker: z.string().max(200).optional(),
@@ -55,32 +59,115 @@ async function completeSessionSummary(sessionId: string): Promise<SessionRow> {
   }
 }
 
+interface SessionRouteDependencies {
+  isSupabaseConfigured: typeof isSupabaseConfigured;
+  createSession: typeof createSession;
+  signSessionToken: typeof signSessionToken;
+  requireSessionToken: typeof requireSessionToken;
+  getSession: typeof getSession;
+  getSessionCounts: typeof getSessionCounts;
+  claimSessionEnd: typeof claimSessionEnd;
+  needsSummaryRetry: typeof needsSummaryRetry;
+  completeSessionSummary: (sessionId: string) => Promise<SessionRow>;
+}
+
+const defaultDependencies: SessionRouteDependencies = {
+  isSupabaseConfigured,
+  createSession,
+  signSessionToken,
+  requireSessionToken,
+  getSession,
+  getSessionCounts,
+  claimSessionEnd,
+  needsSummaryRetry,
+  completeSessionSummary,
+};
+
+function contentLength(request: { headers: Record<string, unknown> }): number | null {
+  const header = request.headers["content-length"];
+  const raw = Array.isArray(header) ? header[0] : header;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function isPayloadTooLargeError(error: FastifyError): boolean {
+  return error.statusCode === 413 || error.code === "FST_ERR_CTP_BODY_TOO_LARGE";
+}
+
+function isMalformedJsonError(error: FastifyError): boolean {
+  return (
+    error.code === "FST_ERR_CTP_INVALID_JSON_BODY" ||
+    error.message.toLowerCase().includes("json")
+  );
+}
+
 export async function registerSessionRoutes(
   app: FastifyInstance,
+  dependencies: SessionRouteDependencies = defaultDependencies,
 ): Promise<void> {
-  app.post("/sessions/start", async (request, reply) => {
-    if (!isSupabaseConfigured()) {
-      return supabaseUnavailable(reply);
-    }
+  app.post(
+    "/sessions/start",
+    {
+      bodyLimit: SESSION_START_BODY_LIMIT_BYTES,
+      preValidation: async (request, reply) => {
+        const headerLength = contentLength(request);
+        if (headerLength !== null && headerLength > SESSION_START_BODY_LIMIT_BYTES) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        return undefined;
+      },
+      errorHandler: (error, request, reply) => {
+        if (isPayloadTooLargeError(error)) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        if (isMalformedJsonError(error)) {
+          return reply.status(400).send({ error: "Malformed JSON body" });
+        }
+        request.log.error(error);
+        return reply.status(500).send({ error: "Session request failed" });
+      },
+    },
+    async (request, reply) => {
+      if (!dependencies.isSupabaseConfigured()) {
+        return supabaseUnavailable(reply);
+      }
 
-    const parsed = startSessionSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({ error: "Invalid request" });
-    }
+      const parsed = startSessionSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({ error: "Invalid request" });
+      }
 
-    try {
-      const session = await createSession(parsed.data);
-      const token = signSessionToken(session.id);
-      return reply.status(201).send({ session, token });
-    } catch (err) {
-      request.log.error(err);
-      const { statusCode, message } = toClientError(err, "Failed to start session");
-      return reply.status(statusCode).send({ error: message });
-    }
-  });
+      if (
+        parsed.data.notes &&
+        Buffer.byteLength(parsed.data.notes, "utf8") > SESSION_NOTES_LIMIT_BYTES
+      ) {
+        return reply.status(413).send({ error: "Session notes payload too large" });
+      }
+
+      try {
+        let session: SessionRow;
+        try {
+          session = await dependencies.createSession(parsed.data);
+        } catch (providerErr) {
+          request.log.error(providerErr);
+          const { statusCode, message } = toClientError(
+            providerErr,
+            "Session storage unavailable",
+          );
+          return reply.status(statusCode).send({ error: message });
+        }
+        const token = dependencies.signSessionToken(session.id);
+        return reply.status(201).send({ session, token });
+      } catch (err) {
+        request.log.error(err);
+        const { statusCode, message } = toClientError(err, "Failed to start session");
+        return reply.status(statusCode).send({ error: message });
+      }
+    },
+  );
 
   app.post("/sessions/:id/stop", async (request, reply) => {
-    if (!isSupabaseConfigured()) {
+    if (!dependencies.isSupabaseConfigured()) {
       return supabaseUnavailable(reply);
     }
 
@@ -91,38 +178,38 @@ export async function registerSessionRoutes(
 
     const { id } = params.data;
 
-    if (!requireSessionToken(request, reply, id)) {
+    if (!dependencies.requireSessionToken(request, reply, id)) {
       return;
     }
 
     try {
-      const existing = await getSession(id);
+      const existing = await dependencies.getSession(id);
 
-      if (existing.ended_at && !needsSummaryRetry(existing)) {
-        const stored = await getSessionCounts(id);
+      if (existing.ended_at && !dependencies.needsSummaryRetry(existing)) {
+        const stored = await dependencies.getSessionCounts(id);
         return reply.send({ session: existing, stored });
       }
 
-      if (needsSummaryRetry(existing)) {
-        const session = await completeSessionSummary(id);
-        const stored = await getSessionCounts(id);
+      if (dependencies.needsSummaryRetry(existing)) {
+        const session = await dependencies.completeSessionSummary(id);
+        const stored = await dependencies.getSessionCounts(id);
         return reply.send({ session, stored });
       }
 
-      const claimed = await claimSessionEnd(id);
+      const claimed = await dependencies.claimSessionEnd(id);
       if (!claimed) {
-        const session = await getSession(id);
-        if (needsSummaryRetry(session)) {
-          const updated = await completeSessionSummary(id);
-          const stored = await getSessionCounts(id);
+        const session = await dependencies.getSession(id);
+        if (dependencies.needsSummaryRetry(session)) {
+          const updated = await dependencies.completeSessionSummary(id);
+          const stored = await dependencies.getSessionCounts(id);
           return reply.send({ session: updated, stored });
         }
-        const stored = await getSessionCounts(id);
+        const stored = await dependencies.getSessionCounts(id);
         return reply.send({ session, stored });
       }
 
-      const session = await completeSessionSummary(id);
-      const stored = await getSessionCounts(id);
+      const session = await dependencies.completeSessionSummary(id);
+      const stored = await dependencies.getSessionCounts(id);
       return reply.send({ session, stored });
     } catch (err) {
       request.log.error(err);
@@ -135,7 +222,7 @@ export async function registerSessionRoutes(
   });
 
   app.get("/sessions/:id", async (request, reply) => {
-    if (!isSupabaseConfigured()) {
+    if (!dependencies.isSupabaseConfigured()) {
       return supabaseUnavailable(reply);
     }
 
@@ -146,13 +233,13 @@ export async function registerSessionRoutes(
 
     const { id } = params.data;
 
-    if (!requireSessionToken(request, reply, id)) {
+    if (!dependencies.requireSessionToken(request, reply, id)) {
       return;
     }
 
     try {
-      const session = await getSession(id);
-      const stored = await getSessionCounts(id);
+      const session = await dependencies.getSession(id);
+      const stored = await dependencies.getSessionCounts(id);
       return reply.send({ session, stored });
     } catch (err) {
       request.log.error(err);

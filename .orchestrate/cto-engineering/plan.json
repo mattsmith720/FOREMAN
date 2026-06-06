@@ -1,0 +1,257 @@
+{
+  "$schema": "../../../../home/ubuntu/.cursor/plugins/cache/cursor-public/9333/683cdbda983ea8be4b766ac3fe94b7b88e7f75ad/skills/orchestrate/schemas/plan.schema.json",
+  "goal": "Make Foreman production-ready E2E with layered agents (CEO/CTO/eng) and DoDs at every level. CTO subtree owns CEO DoD #9 (iOS / glasses path scaffold not regressed) plus the technical backbone NOT owned by other C-suite siblings: backend non-security business logic (analyse, transcribe, summarise, voice, db, prompts, routes other than /ready), shared zod schemas + FrameSource interface, web client platform code (web/lib/**, web/app/api/**, web/next.config.mjs), and the iOS scaffold. CTO does NOT own: auth/session/validate (CISO), /ready or structured logging (SRE), test/smoke scripts (QA), consent UX (CPO), docs (docs-truth-sync).",
+  "summary": "CTO engineering subtree: backend business-logic hardening + web platform + iOS scaffold sanity",
+  "rootSlug": "cto-engineering",
+  "baseBranch": "cursor/cto-engineering-9334",
+  "prBase": "main",
+  "repoUrl": "https://github.com/mattsmith720/FOREMAN",
+  "syncStateToGit": true,
+  "selfAgentId": "bc-35704490-69de-4bfc-9598-415bd04c9334",
+  "acceptanceCriteria": [
+    "CTO DoD: CEO DoD #9 evidenced -- `cd native/ios && xcodegen generate` succeeds on the handoff branch (or, if `xcodegen` is unavailable in CI, the gap is documented in native/ios/README.md and the item is marked satisfied-with-doc-gap in the final handoff).",
+    "CTO DoD: backend AI routes (analyse, transcribe, voice, sessions) have error-path tests in `backend/src` that pass via `cd backend && npm test`.",
+    "CTO DoD: web platform code (web/lib, web/app/api) builds clean via `npm run build --workspace web` and passes `cd web && npm test`.",
+    "CTO DoD: shared `@foreman/shared` builds clean and is consumed unchanged by backend + web.",
+    "CTO DoD: no path in the CTO `pathsForbidden` list was modified on the handoff branch (verify via `git diff --name-only main..<handoff-branch>`)."
+  ],
+  "tasks": [
+    {
+      "name": "vp-backend-business-logic",
+      "type": "worker",
+      "scopedGoal": "Harden the Foreman backend AI routes (analyse, transcribe, voice, sessions, summarise) and supporting business-logic modules WITHOUT touching files owned by the CISO (auth.ts, validate-media.ts, require-session-token.ts, session-token.ts, api-error.ts, assert-production-security.ts, config.ts) or by the SRE (index.ts, /ready, structured logging). Concretely:\n\n1. Audit and harden these route handlers and modules in `backend/src/`:\n   - `routes/analyse.ts`, `routes/transcribe.ts`, `routes/voice.ts`, `routes/sessions.ts`, `routes/labels.ts`\n   - `analyse.ts`, `parse-coaching.ts`, `transcribe.ts`, `summarise-session.ts`, `stuck-summary.ts`, `voice-advice.ts`, `elevenlabs.ts`, `db/*`, `prompts/*`.\n2. Every AI route MUST:\n   - Reject oversize JSON / multipart payloads with a structured 413 (or pre-existing api-error shape). Coordinate payload limits with CISO via existing `backend/src/config.ts` constants if they exist; if no shared limit constant exists, add a local sane default (e.g. JSON body 2 MiB, raw image 5 MiB, raw audio 25 MiB) inside the route or a new helper in `backend/src/` (NOT in config.ts) and clearly comment that it is a per-route fallback awaiting a shared limit. If touching `config.ts` is the only way, STOP and leave a comment in the handoff requesting CISO coordination.\n   - Have a dedicated try/catch that converts upstream provider errors (Anthropic, OpenAI, ElevenLabs, Supabase) into a clean JSON response (`{ ok: false, error: { code, message } }` or the project's existing api-error shape) instead of leaking provider stack traces.\n   - Validate zod-shaped responses from upstream providers and fall back gracefully when parsing fails (current `parse-coaching.ts` is a reference -- mirror that defensive style elsewhere).\n3. Add new `*.test.ts` files (use the existing `tsx --test` runner) in `backend/src/` that exercise the error paths for analyse, transcribe, voice, and sessions. Examples of error paths to cover: oversize payload returns 413; malformed JSON returns 400; upstream provider throwing yields a clean JSON 5xx with no stack; zod-invalid model output yields a fallback coaching object instead of crashing. Tests must run under `cd backend && npm test` and pass.\n4. Shared types & FrameSource: if you change anything in `shared/src/`, keep it backward-compatible (the web client and the iOS scaffold both consume it).\n5. Don't introduce new top-level dependencies unless absolutely required. If you must, pin a version and explain in your handoff.\n\nBranch discipline: commit to the cloud-agent branch already checked out for this task and push. Do not rename or create branches. Do not open a PR.\n\nFinal message: handoff per worker prompt structure.",
+      "pathsAllowed": [
+        "backend/src/analyse.ts",
+        "backend/src/parse-coaching.ts",
+        "backend/src/parse-coaching.test.ts",
+        "backend/src/transcribe.ts",
+        "backend/src/summarise-session.ts",
+        "backend/src/stuck-summary.ts",
+        "backend/src/stuck-summary.test.ts",
+        "backend/src/voice-advice.ts",
+        "backend/src/elevenlabs.ts",
+        "backend/src/routes/analyse.ts",
+        "backend/src/routes/sessions.ts",
+        "backend/src/routes/labels.ts",
+        "backend/src/routes/transcribe.ts",
+        "backend/src/routes/voice.ts",
+        "backend/src/db/**",
+        "backend/src/prompts/**",
+        "backend/src/**/*.test.ts",
+        "backend/scripts/**",
+        "backend/sample/**",
+        "backend/tsconfig.json",
+        "backend/package.json",
+        "shared/src/**",
+        "shared/package.json",
+        "shared/tsconfig.json",
+        "ELEVENLABS_AGENT_PROMPT.md",
+        "ELEVENLABS_VOICE.md",
+        "PROMPTS.md"
+      ],
+      "pathsForbidden": [
+        "backend/src/index.ts",
+        "backend/src/config.ts",
+        "backend/src/auth.ts",
+        "backend/src/assert-production-security.ts",
+        "backend/src/require-session-token.ts",
+        "backend/src/session-token.ts",
+        "backend/src/validate-media.ts",
+        "backend/src/validate-media.test.ts",
+        "backend/src/api-error.ts",
+        "web/**",
+        "native/ios/**",
+        "scripts/**",
+        "render.yaml",
+        "vercel.json",
+        ".github/**",
+        "SECURITY.md",
+        "SECURITY_INCIDENT.md",
+        "DEPLOY.md",
+        "README.md",
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md"
+      ],
+      "acceptance": [
+        "All five AI/business routes (analyse, transcribe, voice, sessions, labels) explicitly handle oversize payloads, malformed input, and upstream-provider errors without leaking stack traces.",
+        "At least one new error-path test exists for each of analyse, transcribe, voice, and sessions; `cd backend && npm test` passes locally with the new tests included.",
+        "Shared @foreman/shared still builds (`npm run build --workspace @foreman/shared`) and existing consumers (backend + web) compile against it.",
+        "No file listed in pathsForbidden has been modified on the handoff branch (verify with `git diff --name-only`).",
+        "Handoff `## Branch` line records the actual cloud-agent branch used."
+      ],
+      "verify": "## Setup\n- `git checkout <vp-backend-business-logic branch>`; `npm install` at repo root.\n\n## Automated\n- `npm run build --workspace @foreman/shared` succeeds.\n- `npm run build --workspace backend` succeeds.\n- `cd backend && npm test` passes; new error-path tests visible in the output (look for `analyse`, `transcribe`, `voice`, `sessions` test names).\n\n## Manual\n- `git diff --name-only main..HEAD` includes only files in `pathsAllowed` -- no CISO/SRE-owned files.\n- Spot-check each touched route handler has a try/catch wrapping the upstream provider call.\n\n## Gotchas\n- Do NOT touch `backend/src/config.ts`, `backend/src/auth.ts`, `backend/src/validate-media.ts`, `backend/src/api-error.ts`. Those are CISO/SRE territory.\n- Anthropic/OpenAI/ElevenLabs/Supabase keys may be absent in CI -- guard tests with mocks; do not hit the real network.",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "verify-vp-backend-business-logic",
+      "type": "verifier",
+      "verifies": "vp-backend-business-logic",
+      "scopedGoal": "Verify the backend AI-route hardening on the target branch. Run `npm install` then `npm run build --workspace @foreman/shared`, `npm run build --workspace backend`, `cd backend && npm test`. Confirm error-path tests exist and pass for analyse, transcribe, voice, and sessions. Verify `git diff --name-only` does not touch any CISO/SRE-owned file (backend/src/index.ts, backend/src/config.ts, backend/src/auth.ts, backend/src/assert-production-security.ts, backend/src/require-session-token.ts, backend/src/session-token.ts, backend/src/validate-media.ts, backend/src/validate-media.test.ts, backend/src/api-error.ts). Use the verifier handoff structure and pick the strongest claim your evidence actually supports.",
+      "acceptance": [
+        "Test suite output captured in the verifier handoff `## Execution` block with pass/fail counts.",
+        "Per-acceptance-criterion finding rows in `## Findings`.",
+        "`## Verification` is one of unit-test-verified | type-check-only | verifier-blocked | verifier-failed (live-ui-verified is not applicable to a backend-only change without a running stack)."
+      ],
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    },
+    {
+      "name": "vp-web-platform",
+      "type": "worker",
+      "scopedGoal": "Harden the Foreman web (Next.js 14 App Router) platform code WITHOUT touching files owned by sibling C-suite agents. Allowed scope: `web/lib/**`, `web/app/api/**`, `web/next.config.mjs`, `web/tsconfig.json`, `web/package.json`. Forbidden: `web/components/**`, `web/app/page.tsx`, `web/app/layout.tsx`, `web/middleware.ts`, `web/vercel.json`. Concrete deliverables:\n\n1. In each `web/app/api/**/route.ts` proxy handler, ensure:\n   - The handler forwards requests to the backend using the same-origin pattern (no client-to-Render URLs). Use existing helpers in `web/lib/api-url.ts` / `web/lib/api-fetch.ts` / `web/lib/proxy-backend.ts` -- if those helpers don't already enforce same-origin proxy semantics, fix them.\n   - There is a try/catch returning a structured `Response.json({ ok: false, error: \"...\" }, { status })` instead of letting unhandled errors render generic Next.js 500 HTML.\n   - Timeouts and obvious abuse vectors (huge bodies) are bounded -- prefer `Request.signal` + `AbortController` if the existing code does not already do so.\n2. In `web/lib/**`, add or extend a minimal retry helper (exponential backoff, 1 retry on 5xx or network error) used by the analyse / transcribe / sessions fetchers. Do NOT retry POSTs that mutate session state unless the route is idempotent.\n3. Make sure the workspace is type-clean: `npm run build --workspace web` must succeed.\n4. Add or extend unit tests under `web/lib/*.test.ts` (project already uses `tsx --test`) that exercise the retry helper and at least one proxy/error path -- the test files already exist; add cases. `cd web && npm test` must pass.\n5. `web/next.config.mjs`: it currently sets security headers. If you change it, keep the existing X-Frame-Options/X-Content-Type-Options/Referrer-Policy/Permissions-Policy headers intact. You may extend the config (e.g. add an env-based BACKEND_URL guard) but don't relax the existing headers.\n\nDo not touch any consent UX (`web/components/**`, `web/app/page.tsx`, `web/app/layout.tsx`); that's CPO scope. Do not touch `web/middleware.ts` or `web/vercel.json`; those are CISO/SRE scope. Commit to the cloud-agent branch already checked out; push; do not open a PR.",
+      "pathsAllowed": [
+        "web/lib/**",
+        "web/app/api/**",
+        "web/next.config.mjs",
+        "web/tsconfig.json",
+        "web/package.json"
+      ],
+      "pathsForbidden": [
+        "web/components/**",
+        "web/app/page.tsx",
+        "web/app/layout.tsx",
+        "web/middleware.ts",
+        "web/vercel.json",
+        "backend/**",
+        "native/ios/**",
+        "scripts/**",
+        "render.yaml",
+        "vercel.json",
+        ".github/**",
+        "SECURITY.md",
+        "DEPLOY.md",
+        "README.md",
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md"
+      ],
+      "acceptance": [
+        "Every `web/app/api/**/route.ts` route is wrapped in a try/catch returning a structured JSON error.",
+        "Same-origin proxy invariant documented and enforced (no client-side hard-coded backend URLs introduced).",
+        "Retry helper exists in `web/lib` and is used by analyse / transcribe / sessions fetchers; it is not applied to non-idempotent operations.",
+        "`npm run build --workspace web` succeeds.",
+        "`cd web && npm test` passes; at least one new test case targets the retry helper or proxy error path.",
+        "No file from pathsForbidden modified on the handoff branch."
+      ],
+      "verify": "## Setup\n- `git checkout <vp-web-platform branch>`; `npm install` at repo root.\n\n## Automated\n- `npm run build --workspace @foreman/shared` succeeds.\n- `npm run build --workspace web` succeeds.\n- `cd web && npm test` passes.\n\n## Manual\n- `git diff --name-only main..HEAD` is entirely within `pathsAllowed`.\n- Grep `web/app/api` for any unhandled `await` outside a try/catch; flag findings.",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "verify-vp-web-platform",
+      "type": "verifier",
+      "verifies": "vp-web-platform",
+      "scopedGoal": "Verify web platform hardening. Run `npm install`, `npm run build --workspace @foreman/shared`, `npm run build --workspace web`, `cd web && npm test`. Confirm `git diff --name-only` is entirely within pathsAllowed (no `web/components/**`, `web/app/page.tsx`, `web/app/layout.tsx`, `web/middleware.ts`, `web/vercel.json`). Spot-check each `web/app/api/**/route.ts` for the structured try/catch wrapper. Pick the strongest claim your evidence supports.",
+      "acceptance": [
+        "Build + test command outputs captured in `## Execution`.",
+        "Per-acceptance-criterion findings recorded.",
+        "`## Verification` is one of unit-test-verified | type-check-only | verifier-blocked | verifier-failed."
+      ],
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    },
+    {
+      "name": "vp-native-mobile",
+      "type": "worker",
+      "scopedGoal": "Confirm the iOS / Meta-glasses scaffold (CEO DoD #9) is not regressed. Concrete steps:\n\n1. Read `native/ios/README.md` and `native/ios/project.yml` end to end.\n2. Confirm `project.yml` still references the Meta Wearables DAT SDK at version 0.7+ (currently `from: 0.7.0`). If a newer 0.7.x patch is officially published you may bump it, but DO NOT cross a major version boundary (no 0.8+).\n3. If `xcodegen` is available on PATH in the CI/cloud-agent VM, run `cd native/ios && xcodegen generate` and confirm it succeeds. Commit the regenerated `*.xcodeproj` only if there is a meaningful diff -- otherwise leave it as-is.\n4. If `xcodegen` is NOT available (most likely in a Linux CI VM), DO NOT attempt to install it. Instead, append a `## Gap: xcodegen not available in CI` section to `native/ios/README.md` that:\n   - Documents that `xcodegen generate` could not be executed in the cloud-agent VM (Linux, no Homebrew, no xcodegen binary).\n   - Lists the manual smoke steps a human on a Mac must run to satisfy CEO DoD #9: `brew install xcodegen`, `cd native/ios && xcodegen generate`, `open Foreman.xcodeproj`, build for an iPhone 16 Simulator destination.\n   - Confirms the DAT SDK reference (`MetaWearablesDAT` package, `from: 0.7.0`) is still present in `project.yml`.\n5. Do NOT modify any swift source files unless absolutely required to make `xcodegen` succeed. Mention any such change in your handoff.\n\nBranch: commit to the cloud-agent branch already checked out; push; do not open a PR. Final message uses the worker handoff structure.",
+      "pathsAllowed": [
+        "native/ios/**"
+      ],
+      "pathsForbidden": [
+        "backend/**",
+        "web/**",
+        "shared/**",
+        "scripts/**",
+        "render.yaml",
+        "vercel.json",
+        ".github/**",
+        "SECURITY.md",
+        "DEPLOY.md",
+        "README.md",
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md"
+      ],
+      "acceptance": [
+        "If `xcodegen` is available, `cd native/ios && xcodegen generate` succeeds and any meaningful regenerated artefacts are committed.",
+        "If `xcodegen` is NOT available, `native/ios/README.md` carries a clearly-titled `## Gap: xcodegen not available in CI` section documenting the manual steps a human must run.",
+        "`project.yml` still declares the Meta Wearables DAT SDK at `from: 0.7.0` (or a 0.7.x patch).",
+        "No file outside `native/ios/**` is modified on the handoff branch.",
+        "Handoff `## Branch` line records the actual cloud-agent branch used."
+      ],
+      "verify": "## Setup\n- `git checkout <vp-native-mobile branch>`.\n\n## Automated\n- `which xcodegen || echo no-xcodegen`.\n- If xcodegen is present: `cd native/ios && xcodegen generate` -- expect exit 0.\n- `grep -E '(MetaWearablesDAT|from: 0\\.7)' native/ios/project.yml` should match.\n\n## Manual\n- If xcodegen was absent, inspect `native/ios/README.md` for the `## Gap` section.\n- `git diff --name-only main..HEAD` is entirely within `native/ios/**`.",
+      "model": "composer-2-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "merge-cto-deliverable",
+      "type": "worker",
+      "scopedGoal": "Consolidate the three CTO worker branches (`vp-backend-business-logic`, `vp-web-platform`, `vp-native-mobile`) into a single deliverable branch for the CTO subtree. Mechanics:\n\n1. Your cloud-agent VM was cloned from `cursor/cto-engineering-9334` (the CTO planner branch). Start there.\n2. Fetch all three upstream worker branches from origin. Their actual branch names come from the upstream `## Branch` lines in the propagated handoffs in `.orchestrate/cto-engineering/handoffs/`. The orchestrate script also writes the resolved branches into `.orchestrate/cto-engineering/state.json`; read whichever you trust more.\n3. Merge each upstream branch into the current branch in this order: backend, web, native. Resolve conflicts conservatively -- favour upstream changes within each upstream's own `pathsAllowed`. If a real semantic conflict arises (same file, both sides changed it meaningfully), STOP and emit a `blocked` worker handoff naming the file(s) and a one-paragraph description of the conflict.\n4. After the merge, run `npm install` at repo root, then:\n   - `npm run build --workspace @foreman/shared`\n   - `npm run build --workspace backend`\n   - `npm run build --workspace web`\n   - `cd backend && npm test`\n   - `cd web && npm test`\n   All five must pass on the merged branch.\n5. Verify `git diff --name-only main..HEAD` does not touch any file in the CTO global pathsForbidden list (auth.ts, validate-media.ts, require-session-token.ts, session-token.ts, api-error.ts, assert-production-security.ts, backend/src/index.ts, backend/src/config.ts, web/components/**, web/app/page.tsx, web/app/layout.tsx, web/middleware.ts, web/vercel.json, scripts/**, render.yaml, vercel.json, .github/**, SECURITY.md, SECURITY_INCIDENT.md, DEPLOY.md, README.md, PHONE_DEMO.md, YOUR_ACTIONS.md). If anything in that list shows up in the diff -- either drop the offending merge (revert just the forbidden file from main) and re-test, or block.\n\nCommit each merge with `git merge --no-ff <branch> -m \"merge: <branch> into cto-engineering-deliverable\"`. Push the resulting branch. Do not open a PR. Final message: worker handoff with the consolidated branch name on the `## Branch` line.",
+      "pathsAllowed": [
+        "backend/**",
+        "web/**",
+        "shared/**",
+        "native/ios/**",
+        ".orchestrate/cto-engineering/**",
+        "ELEVENLABS_AGENT_PROMPT.md",
+        "ELEVENLABS_VOICE.md",
+        "PROMPTS.md"
+      ],
+      "pathsForbidden": [
+        "backend/src/index.ts",
+        "backend/src/config.ts",
+        "backend/src/auth.ts",
+        "backend/src/assert-production-security.ts",
+        "backend/src/require-session-token.ts",
+        "backend/src/session-token.ts",
+        "backend/src/validate-media.ts",
+        "backend/src/validate-media.test.ts",
+        "backend/src/api-error.ts",
+        "web/components/**",
+        "web/app/page.tsx",
+        "web/app/layout.tsx",
+        "web/middleware.ts",
+        "web/vercel.json",
+        "scripts/**",
+        "render.yaml",
+        "vercel.json",
+        ".github/**",
+        "SECURITY.md",
+        "SECURITY_INCIDENT.md",
+        "DEPLOY.md",
+        "README.md",
+        "PHONE_DEMO.md",
+        "YOUR_ACTIONS.md"
+      ],
+      "acceptance": [
+        "All three upstream worker branches merge cleanly into the deliverable branch (or a blocked handoff names the unresolvable conflict).",
+        "`npm run build --workspace @foreman/shared`, `npm run build --workspace backend`, `npm run build --workspace web` all succeed on the merged branch.",
+        "`cd backend && npm test` and `cd web && npm test` pass on the merged branch.",
+        "`git diff --name-only main..HEAD` includes no file from pathsForbidden.",
+        "Handoff `## Branch` line is the consolidated deliverable branch name."
+      ],
+      "startingRef": "cursor/cto-engineering-9334",
+      "dependsOn": [
+        "vp-backend-business-logic",
+        "verify-vp-backend-business-logic",
+        "vp-web-platform",
+        "verify-vp-web-platform",
+        "vp-native-mobile"
+      ],
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 2
+    },
+    {
+      "name": "verify-cto-engineering",
+      "type": "verifier",
+      "verifies": "merge-cto-deliverable",
+      "scopedGoal": "Final verification of the CTO engineering deliverable. On the merged branch from `merge-cto-deliverable`:\n\n1. `npm install` at repo root.\n2. `npm run build --workspace @foreman/shared`, `npm run build --workspace backend`, `npm run build --workspace web` -- capture exit codes.\n3. `cd backend && npm test` and `cd web && npm test` -- capture pass/fail counts.\n4. `git diff --name-only main..HEAD` -- confirm none of the CTO-forbidden paths (auth.ts, validate-media.ts, require-session-token.ts, session-token.ts, api-error.ts, assert-production-security.ts, backend/src/index.ts, backend/src/config.ts, web/components/**, web/app/page.tsx, web/app/layout.tsx, web/middleware.ts, web/vercel.json, scripts/**, render.yaml, vercel.json, .github/**, SECURITY.md, SECURITY_INCIDENT.md, DEPLOY.md, README.md, PHONE_DEMO.md, YOUR_ACTIONS.md) show up.\n5. If `xcodegen` is on PATH: `cd native/ios && xcodegen generate` and confirm exit 0. Otherwise confirm `native/ios/README.md` documents the gap.\n6. Walk the 5 acceptance criteria in `plan.acceptanceCriteria` of the CTO plan and record per-criterion findings.\n\nUse the verifier handoff structure. Pick the strongest claim your evidence supports.",
+      "acceptance": [
+        "Each of the 5 CTO `acceptanceCriteria` bullets has an explicit `[x]` / `[ ]` finding row.",
+        "Build/test command outputs captured in `## Execution`.",
+        "`## Verification` is one of unit-test-verified | type-check-only | verifier-blocked | verifier-failed."
+      ],
+      "model": "claude-opus-4-7",
+      "maxAttempts": 2
+    }
+  ]
+}
