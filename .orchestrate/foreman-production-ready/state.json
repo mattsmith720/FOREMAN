@@ -7,20 +7,20 @@
       "branch": "orch/foreman-production-ready/cto-readiness",
       "startingRef": "main",
       "dependsOn": [],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-2ee35033-fd4b-4a52-a8c7-b5eaf99c7515",
+      "runId": "run-9b577a65-19c3-4d18-b934-6f96c18b8c4b",
+      "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
+      "status": "error",
+      "resultStatus": "error",
+      "handoffPath": "handoffs/cto-readiness.md",
       "startedAt": "2026-06-06T01:35:55.768Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T01:35:55.768Z",
+      "finishedAt": "2026-06-06T02:08:11.394Z",
+      "lastUpdate": "2026-06-06T02:08:11.394Z",
       "note": "manual reset: prior 2 spawn attempts hit (1) invalid_model on default subplanner slug then (2) resume-from-nonexistent-placeholder-branch; attempts zeroed so the first new attempt starts from `main`.",
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": null,
+      "failureMode": "unknown",
       "verification": null
     },
     {
@@ -59,6 +59,18 @@
     {
       "at": "2026-06-06T01:34:20.190Z",
       "message": "cto-readiness: spawn failed after 3 transient sub-attempts: l: [validation_error] Branch 'orch/foreman-production-ready/cto-readiness' does not exist in repository mattsmith720/FOREMAN."
+    },
+    {
+      "at": "2026-06-06T01:49:00.319Z",
+      "message": "cto-readiness: SSE idle 346606ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T01:49:00.320Z",
+      "message": "cto-readiness: tool_call idle 350017ms; last=2026-06-06T01:43:10.303Z"
+    },
+    {
+      "at": "2026-06-06T02:08:11.393Z",
+      "message": "cto-readiness: run.wait returned status=error; recovery probe found terminal status=error, accepting authoritative status"
     }
   ]
 }
