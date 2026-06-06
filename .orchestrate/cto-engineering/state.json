@@ -26,7 +26,7 @@
     {
       "name": "verify-vp-backend-business-logic",
       "type": "verifier",
-      "branch": "orch/cto-engineering/verify-vp-backend-business-logic",
+      "branch": "`orch/cto-engineering/vp-backend-business-logic` (no verifier commits added; source untouched)",
       "startingRef": "orch/cto-engineering/vp-backend-business-logic",
       "dependsOn": [
         "vp-backend-business-logic"
@@ -34,12 +34,12 @@
       "agentId": "bc-611d4d22-7350-4447-90f4-98636a7bdf62",
       "runId": "run-56fd99fb-5127-4472-8cf7-f06d3123816a",
       "parentAgentId": "bc-35704490-69de-4bfc-9598-415bd04c9334",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-vp-backend-business-logic.md",
       "startedAt": "2026-06-06T02:48:41.883Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:48:44.345Z",
+      "finishedAt": "2026-06-06T02:51:47.289Z",
+      "lastUpdate": "2026-06-06T02:51:47.290Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
