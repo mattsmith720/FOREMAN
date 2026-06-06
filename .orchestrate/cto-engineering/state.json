@@ -17,11 +17,11 @@
       "finishedAt": "2026-06-06T02:48:34.885Z",
       "lastUpdate": "2026-06-06T02:48:35.871Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "verify-vp-backend-business-logic",
@@ -41,11 +41,11 @@
       "finishedAt": "2026-06-06T02:51:47.289Z",
       "lastUpdate": "2026-06-06T02:51:47.290Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "vp-web-platform",
@@ -63,11 +63,11 @@
       "finishedAt": "2026-06-06T02:46:56.927Z",
       "lastUpdate": "2026-06-06T02:46:57.927Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "verify-vp-web-platform",
@@ -87,11 +87,11 @@
       "finishedAt": "2026-06-06T02:50:56.822Z",
       "lastUpdate": "2026-06-06T02:50:56.823Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "vp-native-mobile",
@@ -109,11 +109,11 @@
       "finishedAt": "2026-06-06T02:42:50.024Z",
       "lastUpdate": "2026-06-06T02:42:50.906Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "not-verified",
-      "attempts": 1
+      "verification": "not-verified"
     },
     {
       "name": "merge-cto-deliverable",
@@ -137,11 +137,11 @@
       "finishedAt": "2026-06-06T02:53:43.243Z",
       "lastUpdate": "2026-06-06T02:53:46.165Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "verify-cto-engineering",
@@ -161,11 +161,11 @@
       "finishedAt": "2026-06-06T02:56:27.478Z",
       "lastUpdate": "2026-06-06T02:56:27.478Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
