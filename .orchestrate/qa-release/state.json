@@ -17,11 +17,11 @@
       "finishedAt": "2026-06-06T02:45:39.327Z",
       "lastUpdate": "2026-06-06T02:45:42.350Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "test-suite-green",
@@ -39,11 +39,11 @@
       "finishedAt": "2026-06-06T02:42:10.763Z",
       "lastUpdate": "2026-06-06T02:42:11.740Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "release-recipe",
@@ -63,11 +63,11 @@
       "finishedAt": "2026-06-06T02:46:21.215Z",
       "lastUpdate": "2026-06-06T02:46:22.165Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "merge-qa-release",
@@ -88,35 +88,35 @@
       "finishedAt": "2026-06-06T02:50:30.273Z",
       "lastUpdate": "2026-06-06T02:50:31.218Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "verify-qa-release",
       "type": "verifier",
-      "branch": "orch/qa-release/verify-qa-release",
+      "branch": "`orch/qa-release/qa-release` (no verifier commits authored — only ran `npm install` which touched `package-lock.json`; not committed per \"Do NOT modify target source files\")",
       "startingRef": "orch/qa-release/qa-release",
       "dependsOn": [
         "merge-qa-release"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-14f24947-93d8-41f4-9624-1cedf0f5e9d4",
+      "runId": "run-b96cedba-1a15-4284-b3cc-abb1d68d4744",
+      "parentAgentId": "bc-148267c7-6299-48db-b84b-1fc6cbebadfc",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-qa-release.md",
       "startedAt": "2026-06-06T02:50:34.996Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:50:34.996Z",
+      "finishedAt": "2026-06-06T02:54:13.368Z",
+      "lastUpdate": "2026-06-06T02:54:13.369Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
