@@ -92,18 +92,18 @@
     {
       "name": "qa-release",
       "type": "subplanner",
-      "branch": "orch/foreman-production-ready/qa-release",
+      "branch": "orch/qa-release/qa-release",
       "startingRef": "main",
       "dependsOn": [],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-148267c7-6299-48db-b84b-1fc6cbebadfc",
+      "runId": "run-d52d7646-a977-450a-936f-44ba30f33f63",
+      "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/qa-release.md",
       "startedAt": "2026-06-06T02:34:19.623Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T02:34:19.623Z",
+      "finishedAt": "2026-06-06T02:58:13.776Z",
+      "lastUpdate": "2026-06-06T02:58:13.776Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -213,5 +213,26 @@
       "verification": null
     }
   ],
-  "attention": []
+  "attention": [
+    {
+      "at": "2026-06-06T02:44:18.213Z",
+      "message": "ciso-security: tool_call idle 330957ms; last=2026-06-06T02:38:47.255Z"
+    },
+    {
+      "at": "2026-06-06T02:46:23.285Z",
+      "message": "qa-release: SSE idle 359735ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T02:46:23.285Z",
+      "message": "qa-release: tool_call idle 359735ms; last=2026-06-06T02:40:23.550Z"
+    },
+    {
+      "at": "2026-06-06T02:47:16.183Z",
+      "message": "cto-engineering: SSE idle 324682ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T02:47:16.183Z",
+      "message": "cto-engineering: tool_call idle 324682ms; last=2026-06-06T02:41:51.501Z"
+    }
+  ]
 }
