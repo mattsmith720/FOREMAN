@@ -81,15 +81,15 @@
         "phone-walk-polish",
         "demo-script-truth-sync"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-18a7e908-c4b8-4db4-853c-65a18879b7d1",
+      "runId": "run-63a6012a-efd3-4ad5-81d4-5360f71313ef",
+      "parentAgentId": "bc-856a309d-c876-42c4-aead-13fc67070d11",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-06-06T03:10:07.030Z",
       "finishedAt": null,
-      "lastUpdate": "2026-06-06T03:10:07.030Z",
+      "lastUpdate": "2026-06-06T03:10:09.292Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -118,6 +118,14 @@
     {
       "at": "2026-06-06T03:10:03.283Z",
       "message": "phone-walk-polish: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-06-06T03:20:11.527Z",
+      "message": "verify-cpo-product-ux: SSE idle 337954ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T03:20:11.528Z",
+      "message": "verify-cpo-product-ux: tool_call idle 337955ms; last=2026-06-06T03:14:33.573Z"
     }
   ]
 }
