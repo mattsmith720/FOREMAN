@@ -10,6 +10,8 @@ For **any network** (cellular, different Wi‑Fi, job site), deploy:
 
 Your phone opens the Vercel URL. API traffic is proxied through Vercel (`/api/*` → Render) so you never hit mixed-content or CORS issues.
 
+**Vercel platform health:** Next.js projects on Vercel do not use a `healthCheckPath` in `web/vercel.json` — there is no deploy-time probe to configure. Vercel runs its own platform checks on each deployment; use `/api/health` (proxied to Render) for application-level verification.
+
 ## Prerequisites
 
 - GitHub repo pushed (Vercel and Render connect to Git)
@@ -143,3 +145,42 @@ Manual billing-alert operator recipe:
    - Confirm alert recipients are the on-call/operator distribution list.
 
 Mirroring this operator recipe into `SECURITY.md` is handled separately by the security owner.
+
+## Reading production logs
+
+When debugging a failed readiness check or a user-reported issue, pull logs from both hosts.
+
+### Render (API — `foreman-api`)
+
+**Dashboard:** [Render](https://dashboard.render.com) → select the **`foreman-api`** service → **Logs** tab (live tail).
+
+**CLI** (if [Render CLI](https://render.com/docs/cli) is installed):
+
+```bash
+render logs --service foreman-api
+```
+
+API requests include an `x-request-id` response header (Fastify request id). Quote this id when escalating — it ties a browser/proxy request to a single backend log line.
+
+### Vercel (web + `/api/*` proxy)
+
+**Dashboard:** [Vercel](https://vercel.com) → your project → **Deployments** → select the latest deployment → **Logs**.
+
+**CLI** (if [Vercel CLI](https://vercel.com/docs/cli) is installed):
+
+```bash
+vercel logs https://foreman-phi.vercel.app
+```
+
+Use the deployment URL from the deployment you are inspecting if it differs from production.
+
+### Correlating with `x-request-id`
+
+1. Run `npm run check-ready` (or `curl -i http://127.0.0.1:8080/ready`) and note the `x-request-id` value printed for the `/ready` call.
+2. In Render logs, grep for that id:
+
+```bash
+render logs --service foreman-api | grep 'YOUR-REQUEST-ID-HERE'
+```
+
+On Vercel, function logs for proxied `/api/*` routes may show the same id when the backend forwarded it; filter the deployment log stream by the id string.

@@ -12,6 +12,7 @@ services:
     region: oregon
     buildCommand: npm ci && npm run build:shared && npm run build --workspace backend
     startCommand: npm run start --workspace backend
+    # /health = liveness (process up). /ready = feature availability (keys configured).
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
