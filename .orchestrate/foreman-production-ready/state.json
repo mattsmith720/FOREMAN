@@ -54,12 +54,12 @@
       "agentId": "bc-c6bd2e24-43a5-4525-8c79-2e77f3ebd4aa",
       "runId": "run-a866d705-b062-47a0-9064-2f41c2199b2a",
       "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "error",
+      "resultStatus": "error",
+      "handoffPath": "handoffs/ciso-security.md",
       "startedAt": "2026-06-06T03:07:59.533Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-06-06T03:08:02.151Z",
+      "finishedAt": "2026-06-06T03:37:58.148Z",
+      "lastUpdate": "2026-06-06T03:37:58.148Z",
       "note": "ciso-security manual reset: first attempt died mid-plan-draft with unknown failure mode; retry as-is per orchestrate guidance, attempts zeroed so first new attempt starts from main.",
       "attempts": 1,
       "slackTs": null,
@@ -81,13 +81,13 @@
       "handoffPath": "handoffs/sre-platform.md",
       "startedAt": "2026-06-06T02:34:17.150Z",
       "finishedAt": "2026-06-06T03:09:22.982Z",
-      "lastUpdate": "2026-06-06T03:09:22.982Z",
+      "lastUpdate": "2026-06-06T03:09:23.923Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "qa-release",
@@ -253,6 +253,30 @@
     {
       "at": "2026-06-06T03:03:53.195Z",
       "message": "ciso-security: synthetic failure handoff written to /workspace/.orchestrate/foreman-production-ready/handoffs/ciso-security-failure.md"
+    },
+    {
+      "at": "2026-06-06T03:09:23.924Z",
+      "message": "sre-platform: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T03:14:00.076Z",
+      "message": "cpo-product-ux: SSE idle 357465ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T03:14:00.077Z",
+      "message": "cpo-product-ux: tool_call idle 357466ms; last=2026-06-06T03:08:02.611Z"
+    },
+    {
+      "at": "2026-06-06T03:19:03.116Z",
+      "message": "ciso-security: SSE idle 349866ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-06-06T03:19:03.116Z",
+      "message": "ciso-security: tool_call idle 349866ms; last=2026-06-06T03:13:13.250Z"
+    },
+    {
+      "at": "2026-06-06T03:37:58.147Z",
+      "message": "ciso-security: run.wait returned status=error; recovery probe found terminal status=error, accepting authoritative status"
     }
   ]
 }
