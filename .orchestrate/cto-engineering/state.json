@@ -135,36 +135,37 @@
       "handoffPath": "handoffs/merge-cto-deliverable.md",
       "startedAt": "2026-06-06T02:51:54.369Z",
       "finishedAt": "2026-06-06T02:53:43.243Z",
-      "lastUpdate": "2026-06-06T02:53:43.243Z",
+      "lastUpdate": "2026-06-06T02:53:46.165Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
       "name": "verify-cto-engineering",
       "type": "verifier",
       "branch": "orch/cto-engineering/verify-cto-engineering",
-      "startingRef": "orch/cto-engineering/merge-cto-deliverable",
+      "startingRef": "orch/cto-engineering/cto-deliverable",
       "dependsOn": [
         "merge-cto-deliverable"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-06-06T02:53:46.765Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-06-06T02:53:46.765Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -179,6 +180,14 @@
     {
       "at": "2026-06-06T02:48:35.872Z",
       "message": "vp-backend-business-logic: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T02:53:46.164Z",
+      "message": "verify-cto-engineering: startingRef reconciled orch/cto-engineering/merge-cto-deliverable -> orch/cto-engineering/cto-deliverable (target merge-cto-deliverable handed off on actual branch)"
+    },
+    {
+      "at": "2026-06-06T02:53:46.165Z",
+      "message": "merge-cto-deliverable: verification self-reported (unit-test-verified)"
     }
   ]
 }
