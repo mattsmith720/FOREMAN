@@ -317,6 +317,10 @@
     {
       "at": "2026-06-06T04:05:45.502Z",
       "message": "merge-production-ready: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-06-06T04:06:02.493Z",
+      "message": "verify-ceo-product-readiness: spawn failed after 3 transient sub-attempts: l: [usage_limit_exceeded] You need to increase your hard limit. Background Agent requires at least $2 remaining until your hard limit. Manage it at https://www.cursor.com/dashboard?tab=settings."
     }
   ]
 }
