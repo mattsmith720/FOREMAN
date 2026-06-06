@@ -6,7 +6,7 @@ import { registerAnalyseRoutes } from "./routes/analyse.js";
 import { registerTranscribeRoutes } from "./routes/transcribe.js";
 import { registerVoiceRoutes } from "./routes/voice.js";
 
-const ANALYSE_CAP = 20;
+const ANALYSE_CAP = 30;
 const TRANSCRIBE_CAP = 30;
 const VOICE_SPEAK_CAP = 30;
 const VOICE_ADVICE_CAP = 15;
@@ -162,7 +162,7 @@ async function hammer(
   return codes;
 }
 
-test("/analyse rate-limits at 20 requests/minute per IP", async () => {
+test("/analyse rate-limits at 30 requests/minute per IP", async () => {
   const app = await buildApp("203.0.113.10");
   try {
     const codes = await hammer(

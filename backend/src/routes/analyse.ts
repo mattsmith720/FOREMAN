@@ -79,7 +79,10 @@ export async function registerAnalyseRoutes(
     "/analyse",
     {
       config: {
-        rateLimit: { max: 20, timeWindow: "1 minute" },
+        // The web client's adaptive capture loop fires a frame as soon as the
+        // previous analyse returns, throttled to one every 2.8s (~21/min peak),
+        // so a 20/min cap would 429 a fast session. 30/min keeps headroom.
+        rateLimit: { max: 30, timeWindow: "1 minute" },
       },
       bodyLimit: ANALYSE_BODY_LIMIT_BYTES,
       preValidation: async (request, reply) => {

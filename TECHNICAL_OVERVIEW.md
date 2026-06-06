@@ -324,7 +324,7 @@ Web proxy: `https://foreman-phi.vercel.app/api/*`
 
 | Method | Path | Body | Notes |
 |--------|------|------|-------|
-| POST | `/analyse` | `{ image, sessionId?, recentTranscript?, context? }` | Rate limit 20/min/IP; image magic-byte validation |
+| POST | `/analyse` | `{ image, sessionId?, recentTranscript?, context? }` | Rate limit 30/min/IP; image magic-byte validation |
 
 ### Transcription
 

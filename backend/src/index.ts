@@ -49,23 +49,6 @@ function getLoggerConfig() {
   return true;
 }
 
-const ANALYSE_RATE_LIMIT = { max: 30, timeWindow: "1 minute" } as const;
-const TRANSCRIBE_RATE_LIMIT = { max: 20, timeWindow: "1 minute" } as const;
-const VOICE_RATE_LIMIT = { max: 60, timeWindow: "1 minute" } as const;
-
-function getPerRouteRateLimit(url: string) {
-  if (url === "/analyse") {
-    return ANALYSE_RATE_LIMIT;
-  }
-  if (url === "/transcribe") {
-    return TRANSCRIBE_RATE_LIMIT;
-  }
-  if (url === "/voice" || url.startsWith("/voice/")) {
-    return VOICE_RATE_LIMIT;
-  }
-  return undefined;
-}
-
 function getDataUrlBase64Payload(dataUrl: string): string | undefined {
   if (!dataUrl.startsWith("data:")) {
     return undefined;
@@ -100,17 +83,11 @@ app.addHook("onResponse", async (request, reply) => {
   }
 });
 
-app.addHook("onRoute", (routeOptions) => {
-  const routeRateLimit = getPerRouteRateLimit(routeOptions.url);
-  if (!routeRateLimit) {
-    return;
-  }
-
-  routeOptions.config = {
-    ...(routeOptions.config ?? {}),
-    rateLimit: routeRateLimit,
-  };
-});
+// Per-route rate limits are declared on each route's own `config.rateLimit`
+// (routes/analyse.ts, transcribe.ts, voice.ts) so the caps documented in
+// SECURITY.md are the single source of truth and stay in sync with the
+// rate-limit integration tests. Do NOT re-add a blanket onRoute hook here —
+// it silently overrides those per-route caps.
 
 app.addHook("preValidation", async (request, reply) => {
   if (request.method !== "POST" || request.routeOptions?.url !== "/analyse") {
