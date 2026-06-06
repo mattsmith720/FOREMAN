@@ -7,16 +7,25 @@ Authored by the root planner (cloud agent id `bc-7b000564-637d-4bdc-998c-e825c35
 
 ## Layers (what the planner published)
 
+Full C-suite org. The root is the CEO; five C-suite subplanners own one CEO DoD cluster each;
+a docs worker reconciles documentation; a merge worker ships a single deliverable branch; the
+CEO verifier signs off all 9 CEO DoD bullets.
+
 | Layer | Task | Type | DoD lives in |
 |-------|------|------|--------------|
 | CEO   | `foreman-production-ready` (root) | planner | `plan.acceptanceCriteria` — 9 product-readiness bullets |
-| CTO   | `cto-readiness` | subplanner | `tasks[0].acceptance` — 8 technical DoD bullets that realise the CEO DoD |
-| Eng   | (CTO's children) | workers + verifiers | CTO's own `plan.json` — each worker carries its own engineering DoD |
-| CEO verify | `verify-ceo-product-readiness` | verifier | targets `cto-readiness`; signs off the 9 CEO DoD bullets |
+| CPO   | `cpo-product-ux` | subplanner | own plan.json under `.orchestrate/cpo-product-ux/`; covers CEO DoD #2 (phone E2E walk) and #4 (consent + recording indicator + AU privacy copy) |
+| CTO   | `cto-engineering` | subplanner | own plan.json under `.orchestrate/cto-engineering/`; covers CEO DoD #9 (iOS scaffold) + technical backbone (backend business logic, web platform, shared, native) |
+| CISO  | `ciso-security` | subplanner | own plan.json under `.orchestrate/ciso-security/`; covers CEO DoD #3 (gitleaks, prod boot refusal, CORS, rate limits, Vercel origin gate) |
+| SRE   | `sre-platform` | subplanner | own plan.json under `.orchestrate/sre-platform/`; covers CEO DoD #1 (URL health), #5 (cost guards), #6 (/ready booleans + structured logs + log docs) |
+| QA    | `qa-release` | subplanner | own plan.json under `.orchestrate/qa-release/`; covers CEO DoD #7 (build + tests + smoke-e2e + readiness scripts) |
+| Docs  | `docs-truth-sync` + `verify-docs-truth-sync` | worker + verifier | covers CEO DoD #8 (docs match reality); depends on all five subplanners |
+| Merge | `merge-production-ready` | worker | merges all six upstream branches into a single deliverable; depends on docs + all five subplanners |
+| CEO verify | `verify-ceo-product-readiness` | verifier | targets `merge-production-ready`; evidences all 9 CEO DoD bullets |
 
-The CTO subplanner is authoritative on the engineering decomposition: it reads the orchestrate
-skill, decides its own worker breakdown, and publishes child tasks with concrete acceptance
-criteria. See `plan.json` for the exact scopedGoals.
+Each subplanner is authoritative on its own engineering decomposition: it reads the orchestrate
+skill, decides its own worker breakdown, and publishes child tasks (workers + verifiers) with
+concrete engineering acceptance criteria.
 
 ## Running the loop
 

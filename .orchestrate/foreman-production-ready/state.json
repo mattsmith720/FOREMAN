@@ -2,34 +2,195 @@
   "rootSlug": "foreman-production-ready",
   "tasks": [
     {
-      "name": "cto-readiness",
+      "name": "cpo-product-ux",
       "type": "subplanner",
-      "branch": "orch/foreman-production-ready/cto-readiness",
+      "branch": "orch/foreman-production-ready/cpo-product-ux",
       "startingRef": "main",
       "dependsOn": [],
-      "agentId": "bc-fb8bb4fb-3471-48a4-88d9-c3b019360f8b",
-      "runId": "run-7dd6e4e2-70d2-408e-9b4b-99fdad6c705b",
-      "parentAgentId": "bc-7b000564-637d-4bdc-998c-e825c35542f4",
-      "status": "cancelled",
-      "resultStatus": "error",
-      "handoffPath": "handoffs/cto-readiness.md",
-      "startedAt": "2026-06-06T02:20:37.678Z",
-      "finishedAt": "2026-06-06T02:08:11.394Z",
-      "lastUpdate": "2026-06-06T02:27:55.012Z",
-      "note": "cancelled by operator via cli",
-      "attempts": 2,
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": "unknown",
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "cto-engineering",
+      "type": "subplanner",
+      "branch": "orch/foreman-production-ready/cto-engineering",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "ciso-security",
+      "type": "subplanner",
+      "branch": "orch/foreman-production-ready/ciso-security",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "sre-platform",
+      "type": "subplanner",
+      "branch": "orch/foreman-production-ready/sre-platform",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "qa-release",
+      "type": "subplanner",
+      "branch": "orch/foreman-production-ready/qa-release",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "docs-truth-sync",
+      "type": "worker",
+      "branch": "orch/foreman-production-ready/docs-truth-sync",
+      "startingRef": "main",
+      "dependsOn": [
+        "cpo-product-ux",
+        "cto-engineering",
+        "ciso-security",
+        "sre-platform",
+        "qa-release"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "verify-docs-truth-sync",
+      "type": "verifier",
+      "branch": "orch/foreman-production-ready/verify-docs-truth-sync",
+      "startingRef": "orch/foreman-production-ready/docs-truth-sync",
+      "dependsOn": [
+        "docs-truth-sync"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "merge-production-ready",
+      "type": "worker",
+      "branch": "orch/foreman-production-ready/production-ready",
+      "startingRef": "orch/foreman-production-ready/docs-truth-sync",
+      "dependsOn": [
+        "cpo-product-ux",
+        "cto-engineering",
+        "ciso-security",
+        "sre-platform",
+        "qa-release",
+        "docs-truth-sync"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
       "verification": null
     },
     {
       "name": "verify-ceo-product-readiness",
       "type": "verifier",
       "branch": "orch/foreman-production-ready/verify-ceo-product-readiness",
-      "startingRef": "orch/foreman-production-ready/cto-readiness",
+      "startingRef": "orch/foreman-production-ready/merge-production-ready",
       "dependsOn": [
-        "cto-readiness"
+        "merge-production-ready"
       ],
       "agentId": null,
       "runId": null,
@@ -47,38 +208,5 @@
       "verification": null
     }
   ],
-  "attention": [
-    {
-      "at": "2026-06-06T01:32:06.713Z",
-      "message": "cto-readiness: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'claude-opus-4-7' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents."
-    },
-    {
-      "at": "2026-06-06T01:34:02.746Z",
-      "message": "cto-readiness: respawned by self-planner (was error); resuming from orch/foreman-production-ready/cto-readiness"
-    },
-    {
-      "at": "2026-06-06T01:34:20.190Z",
-      "message": "cto-readiness: spawn failed after 3 transient sub-attempts: l: [validation_error] Branch 'orch/foreman-production-ready/cto-readiness' does not exist in repository mattsmith720/FOREMAN."
-    },
-    {
-      "at": "2026-06-06T01:49:00.319Z",
-      "message": "cto-readiness: SSE idle 346606ms, polled status=running; watchdog still waiting"
-    },
-    {
-      "at": "2026-06-06T01:49:00.320Z",
-      "message": "cto-readiness: tool_call idle 350017ms; last=2026-06-06T01:43:10.303Z"
-    },
-    {
-      "at": "2026-06-06T02:08:11.393Z",
-      "message": "cto-readiness: run.wait returned status=error; recovery probe found terminal status=error, accepting authoritative status"
-    },
-    {
-      "at": "2026-06-06T02:08:12.456Z",
-      "message": "cto-readiness: run ended with status=error; see /workspace/.orchestrate/foreman-production-ready/handoffs/cto-readiness.md"
-    },
-    {
-      "at": "2026-06-06T02:08:12.457Z",
-      "message": "cto-readiness: synthetic failure handoff written to /workspace/.orchestrate/foreman-production-ready/handoffs/cto-readiness-failure.md"
-    }
-  ]
+  "attention": []
 }
