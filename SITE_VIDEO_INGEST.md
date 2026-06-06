@@ -13,17 +13,18 @@ Tradie uploads job videos from site. Foreman stores them in Supabase, extracts f
 | No Vercel size limit | Browser uploads direct to Supabase via signed URL |
 | Same pipeline as live coach | Imported rows look like a finished session |
 
-**Tradie URL:** https://foreman-phi.vercel.app/ingest
+**Tradie bookmark URL:** **https://foreman-phi.vercel.app/ingest**
 
-Optional: bookmark on home screen (“Foreman upload”).
+On iPhone Safari: open the URL → Share → **Add to Home Screen** → name it “Foreman upload”.
+The tradie taps that icon after a job, picks a video from the camera roll, and uploads.
 
 ## One-time setup
 
 ### 1. Supabase migration
 
-In [SQL editor](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/sql/new), run:
-
-`backend/supabase/site-videos-ingest.sql`
+In the [SQL editor](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/sql/new), run
+`backend/supabase/site-videos-ingest.sql` (after `schema.sql` + `training-iteration-a.sql` —
+see [scripts/apply-migrations.md](scripts/apply-migrations.md) for the full order + verification).
 
 Creates `site_videos` table and private `videos` bucket (500 MB per file).
 
