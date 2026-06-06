@@ -3,7 +3,7 @@ import {
   coachingResponseSchema,
   type CoachingResponse,
 } from "@foreman/shared";
-import { parseCoachingResponse } from "./parse-coaching.js";
+import { parseCoachingResponseWithFallback } from "./parse-coaching.js";
 import {
   ALLOWED_IMAGE_MIME_TYPES,
   isAllowedImageType,
@@ -27,6 +27,19 @@ export interface AnalyseImageInput {
   mediaType: ImageMediaType;
   context?: SessionContext;
 }
+
+interface AnalyseImageDependencies {
+  createClient: () => Anthropic;
+  parseResponse: (raw: string) => {
+    coaching: CoachingResponse;
+    usedFallback: boolean;
+  };
+}
+
+const defaultAnalyseImageDependencies: AnalyseImageDependencies = {
+  createClient: getClient,
+  parseResponse: parseCoachingResponseWithFallback,
+};
 
 function getClient(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -58,8 +71,9 @@ function extractTextContent(
 
 export async function analyseImage(
   input: AnalyseImageInput,
+  dependencies: AnalyseImageDependencies = defaultAnalyseImageDependencies,
 ): Promise<CoachingResponse> {
-  const client = getClient();
+  const client = dependencies.createClient();
   const model = getModel();
   const userPrompt = buildAnalysisUserPrompt(input.context);
   let lastError: unknown;
@@ -92,7 +106,10 @@ export async function analyseImage(
       });
 
       const raw = extractTextContent(response.content);
-      return parseCoachingResponse(raw);
+      const parsed = dependencies.parseResponse(raw);
+      if (!parsed.usedFallback || attempt === MAX_RETRIES) {
+        return parsed.coaching;
+      }
     } catch (err) {
       lastError = err;
       if (attempt === MAX_RETRIES) {

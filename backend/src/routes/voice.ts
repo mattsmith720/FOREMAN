@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyError, FastifyInstance } from "fastify";
 import { z } from "zod";
 import { toClientError } from "../api-error.js";
 import {
@@ -9,6 +9,10 @@ import {
   synthesizeSpeech,
 } from "../elevenlabs.js";
 import { answerVoiceAdvice } from "../voice-advice.js";
+
+const VOICE_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
+// Route-local fallback until shared body-size limits are centralized in config.ts.
+const VOICE_ADVICE_TEXT_LIMIT_BYTES = 16 * 1024;
 
 const speakSchema = z.object({
   text: z.string().min(1).max(2000),
@@ -21,15 +25,54 @@ const adviceSchema = z.object({
   includeAudio: z.boolean().optional(),
 });
 
-export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
+interface VoiceRouteDependencies {
+  getConvaiSignedUrl: typeof getConvaiSignedUrl;
+  getElevenLabsAgentId: typeof getElevenLabsAgentId;
+  getElevenLabsVoiceId: typeof getElevenLabsVoiceId;
+  isElevenLabsConfigured: typeof isElevenLabsConfigured;
+  synthesizeSpeech: typeof synthesizeSpeech;
+  answerVoiceAdvice: typeof answerVoiceAdvice;
+}
+
+const defaultDependencies: VoiceRouteDependencies = {
+  getConvaiSignedUrl,
+  getElevenLabsAgentId,
+  getElevenLabsVoiceId,
+  isElevenLabsConfigured,
+  synthesizeSpeech,
+  answerVoiceAdvice,
+};
+
+function contentLength(request: { headers: Record<string, unknown> }): number | null {
+  const header = request.headers["content-length"];
+  const raw = Array.isArray(header) ? header[0] : header;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function isPayloadTooLargeError(error: FastifyError): boolean {
+  return error.statusCode === 413 || error.code === "FST_ERR_CTP_BODY_TOO_LARGE";
+}
+
+function isMalformedJsonError(error: FastifyError): boolean {
+  return (
+    error.code === "FST_ERR_CTP_INVALID_JSON_BODY" ||
+    error.message.toLowerCase().includes("json")
+  );
+}
+
+export async function registerVoiceRoutes(
+  app: FastifyInstance,
+  dependencies: VoiceRouteDependencies = defaultDependencies,
+): Promise<void> {
   app.get("/voice/config", async (_request, reply) => {
-    const agentConfigured = Boolean(getElevenLabsAgentId());
+    const agentConfigured = Boolean(dependencies.getElevenLabsAgentId());
 
     return reply.send({
-      ttsAvailable: isElevenLabsConfigured(),
-      liveAvailable: isElevenLabsConfigured() && agentConfigured,
+      ttsAvailable: dependencies.isElevenLabsConfigured(),
+      liveAvailable: dependencies.isElevenLabsConfigured() && agentConfigured,
       agentConfigured,
-      voiceId: getElevenLabsVoiceId(),
+      voiceId: dependencies.getElevenLabsVoiceId(),
       voiceLabel: "Australian male (Charlie)",
     });
   });
@@ -40,9 +83,27 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
       config: {
         rateLimit: { max: 30, timeWindow: "1 minute" },
       },
+      bodyLimit: VOICE_BODY_LIMIT_BYTES,
+      preValidation: async (request, reply) => {
+        const headerLength = contentLength(request);
+        if (headerLength !== null && headerLength > VOICE_BODY_LIMIT_BYTES) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        return undefined;
+      },
+      errorHandler: (error, request, reply) => {
+        if (isPayloadTooLargeError(error)) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        if (isMalformedJsonError(error)) {
+          return reply.status(400).send({ error: "Malformed JSON body" });
+        }
+        request.log.error(error);
+        return reply.status(500).send({ error: "Voice request failed" });
+      },
     },
     async (request, reply) => {
-      if (!isElevenLabsConfigured()) {
+      if (!dependencies.isElevenLabsConfigured()) {
         return reply.status(503).send({
           error: "ELEVENLABS_API_KEY is not set for voice synthesis",
         });
@@ -54,7 +115,7 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
       }
 
       try {
-        const audio = await synthesizeSpeech(parsed.data.text);
+        const audio = await dependencies.synthesizeSpeech(parsed.data.text);
         return reply
           .header("content-type", "audio/mpeg")
           .header("cache-control", "no-store")
@@ -68,13 +129,13 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.get("/voice/convai-url", async (request, reply) => {
-    if (!isElevenLabsConfigured()) {
+    if (!dependencies.isElevenLabsConfigured()) {
       return reply.status(503).send({
         error: "ELEVENLABS_API_KEY is not set for live voice coach",
       });
     }
 
-    if (!getElevenLabsAgentId()) {
+    if (!dependencies.getElevenLabsAgentId()) {
       return reply.status(503).send({
         error:
           "ELEVENLABS_AGENT_ID is not set. Create a ConvAI agent in ElevenLabs or use Ask coach mode.",
@@ -82,7 +143,7 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
     }
 
     try {
-      const signedUrl = await getConvaiSignedUrl();
+      const signedUrl = await dependencies.getConvaiSignedUrl();
       return reply.send({ signedUrl });
     } catch (err) {
       request.log.error(err);
@@ -100,6 +161,24 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
       config: {
         rateLimit: { max: 15, timeWindow: "1 minute" },
       },
+      bodyLimit: VOICE_BODY_LIMIT_BYTES,
+      preValidation: async (request, reply) => {
+        const headerLength = contentLength(request);
+        if (headerLength !== null && headerLength > VOICE_BODY_LIMIT_BYTES) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        return undefined;
+      },
+      errorHandler: (error, request, reply) => {
+        if (isPayloadTooLargeError(error)) {
+          return reply.status(413).send({ error: "Payload too large" });
+        }
+        if (isMalformedJsonError(error)) {
+          return reply.status(400).send({ error: "Malformed JSON body" });
+        }
+        request.log.error(error);
+        return reply.status(500).send({ error: "Voice advice request failed" });
+      },
     },
     async (request, reply) => {
       const parsed = adviceSchema.safeParse(request.body);
@@ -107,11 +186,38 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: "Invalid request" });
       }
 
-      try {
-        const replyText = await answerVoiceAdvice(parsed.data);
+      if (Buffer.byteLength(parsed.data.question, "utf8") > VOICE_ADVICE_TEXT_LIMIT_BYTES) {
+        return reply.status(413).send({ error: "Question payload too large" });
+      }
 
-        if (parsed.data.includeAudio !== false && isElevenLabsConfigured()) {
-          const audio = await synthesizeSpeech(replyText);
+      try {
+        let replyText: string;
+        try {
+          replyText = await dependencies.answerVoiceAdvice(parsed.data);
+        } catch (providerErr) {
+          request.log.error(providerErr);
+          const { statusCode, message } = toClientError(
+            providerErr,
+            "Voice advice provider unavailable",
+          );
+          return reply.status(statusCode).send({ error: message });
+        }
+
+        if (
+          parsed.data.includeAudio !== false &&
+          dependencies.isElevenLabsConfigured()
+        ) {
+          let audio: Buffer;
+          try {
+            audio = await dependencies.synthesizeSpeech(replyText);
+          } catch (providerErr) {
+            request.log.error(providerErr);
+            const { statusCode, message } = toClientError(
+              providerErr,
+              "Voice synthesis unavailable",
+            );
+            return reply.status(statusCode).send({ error: message });
+          }
           return reply.send({
             reply: replyText,
             audioBase64: audio.toString("base64"),

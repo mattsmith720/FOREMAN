@@ -1,7 +1,12 @@
+import { z } from "zod";
+
 /** Charlie — Australian male, casual (ElevenLabs premade). */
 export const DEFAULT_AU_VOICE_ID = "IKne3meq5aSn9XLyUdCD";
 
 const TTS_MODELS = ["eleven_turbo_v2_5", "eleven_multilingual_v2"] as const;
+const convaiSignedUrlSchema = z.object({
+  signed_url: z.string().min(1),
+});
 
 export function isElevenLabsConfigured(): boolean {
   return Boolean(process.env.ELEVENLABS_API_KEY?.trim());
@@ -54,8 +59,7 @@ async function synthesizeWithModel(
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`ElevenLabs TTS failed (${response.status}): ${detail}`);
+    throw new Error(`ElevenLabs TTS failed (${response.status})`);
   }
 
   const bytes = await response.arrayBuffer();
@@ -94,16 +98,13 @@ export async function getConvaiSignedUrl(): Promise<string> {
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(
-      `ElevenLabs signed URL failed (${response.status}): ${detail}`,
-    );
+    throw new Error(`ElevenLabs signed URL failed (${response.status})`);
   }
 
-  const data = (await response.json()) as { signed_url?: string };
-  if (!data.signed_url) {
+  const data = convaiSignedUrlSchema.safeParse(await response.json());
+  if (!data.success) {
     throw new Error("ElevenLabs signed URL response missing signed_url");
   }
 
-  return data.signed_url;
+  return data.data.signed_url;
 }
