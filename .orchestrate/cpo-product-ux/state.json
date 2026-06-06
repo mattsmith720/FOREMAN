@@ -1,0 +1,99 @@
+{
+  "rootSlug": "cpo-product-ux",
+  "tasks": [
+    {
+      "name": "consent-and-recording-ux",
+      "type": "worker",
+      "branch": "orch/cpo-product-ux/consent-and-recording-ux",
+      "startingRef": "cursor/cpo-product-ux-0d11",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-06-06T02:40:39.257Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-06-06T02:40:39.257Z",
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null,
+      "attempts": 1
+    },
+    {
+      "name": "phone-walk-polish",
+      "type": "worker",
+      "branch": "orch/cpo-product-ux/phone-walk-polish",
+      "startingRef": "cursor/cpo-product-ux-0d11",
+      "dependsOn": [
+        "consent-and-recording-ux"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "demo-script-truth-sync",
+      "type": "worker",
+      "branch": "orch/cpo-product-ux/demo-script-truth-sync",
+      "startingRef": "cursor/cpo-product-ux-0d11",
+      "dependsOn": [
+        "consent-and-recording-ux"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "verify-cpo-product-ux",
+      "type": "verifier",
+      "branch": "orch/cpo-product-ux/verify-cpo-product-ux",
+      "startingRef": "orch/cpo-product-ux/phone-walk-polish",
+      "dependsOn": [
+        "consent-and-recording-ux",
+        "phone-walk-polish",
+        "demo-script-truth-sync"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": []
+}
