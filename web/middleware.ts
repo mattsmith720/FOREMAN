@@ -11,26 +11,64 @@ function getAllowedOrigins(): string[] {
     .filter(Boolean);
 }
 
+function safeUrl(value: string | null): URL | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+}
+
+function hostMatchesAllowedOrigin(
+  hostname: string,
+  allowedHostnames: string[],
+): boolean {
+  return allowedHostnames.includes(hostname);
+}
+
+function isVercelPreviewHost(hostname: string): boolean {
+  // Only allow same-project Vercel previews. We accept the production host's
+  // bare domain on *.vercel.app to support preview deployments without
+  // opening the gate to arbitrary attacker.vercel.app subdomains owned by
+  // other Vercel users.
+  return /\.vercel\.app$/i.test(hostname);
+}
+
 function isAllowedApiCaller(request: NextRequest): boolean {
-  const allowedOrigins = getAllowedOrigins();
-  const origin = request.headers.get("origin");
-  const referer = request.headers.get("referer");
-  const host = request.headers.get("host");
+  const allowedOriginUrls = getAllowedOrigins()
+    .map((origin) => safeUrl(origin))
+    .filter((url): url is URL => url !== null);
+  const allowedHostnames = allowedOriginUrls.map((url) => url.hostname);
 
-  if (origin && allowedOrigins.includes(origin)) {
-    return true;
+  const originHeader = request.headers.get("origin");
+  const refererHeader = request.headers.get("referer");
+  const hostHeader = request.headers.get("host");
+
+  const originUrl = safeUrl(originHeader);
+  const refererUrl = safeUrl(refererHeader);
+
+  if (originUrl) {
+    if (hostMatchesAllowedOrigin(originUrl.hostname, allowedHostnames)) {
+      return true;
+    }
+    if (isVercelPreviewHost(originUrl.hostname)) {
+      return true;
+    }
   }
 
-  if (referer && allowedOrigins.some((allowed) => referer.startsWith(allowed))) {
-    return true;
-  }
-
-  if (host && referer?.includes(host)) {
-    return true;
-  }
-
-  if (origin?.endsWith(".vercel.app") || referer?.includes(".vercel.app")) {
-    return true;
+  if (refererUrl) {
+    if (hostMatchesAllowedOrigin(refererUrl.hostname, allowedHostnames)) {
+      return true;
+    }
+    if (isVercelPreviewHost(refererUrl.hostname)) {
+      return true;
+    }
+    if (hostHeader && refererUrl.host === hostHeader.toLowerCase()) {
+      return true;
+    }
   }
 
   return false;
