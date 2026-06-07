@@ -1,0 +1,34 @@
+{
+  "observations": [
+    "Exposed DC cable run along tile roof edge."
+  ],
+  "installQualityFlags": [
+    {
+      "message": "DC cable not in conduit — exposed run fails CER evidence review.",
+      "severity": "warning"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "DC routing compliance.",
+  "nextSteps": [
+    "Run exposed DC in listed conduit and secure every metre."
+  ],
+  "visualCallouts": [
+    {
+      "label": "Exposed DC run",
+      "message": "Run exposed DC cable in listed conduit.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.4,
+      "y": 0.55,
+      "w": 0.35,
+      "h": 0.12,
+      "shape": "box"
+    }
+  ],
+  "spokenCue": {
+    "say": "Run that exposed DC in conduit now.",
+    "severity": "warning",
+    "speak": true
+  }
+}

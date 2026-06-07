@@ -1,0 +1,34 @@
+{
+  "observations": [
+    "Inverter compliance plate partially visible, serial glare."
+  ],
+  "installQualityFlags": [
+    {
+      "message": "Serial plate unreadable — retake legible photo for REC registry match.",
+      "severity": "info"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Registry serial evidence.",
+  "nextSteps": [
+    "Hold steady and capture a sharp serial close-up."
+  ],
+  "visualCallouts": [
+    {
+      "label": "Serial glare",
+      "message": "Retake serial plate photo — hold steady for REC.",
+      "category": "quality",
+      "severity": "info",
+      "x": 0.48,
+      "y": 0.52,
+      "w": 0.18,
+      "h": 0.14,
+      "shape": "circle"
+    }
+  ],
+  "spokenCue": {
+    "say": "Retake the serial plate — hold steady.",
+    "severity": "info",
+    "speak": true
+  }
+}
