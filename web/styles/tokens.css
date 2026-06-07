@@ -1,0 +1,154 @@
+/**
+ * Foreman design tokens — SINGLE SOURCE OF TRUTH (integrator-owned).
+ * Industrial / utilitarian, safety-coded. Hi-vis accent = safety orange.
+ * Severity colors are semantic ONLY — never decorative.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Neutrals (asphalt + charcoal) ── */
+  --color-bg-void: #0a0a0b;
+  --color-bg-deep: #121214;
+  --color-bg-panel: #18181b;
+  --color-bg-panel-translucent: rgb(18 18 20 / 0.92);
+  --color-bg-elevated: #222225;
+  --color-bg-inset: #0e0e10;
+  --color-border-subtle: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.18);
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #d4d4d8;
+  --color-text-muted: #a1a1aa;
+  --color-text-inverse: #0a0a0b;
+
+  /* ── Brand accent (hi-vis safety orange — NOT severity) ── */
+  --color-accent: #ff6b00;
+  --color-accent-bright: #ff8533;
+  --color-accent-dim: #cc5500;
+  --color-accent-surface: rgb(255 107 0 / 0.14);
+  --color-accent-border: rgb(255 107 0 / 0.45);
+
+  /* ── Semantic severity (state only) ── */
+  --color-severity-critical: #dc2626;
+  --color-severity-critical-surface: rgb(220 38 38 / 0.18);
+  --color-severity-critical-border: rgb(220 38 38 / 0.5);
+  --color-severity-critical-text: #fecaca;
+  --color-severity-warning: #ca8a04;
+  --color-severity-warning-surface: rgb(202 138 4 / 0.18);
+  --color-severity-warning-border: rgb(202 138 4 / 0.45);
+  --color-severity-warning-text: #fef08a;
+  --color-severity-pass: #16a34a;
+  --color-severity-pass-surface: rgb(22 163 74 / 0.14);
+  --color-severity-pass-border: rgb(22 163 74 / 0.35);
+  --color-severity-pass-text: #bbf7d0;
+  --color-severity-info: var(--color-text-muted);
+
+  /* ── Legacy aliases (surface lanes migrate off these) ── */
+  --bg: var(--color-bg-deep);
+  --panel: var(--color-bg-panel-translucent);
+  --panel-border: var(--color-border-subtle);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-muted);
+  --accent: var(--color-accent);
+  --success: var(--color-severity-pass);
+  --warning: var(--color-severity-warning);
+  --critical: var(--color-severity-critical);
+
+  /* ── Typography ── */
+  --font-display: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
+  --font-body: var(--font-ibm-plex-sans), "IBM Plex Sans", sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
+
+  --text-display-xl: clamp(1.75rem, 5vw, 2.5rem);
+  --text-display-lg: clamp(1.35rem, 4vw, 1.75rem);
+  --text-xl: 1.25rem;
+  --text-lg: 1.0625rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+  --text-2xs: 0.6875rem;
+  --text-cue-hero: clamp(1.125rem, 4.5vw, 1.35rem);
+  --text-cue-label: 0.6875rem;
+  --leading-tight: 1.25;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.6;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --tracking-caps: 0.06em;
+  --tracking-wide: 0.08em;
+
+  /* ── Spacing (rem scale) ── */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-safe-top: env(safe-area-inset-top, 0px);
+  --space-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --space-safe-left: env(safe-area-inset-left, 0px);
+  --space-safe-right: env(safe-area-inset-right, 0px);
+
+  /* ── Radius ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-pill: 999px;
+
+  /* ── Elevation ── */
+  --shadow-panel: 0 4px 24px rgb(0 0 0 / 0.45);
+  --shadow-controls: 0 -4px 24px rgb(0 0 0 / 0.35);
+  --shadow-critical-glow: 0 0 24px rgb(220 38 38 / 0.22);
+  --shadow-warning-glow: 0 0 18px rgb(202 138 4 / 0.15);
+
+  /* ── Z-index scale (asserted in VQ harness) ── */
+  --z-video: 1;
+  --z-annotations: 2;
+  --z-overlay: 3;
+  --z-recording: 4;
+  --z-debug-hud: 4;
+  --z-toolbar: 8;
+  --z-sheet-backdrop: 9;
+  --z-controls: 10;
+  --z-banner: 11;
+  --z-summary: 12;
+  --z-modal: 20;
+  --z-toast: 30;
+
+  /* ── Motion ── */
+  --motion-fast: 150ms;
+  --motion-normal: 250ms;
+  --motion-slow: 400ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── Tap targets (WCAG + glove-friendly) ── */
+  --tap-primary: 3rem;
+  --tap-secondary: 2.75rem;
+  --tap-gap: 0.5rem;
+
+  /* ── In-job coaching: ZERO motion during live session ── */
+  --motion-coaching: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+    --motion-slow: 0ms;
+  }
+}
+
+[data-coaching-live="true"] *,
+[data-coaching-live="true"] *::before,
+[data-coaching-live="true"] *::after {
+  animation-duration: var(--motion-coaching) !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: var(--motion-coaching) !important;
+}

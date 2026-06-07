@@ -1,0 +1,52 @@
+name: visual-qa
+
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - "scripts/lint-no-raw-hex.sh"
+      - ".github/workflows/visual-qa.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hex-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No raw hex outside tokens
+        run: bash scripts/lint-no-raw-hex.sh
+        continue-on-error: true
+
+  visual-geometry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run build --workspace web
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+        working-directory: web
+      - name: Visual geometry + a11y (boot, welcome)
+        run: npm run test:e2e --workspace web -- e2e/visual/boot-geometry.spec.ts e2e/visual/welcome-geometry.spec.ts --grep-invert "visual baseline"
+        env:
+          CI: "true"
+        continue-on-error: true
+
+  functional-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm test --workspace web
+      - run: npm test --workspace backend

@@ -902,7 +902,12 @@ export function CameraCoach() {
     transcriptLines[transcriptLines.length - 1] ?? null;
 
   return (
-    <div className="camera-app">
+    <div
+      className="camera-app"
+      data-coaching-live={
+        isActive && !isPaused && !endedSession ? "true" : undefined
+      }
+    >
       <div className="camera-stage">
         <video
           ref={videoRef}
