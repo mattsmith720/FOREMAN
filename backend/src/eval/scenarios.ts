@@ -98,4 +98,59 @@ export const SCENARIOS: EvalScenario[] = [
     frame: GENERIC,
     expect: {},
   },
+
+  // --- CER install-defect DETECTION scenarios (S1) ---
+  // The 5 highest-value, most-CER-failed defects. Each is skipped until a real
+  // photo exists at its frame path (backend/eval/frames/...); drop one in — e.g.
+  // from a mock switchboard or real pilot footage — to activate detection scoring.
+  {
+    id: "cer-no-shutdown-label",
+    phase: "solar_install",
+    description: "Main switchboard missing the emergency shutdown-procedure label.",
+    frame: "eval/frames/switchboard-no-shutdown-label.jpg",
+    expect: {
+      speak: true,
+      mustMention: ["shutdown", "switchboard", "label", "procedure"],
+    },
+  },
+  {
+    id: "cer-dc-not-in-conduit",
+    phase: "solar_install",
+    description: "Exposed DC cable run not in conduit on the roof or wall.",
+    frame: "eval/frames/dc-not-in-conduit.jpg",
+    expect: {
+      speak: true,
+      mustMention: ["conduit", "dc", "cable", "exposed"],
+    },
+  },
+  {
+    id: "cer-isolator-unlabelled",
+    phase: "solar_install",
+    description: "DC isolator missing or unlabelled.",
+    frame: "eval/frames/isolator-unlabelled.jpg",
+    expect: {
+      speak: true,
+      mustMention: ["isolator", "label", "dc", "signage"],
+    },
+  },
+  {
+    id: "cer-missing-signage",
+    phase: "solar_install",
+    description: "Missing 'Solar Supply Main Switch' / system-rating signage.",
+    frame: "eval/frames/missing-signage.jpg",
+    expect: {
+      speak: true,
+      mustMention: ["signage", "label", "switch", "main"],
+    },
+  },
+  {
+    id: "cer-serial-capture",
+    phase: "solar_install",
+    description:
+      "Inverter/panel serial or compliance plate visible — capture for REC match.",
+    frame: "eval/frames/serial-plate.jpg",
+    expect: {
+      mustMention: ["serial", "rec", "registry", "plate", "photo"],
+    },
+  },
 ];

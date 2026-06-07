@@ -1,63 +1,64 @@
 {
   "observations": [
-    "Ground-mounted commercial/utility-scale solar array visible — multiple rows of large panel strings on fixed-tilt racking structures across an open paddock.",
-    "Array appears to be a multi-row ground mount installation, likely in a rural or semi-rural Australian setting.",
-    "No workers, PPE, tools, or active install activity are visible in this frame — site appears unoccupied or worker is off-frame.",
-    "Sky shows significant cumulus cloud build-up — weather conditions should be monitored for wind and lightning risk."
+    "Large ground-mounted commercial/utility solar array visible — multiple rows of large-format panels on fixed-tilt steel racking across an open paddock.",
+    "No workers, PPE, or active installation activity visible in this frame.",
+    "Array appears fully installed and operational — panels seated on racking, no open penetrations visible.",
+    "Partly cloudy sky — generation may be intermittently shaded. No immediate weather risk to open works.",
+    "No switchboard, inverter, isolators, conduit runs, or cable routing visible in this frame."
   ],
   "installQualityFlags": [
     {
-      "message": "No workers visible — cannot assess fall protection, PPE, or active workmanship. Ensure all personnel working on or around the racking are wearing high-vis and appropriate PPE per site safe work method statement.",
-      "severity": "info"
-    },
-    {
-      "message": "Heavy cumulus cloud build-up visible overhead. Monitor Bureau of Meteorology for storm, high wind, or lightning warnings. Ground-mount sites are highly exposed — suspend work and move personnel to shelter if thunderstorm approaches within 10 km.",
+      "message": "No DC conduit or cable management is visible from this angle. Confirm all DC string cables beneath the array are run in UV-rated conduit and secured to the racking at 300 mm intervals — exposed DC under ground-mount arrays is a common CER compliance failure.",
       "severity": "warning"
     },
     {
-      "message": "Panel rows in mid-field appear to have minor angular variation visible at distance — walk each row and verify all panels are clamped flush to rails with no tilt or lift at corners before string commissioning.",
+      "message": "Cannot confirm rooftop/array-level DC isolator placement or labelling from this frame. Walk to the combiner/string termination point and photograph each isolator label — missing or unlabelled DC isolators fail CER claims.",
+      "severity": "warning"
+    },
+    {
+      "message": "Panel alignment across the array looks generally consistent from this angle, but verify row-to-row gap uniformity and clamp torque to manufacturer spec (typically 20–25 Nm) before sign-off.",
       "severity": "info"
     },
     {
-      "message": "DC cable routing beneath racking is not visible from this angle — verify all inter-string cables are clipped to racking with UV-rated ties at no more than 300 mm intervals and are not resting on bare ground.",
+      "message": "Vegetation under and around the array appears long — fire risk in dry Australian conditions. Flag for site owner to maintain ground clearance to reduce fire load beneath panels.",
       "severity": "warning"
     }
   ],
   "salesPitchFeedback": [],
-  "timeOnTaskNote": "No active worker visible in frame. If the team is on a break or off-site, re-assess schedule against remaining row count. Ground-mount arrays of this scale typically require tight sequencing between mechanical install, cable routing, and string testing to hit end-of-day targets.",
+  "timeOnTaskNote": "No active worker or task phase is visible this frame. If installation is complete, move immediately to commissioning checks: DC isolator labelling, string voltage/current readings, and inverter startup verification.",
   "nextSteps": [
-    "Walk the full length of each panel row and physically check that every mid-clamp and end-clamp is torqued to the manufacturer specification — use a calibrated torque wrench and mark each bolt with a torque marker pen.",
-    "Inspect all DC cable runs beneath the racking — cables must be secured to racking members, not lying on soil, to prevent UV degradation and vermin damage.",
-    "Check BOM weather radar now — if storm cells are developing within 30 km, secure any loose tools or materials and brief the team on shelter and stop-work protocol."
+    "Walk the full array perimeter and photograph every DC isolator, confirming each is labelled, accessible, and CER-compliant before lodging the REC registry claim.",
+    "Inspect all DC cable runs beneath the racking — confirm cables are in UV-rated conduit, clipped at 300 mm, and not resting on the ground or bare soil.",
+    "Photograph each panel's compliance plate/serial number clearly so serials can be matched against the REC registry — blurry or angled serial photos are a common claim delay."
   ],
   "visualCallouts": [
     {
-      "id": "cloud-wx-risk",
-      "label": "Storm cloud risk",
-      "message": "Heavy cloud building overhead — check BOM radar for lightning and stop work if storm is within 10 kilometres.",
+      "id": "vegetation-fire-risk",
+      "label": "Vegetation fire risk",
+      "message": "Long grass under the array is a fire hazard in Australian conditions — advise the site owner to slash or treat before handover.",
       "category": "safety",
       "severity": "warning",
-      "x": 0.55,
-      "y": 0.15,
-      "w": 0.3,
-      "h": 0.2,
+      "x": 0.25,
+      "y": 0.9,
+      "w": 0.25,
+      "h": 0.1,
       "shape": "box"
     },
     {
-      "id": "cable-routing-below",
-      "label": "Inspect cable routing",
-      "message": "Check DC cables under the racking are clipped off the ground and secured with UV-rated ties every 300 millimetres.",
+      "id": "array-cables",
+      "label": "Check DC conduit",
+      "message": "DC cable runs under the racking are not visible from here — get underneath and confirm all cables are in conduit before sign-off.",
       "category": "quality",
       "severity": "warning",
-      "x": 0.3,
-      "y": 0.78,
-      "w": 0.2,
-      "h": 0.1,
-      "shape": "pointer"
+      "x": 0.5,
+      "y": 0.82,
+      "w": 0.35,
+      "h": 0.12,
+      "shape": "box"
     }
   ],
   "spokenCue": {
-    "say": "Check BOM radar now — storm clouds are building overhead.",
+    "say": "Check DC cables under the array are in conduit now.",
     "severity": "warning",
     "speak": true
   }

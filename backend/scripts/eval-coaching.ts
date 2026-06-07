@@ -115,6 +115,13 @@ async function main(): Promise<void> {
   for (const s of SCENARIOS) {
     let coaching: CoachingResponse | null = null;
     if (live) {
+      if (!existsSync(path.resolve(s.frame))) {
+        console.log(
+          `  ${s.id}: skipped — no frame at ${s.frame} (drop a real photo there to score this defect)`,
+        );
+        skipped.push(s.id);
+        continue;
+      }
       try {
         coaching = await runLive(s);
         if (args.updateGolden) {

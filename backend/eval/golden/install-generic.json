@@ -1,64 +1,60 @@
 {
   "observations": [
-    "Ground-mounted utility-scale or large commercial solar array visible across multiple rows",
-    "Panels appear to be fixed-tilt, single-axis or fixed ground mount on steel post frames",
-    "Array is installed in an open rural paddock setting with grass understorey",
-    "No workers visible in frame — likely a completed or partially completed array being reviewed",
-    "Sky shows cumulus cloud buildup — potential weather change to monitor"
+    "Ground-mounted commercial/utility-scale solar array visible — multiple rows of panels on metal racking across open paddock.",
+    "No workers visible in frame; this appears to be an established or near-complete installation.",
+    "Panels appear to be tilted fixed-tilt ground-mount racking, oriented northward (Southern Hemisphere orientation consistent).",
+    "Grass/vegetation visible beneath and around the array — vegetation management may be required.",
+    "No electrical components, inverter station, isolators, or cabling visible in this frame."
   ],
   "installQualityFlags": [
     {
-      "message": "Grass and vegetation directly under and around array is long — fire risk in dry conditions and potential shading issue as growth continues. Schedule vegetation management.",
+      "message": "Vegetation under and around the array is long — overgrown grass is a fire hazard and can shade lower panel rows, reducing output and causing hotspot risk. Confirm site vegetation management plan is in place.",
       "severity": "warning"
     },
     {
-      "message": "No visible cable management or DC conduit runs from this angle — verify underslung DC cables are secured in UV-rated conduit and not resting on ground or vegetation.",
-      "severity": "warning"
-    },
-    {
-      "message": "Panel surfaces appear clean and undamaged from this distance but confirm no micro-cracks or soiling on rear rows not visible in frame.",
+      "message": "No DC conduit or cable runs visible in this frame — cannot confirm DC cable protection compliance. Inspect cable trays and conduit underneath the racking before sign-off.",
       "severity": "info"
     },
     {
-      "message": "Row spacing appears reasonable for this tilt angle but verify inter-row shading distances meet design spec for this latitude — cloud cover today may mask shading issues during commissioning checks.",
+      "message": "Panel serial numbers and compliance plates are not legible at this distance — ensure a close-up legible photo of each panel serial is captured for REC registry matching before handover.",
       "severity": "info"
     }
   ],
   "salesPitchFeedback": [],
-  "timeOnTaskNote": "No active worker visible in frame. If this is a post-install walk-around inspection, allow 15–20 minutes per row to check clamp torque, cable routing, and earthing continuity on a ground mount of this size.",
+  "timeOnTaskNote": "No active worker is visible in this frame, so task pacing cannot be assessed. If the array is nearing completion, prioritise final inspections — DC cabling, labelling, and inverter station signage — before CER lodgement.",
   "nextSteps": [
-    "Walk each row and verify all DC cables are clipped into cable management trays or conduit, not trailing on the grass — UV degradation and rodent damage risk is high in paddock environments.",
-    "Check vegetation height under the array and arrange a mow or herbicide treatment before handover to prevent fire hazard and shading losses.",
-    "Confirm all panel clamps are torqued to manufacturer spec (typically 20–25 Nm) and record in the commissioning checklist before sign-off."
+    "Walk the full perimeter of the array and inspect all DC cable runs to confirm cables are protected in UV-rated conduit along the racking and at every roof/ground penetration point.",
+    "Check all isolator labels, system-rating signage, and emergency shutdown procedure labels at the inverter station — these are the most commonly failed CER compliance items on ground-mount jobs.",
+    "Arrange vegetation slashing or mowing under and around the array to reduce fire risk and prevent shading on lower panel rows before handover to the customer."
   ],
   "visualCallouts": [
     {
-      "id": "veg-undergrowth",
-      "label": "Long grass risk",
-      "message": "Grass under the array is too long — fire risk and rodent habitat. Flag for vegetation management before handover.",
+      "id": "veg-hazard",
+      "label": "Long grass — fire risk",
+      "message": "Overgrown vegetation under the array is a fire hazard and will cause shading. Get it slashed before handover.",
       "category": "safety",
       "severity": "warning",
-      "x": 0.35,
+      "x": 0.5,
       "y": 0.82,
-      "w": 0.28,
+      "w": 0.55,
       "h": 0.12,
       "shape": "box"
     },
     {
-      "id": "cable-check",
-      "label": "Check cable runs",
-      "message": "DC cable routing under this row is not visible — get underneath and confirm conduit is clipped and sealed.",
+      "id": "panel-serials",
+      "label": "Serial photo needed",
+      "message": "Panel serials aren't readable from here — get close-up shots of each compliance plate for the REC registry.",
       "category": "quality",
-      "severity": "warning",
-      "x": 0.5,
-      "y": 0.65,
-      "w": 0.2,
-      "h": 0.1,
-      "shape": "pointer"
+      "severity": "info",
+      "x": 0.38,
+      "y": 0.42,
+      "w": 0.18,
+      "h": 0.18,
+      "shape": "box"
     }
   ],
   "spokenCue": {
-    "say": "Check DC cables under each row are conduit-clipped and off the ground.",
+    "say": "Slash that long grass under the array before handover.",
     "severity": "warning",
     "speak": true
   }

@@ -1,72 +1,77 @@
 {
   "observations": [
-    "Ground-mounted commercial/utility-scale solar array visible — multiple rows of large panels on fixed-tilt steel racking across open paddock.",
-    "This appears to be an existing or reference site rather than a residential rooftop survey — likely used for benchmarking or client education purposes.",
-    "Panel orientation appears north-facing (consistent with Southern Hemisphere best practice) at an estimated fixed tilt of 20–30 degrees.",
-    "Sky shows significant cumulus cloud cover — partial shading conditions present at time of survey capture.",
-    "No workers, PPE, tools, or customer interactions visible in frame."
+    "Large ground-mounted solar array visible — multiple rows of panels on fixed tilt frames across an open grass paddock.",
+    "This appears to be a utility-scale or large commercial ground-mount site, not a residential rooftop install.",
+    "Site survey phase: worker is assessing array layout, orientation, and general condition of existing or proposed install area.",
+    "Panels appear oriented north-facing (consistent with Southern Hemisphere best practice) on fixed-angle steel frames.",
+    "Significant cloud cover present — good opportunity to note shading impact on yield during survey.",
+    "No workers, PPE, or customers visible in frame."
   ],
   "installQualityFlags": [
     {
-      "message": "Vegetation (grass/weeds) beneath and around array rows appears unmanaged — long grass can cause shading on lower cell rows and create fire risk in dry conditions. Confirm site maintenance plan is in scope.",
+      "message": "Grass/vegetation under and around arrays appears long — vegetation management plan must be confirmed to prevent shading on lower panel rows and fire risk in dry months.",
       "severity": "warning"
     },
     {
-      "message": "Row spacing cannot be confirmed from this angle — verify inter-row distance meets minimum winter solstice shadow clearance for this latitude to avoid inter-row shading losses.",
+      "message": "Frame support posts appear to be driven ground stakes — verify footings are rated for local wind region (AS 1170.2) and soil bearing capacity before finalising design.",
       "severity": "warning"
     },
     {
-      "message": "Ground condition appears soft/grassed — confirm soil bearing capacity and footing depth are adequate for racking ground screws or ballast footings, especially given visible clay-like rural soil.",
+      "message": "No visible conduit or cable management between rows — confirm DC cable routing plan to prevent UV degradation and vermin damage at ground level.",
+      "severity": "warning"
+    },
+    {
+      "message": "Partial cloud cover visible — log irradiance conditions during survey and ensure shade analysis tool (e.g. SolarEdge Designer or PVsyst) accounts for local cloud frequency.",
       "severity": "info"
     }
   ],
   "salesPitchFeedback": [],
-  "timeOnTaskNote": "Site survey phase — no active installation underway. Capture of existing array layout is appropriate for benchmarking. Ensure survey checklist covers shading analysis, grid connection point, metering, and access tracks before leaving site.",
+  "timeOnTaskNote": "Site survey of a ground-mount array this size typically takes 45–90 minutes. Ensure row spacing, orientation bearing, and cable run paths are all measured and photographed before leaving the site.",
   "nextSteps": [
-    "Walk the perimeter of each array row and record inter-row spacing, tilt angle, and orientation with a compass or solar pathfinder app — document for shading loss modelling.",
-    "Check and photograph the cable trench or conduit runs back to the inverter/switchboard location, confirming DC cable protection and any exposed conduit integrity.",
-    "Note vegetation height and density beneath arrays and flag a site maintenance requirement in the survey report — include in client scope-of-works or exclusion clause."
+    "Walk each row and photograph frame footings, cable routing, and any panel damage or soiling — document with geotagged photos for the design report.",
+    "Measure and confirm row-to-row spacing to validate inter-row shading calculations match the proposed tilt angle and local latitude.",
+    "Locate the inverter/combiner box and switchboard; trace the proposed AC cable path back to the grid connection point and measure the run length."
   ],
   "visualCallouts": [
     {
       "id": "veg-shading",
-      "label": "Long grass risk",
-      "message": "Grass under the front row is tall — flag for maintenance to prevent lower-cell shading and fire risk.",
+      "label": "Long grass — shading risk",
+      "message": "Vegetation under panels is long — flag this for the vegetation management plan to avoid lower-row shading and fire risk.",
       "category": "quality",
       "severity": "warning",
-      "x": 0.35,
+      "x": 0.45,
       "y": 0.82,
       "w": 0.28,
       "h": 0.12,
       "shape": "box"
     },
     {
-      "id": "row-spacing",
-      "label": "Check row spacing",
-      "message": "Confirm inter-row gap eliminates winter shading — measure from rear of front row to base of next row.",
+      "id": "frame-footings",
+      "label": "Check footing spec",
+      "message": "Ground stake footings here — confirm wind and soil ratings match AS 1170.2 for this region.",
       "category": "quality",
       "severity": "warning",
-      "x": 0.62,
-      "y": 0.65,
-      "w": 0.18,
-      "h": 0.12,
-      "shape": "pointer"
+      "x": 0.18,
+      "y": 0.72,
+      "w": 0.1,
+      "h": 0.1,
+      "shape": "circle"
     },
     {
-      "id": "cloud-shading",
-      "label": "Shading conditions",
-      "message": "Heavy cloud present — note time and cloud cover in your survey log for irradiance context.",
-      "category": "time",
-      "severity": "info",
-      "x": 0.55,
-      "y": 0.18,
-      "w": 0.3,
-      "h": 0.2,
+      "id": "cable-routing",
+      "label": "No visible conduit",
+      "message": "No cable management visible between rows — confirm DC cable routing and conduit plan for ground-level protection.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.3,
+      "y": 0.65,
+      "w": 0.18,
+      "h": 0.1,
       "shape": "box"
     }
   ],
   "spokenCue": {
-    "say": "Measure inter-row spacing and log that long grass for maintenance.",
+    "say": "Check frame footings and photograph all cable runs before leaving.",
     "severity": "warning",
     "speak": true
   }

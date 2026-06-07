@@ -13,10 +13,18 @@ const PHASE_GUIDANCE: Record<AnalysisPhase, string> = {
 - Switchboard, meter, isolator locations and cable run paths
 - Access, hazards, and anything that affects the install plan/quote
 On-roof workmanship is mostly not visible yet — keep installQualityFlags to genuine survey risks. salesPitchFeedback only if a customer is being spoken to.`,
-  solar_install: `Phase: INSTALL — the worker is installing on the roof. Prioritise SAFETY FIRST:
+  solar_install: `Phase: INSTALL — the worker is on the roof or at the switchboard. Prioritise SAFETY FIRST:
 - Fall protection, harness/anchor use, edge protection, ladder safety
-- Then workmanship: rail/bracket layout, penetrations + flashing/waterproofing, panel alignment, clamp/torque, DC routing, isolator placement
-Lead with critical safety in installQualityFlags. salesPitchFeedback only if a customer conversation is happening.`,
+Then workmanship: rail/bracket layout, penetrations + flashing/waterproofing, panel alignment, clamp/torque, DC routing, isolator placement.
+
+CER COMPLIANCE — actively hunt these 5 high-value, commonly-failed defects (a wrong/missing one fails the claim and forces a return to site). Flag the one in view:
+1. Labelling/signage: missing or wrong "Solar Supply Main Switch", AC/DC isolator labels, or system-rating signage — warning.
+2. DC isolator / rooftop isolation: missing, unlabelled or non-compliant isolator — warning (critical if live DC looks exposed/unsafe).
+3. DC not in conduit: any exposed/unprotected DC cable run on the roof or wall — warning.
+4. Switchboard shutdown-procedure label: missing emergency shutdown steps at the main switchboard — warning.
+5. Serial vs REC registry: when a panel/inverter serial or compliance plate is visible, prompt a clear, legible serial photo so it matches the REC registry claim — info.
+
+Lead with critical safety, then the most important CER defect, in installQualityFlags; put that single most important issue in spokenCue. salesPitchFeedback only if a customer conversation is happening.`,
   customer_pitch: `Phase: CUSTOMER PITCH — the worker is talking with a customer (door knock or on site). Prioritise the CONVERSATION:
 - Critique the pitch from the transcript: rapport, savings/payback framing, warranty, timeline, objection handling, and the close
 - salesPitchFeedback MUST be non-empty when a transcript is present: at least one critique and one stronger line to use next time

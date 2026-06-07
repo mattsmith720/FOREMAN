@@ -1,52 +1,56 @@
 {
   "observations": [
-    "Ground-mounted commercial or large residential solar array visible — multiple rows of panels installed on open grassland.",
-    "Customer pitch phase: worker is using a door-knock or on-site conversation; transcript captured two key statements.",
-    "No worker visible in frame — likely showing the customer a reference install site or project photo as part of the pitch."
+    "Ground-mounted commercial or utility-scale solar array visible across an open paddock — multiple rows of panels on steel racking, good southerly-facing orientation.",
+    "No workers, customers, or installation activity visible in frame — this appears to be a reference site or demonstration asset being shown to a prospective customer.",
+    "Partly cloudy sky — useful context for a customer conversation about generation variability and system sizing."
   ],
   "installQualityFlags": [],
   "salesPitchFeedback": [
     {
-      "message": "CRITIQUE — 'Everyone on this street is getting it' is a high-pressure fear-of-missing-out tactic. Under Australian Consumer Law this can be considered misleading if not accurate, and it erodes trust fast. Customers Google you after you leave.",
+      "message": "CRITICAL pitch problem: 'Everyone on this street is getting it' is a pressure tactic that erodes trust instantly. Australian consumers are savvy — this line often triggers scepticism and objections rather than urgency. Remove it entirely.",
       "severity": "critical"
     },
     {
-      "message": "CRITIQUE — 'Don't worry about the details, just sign here today' is a red flag for any customer. It signals the worker is hiding something and will likely kill the sale or trigger a cooling-off cancellation. Never rush a signature by dismissing concerns.",
+      "message": "CRITICAL: 'Don't worry about the details, just sign here today' is the fastest way to lose a sale AND attract an ACCC complaint. Customers have a right to understand what they're signing. This line risks a cooling-off cancellation and a reputation hit.",
       "severity": "critical"
     },
     {
-      "message": "STRONGER LINE — Replace the FOMO line with: 'A few of your neighbours have already locked in their systems and are seeing bills drop by around 70%. I can show you exactly what that would look like for your home.'",
-      "severity": "info"
-    },
-    {
-      "message": "STRONGER LINE — Replace 'don't worry about details' with: 'Let me walk you through the key points — the system size, payback period, and what the warranty covers — so you feel completely comfortable before we proceed.'",
-      "severity": "info"
-    },
-    {
-      "message": "RAPPORT TIP — Lead with a personalised savings figure. Ask for a recent power bill first, calculate their payback on the spot (aim for under 5 years), then anchor the conversation on ROI, not urgency.",
-      "severity": "info"
-    },
-    {
-      "message": "CLOSE TIP — Use a soft close: 'If everything stacks up for you today, is there anything stopping us from getting the install date locked in?' This invites objections rather than steamrolling them.",
-      "severity": "info"
-    },
-    {
-      "message": "WARRANTY TIP — Proactively mention the panel product warranty (typically 25 years) and workmanship warranty. Customers who understand the warranty are far less likely to cancel during the cooling-off period.",
+      "message": "No payback period or savings figure was mentioned. Customers make decisions on return on investment — always anchor the conversation with a specific number, e.g. 'A system this size typically pays itself off in 4 to 6 years and saves around $2,000 a year on power bills.'",
       "severity": "warning"
+    },
+    {
+      "message": "Warranty and after-sales support were not raised. These are top objections for Australian solar buyers — address them proactively: 'Your panels carry a 25-year performance warranty and the inverter is covered for 10 years. We handle all warranty claims directly.'",
+      "severity": "warning"
+    },
+    {
+      "message": "No rapport-building detected before moving to the close. Start with a question about their current power bill or usage habits to personalise the pitch before presenting a solution.",
+      "severity": "warning"
+    },
+    {
+      "message": "STRONGER LINE to replace the pressure tactic — try: 'A lot of homes in this area have already cut their bills significantly with solar — I can show you exactly what the numbers would look like for your place, no obligation.'",
+      "severity": "info"
+    },
+    {
+      "message": "STRONGER CLOSE to replace 'just sign here' — try: 'I want to make sure this is the right fit for you. Can I walk you through the proposal so you feel confident before we go ahead? You've got a 10-day cooling-off period as well, so there's no pressure.'",
+      "severity": "info"
+    },
+    {
+      "message": "Use this site as a visual proof point — point at the array and say: 'This is similar to what we install. Systems like this have been running for years with zero maintenance issues. That's the quality we bring to residential installs.'",
+      "severity": "info"
     }
   ],
-  "timeOnTaskNote": "Pitch phase — if the worker is showing this array as a reference site, that is good visual proof. Ensure the proof-point conversation does not exceed 2–3 minutes before pivoting back to the customer's specific savings and next steps.",
+  "timeOnTaskNote": "Pitch phase — no installation activity visible. If this site visit is purely for demonstration, keep the customer walk-around to under 10 minutes and transition to the proposal conversation promptly to respect their time.",
   "nextSteps": [
-    "Ask the customer for their latest electricity bill and calculate their estimated payback period on the spot — anchor the pitch in their real numbers.",
-    "Walk through the three key facts every customer needs before signing: system size and output, payback period, and what the warranties cover.",
-    "Use a soft trial close: 'Does the payback period make sense for you?' — surface objections early rather than pushing for a rushed signature."
+    "Immediately drop the pressure-tactic language and rebuild trust by asking the customer an open question about their power bills or energy goals.",
+    "Walk the customer through a written proposal or tablet-based quote with real savings numbers and payback period before asking for any signature.",
+    "Highlight the warranty terms and your company's local after-sales support to address likely objections before they are raised."
   ],
   "visualCallouts": [
     {
-      "id": "array-upsell",
-      "label": "Show this array",
-      "message": "Point to this array and say: this is the scale we can achieve — your rooftop system will generate similar clean energy and slash your bill.",
-      "category": "pitch",
+      "id": "upsell-array-scale",
+      "label": "Upsell opportunity",
+      "message": "Point at this array and say: this scale shows what solar can do — even a small residential system delivers the same technology and the same savings per kilowatt.",
+      "category": "upsell",
       "severity": "info",
       "x": 0.5,
       "y": 0.55,
@@ -55,20 +59,20 @@
       "shape": "box"
     },
     {
-      "id": "upsell-battery",
-      "label": "Upsell: battery storage",
-      "message": "A ground or roof array this size pairs perfectly with a battery — mention battery storage to capture excess generation and quote accordingly.",
-      "category": "upsell",
+      "id": "pitch-sky-variability",
+      "label": "Address cloudy sky",
+      "message": "Customer may worry about cloudy days — say: even on overcast days like this the panels still generate around 20 to 30 percent output, and your feed-in tariff and battery option cover the gaps.",
+      "category": "pitch",
       "severity": "info",
-      "x": 0.75,
-      "y": 0.5,
-      "w": 0.18,
-      "h": 0.18,
+      "x": 0.55,
+      "y": 0.2,
+      "w": 0.35,
+      "h": 0.25,
       "shape": "pointer"
     }
   ],
   "spokenCue": {
-    "say": "Drop the pressure tactics — ask for their bill and run the numbers.",
+    "say": "Drop the pressure line — ask about their power bill first.",
     "severity": "critical",
     "speak": true
   }
