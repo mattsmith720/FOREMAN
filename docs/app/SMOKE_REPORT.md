@@ -24,6 +24,8 @@ Checks:
 - Web `/api/health` proxy
 - HTTP 200 for `/`, `/ops`, `/training`
 
+E2E note: run with `PORT=3000` if your shell sets `PORT=8080` (Playwright webServer expects 3000).
+
 ## Manual (iPhone)
 
 1. Open https://foreman-phi.vercel.app in Safari
