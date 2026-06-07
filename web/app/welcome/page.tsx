@@ -95,7 +95,7 @@ export default function WelcomePage() {
           one session.
         </p>
         <Link href="/" className="marketing-cta marketing-cta-secondary">
-          Start coaching
+          Start job
         </Link>
       </footer>
     </div>
