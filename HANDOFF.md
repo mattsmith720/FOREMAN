@@ -1,46 +1,70 @@
-# L3 Compliance Evidence — Lane Handoff
+# L4 Evidence Pack — Integrator Handoff
 
-**Lane:** L3 capture (S2a)  
-**Branch:** `swarm/l3-compliance`  
-**Status:** complete
+Lane `swarm/l4-evidence-pack` ships the evidence ZIP builder and download helper. **Wiring into the live app is intentionally deferred** to the integrator (see SWARM_BOARD integrator-only paths).
 
-## What changed
+## What shipped
 
-| File | Change |
-|------|--------|
-| `web/lib/compliance-evidence-handler.ts` | Type-guarded evidence handling; wrong-type rejection; fail-count escalation; `facingModeForShot` / `facingModeForEvidenceType`; `shouldAccelerateCapture`; outcome adds `accelerateCapture` + `facingMode` |
-| `web/lib/phone-frame-source.ts` | Configurable `facingMode`; `setFacingMode` / `setFacingForShot` / `setFacingForEvidenceType`; `captureNow({ accelerate })` with 1.4s retake gap |
-| `web/lib/geolocation.ts` | `awaitGeoForEvidence`, `geoDeniedVoiceLine`, shared `readGeoFix` timeout helper |
-| `web/lib/compliance-evidence-handler.test.ts` | Facing mode, type guard, retake acceleration, escalation, duplicate-ignore coverage |
+| File | Role |
+|------|------|
+| `backend/src/evidence-pack.ts` | Pure pack builder: extract compliance frames, manifest JSON, store-only ZIP |
+| `backend/src/routes/evidence-pack.ts` | `GET /sessions/:id/evidence-pack` route registration |
+| `web/lib/evidence-pack.ts` | Client helper `downloadEvidencePack(sessionId)` |
+| `backend/src/evidence-pack.test.ts` | Pack builder unit tests |
+| `backend/src/routes/evidence-pack.test.ts` | Route registration tests |
+| `web/lib/evidence-pack.test.ts` | Client download helper tests |
 
-## Integrator CONTRACT (`camera-coach.tsx`)
+## API contract
 
-Wire these after L3 merges (integrator-only file):
+### `GET /sessions/:id/evidence-pack`
 
-1. **Job start (install):** `await awaitGeoForEvidence()` inside Start tap; on null after prompt, `speakCoachLine(geoDeniedVoiceLine())`.
-2. **PhoneFrameSource options:** pass `facingMode: () => facingModeForShot(nextComplianceShot(captured)?.id ?? "meter_box")` or call `setFacingForShot` when target changes.
-3. **After `applyComplianceEvidence`:** if `outcome.facingMode` differs from `frameSource.getFacingMode()`, call `setFacingMode(outcome.facingMode)`; on selfie flip optionally speak `selfieCameraVoiceLine(shotId)`.
-4. **In analyse `finally`:** `frameSource.captureNow({ accelerate: outcome.accelerateCapture })`.
-5. **`Permissions-Policy`:** set `geolocation=(self)` in `next.config.mjs` (L3 did **not** touch this file).
+- **Auth:** `x-session-token` header (same as other session routes). Session id in path must match token.
+- **Response:** `application/zip` attachment
+- **Filename:** `foreman-evidence-{first8(sessionId)}.zip`
+- **ZIP contents:**
+  - `manifest.json` — session id, `generatedAt`, `progress` (`done` / `total` guided shots), `records[]` with shot metadata + `frameId` / `storageRef` / `zipEntry`
+  - One stamped JPEG per guided compliance shot (`setup`, `meter_box`, `switchboard`, `serial_plate`, `battery_label`, `testing`), named `{shotId}.jpeg`
 
-## Exports for integrator
+Frames are selected server-side from persisted `frames` rows where `analysis.foremanEvidence` and/or `analysis.evidenceShot.isGoodEvidence` indicate a guided shot. JPEG bytes are pulled from the Supabase `frames` bucket via `storage_ref`.
 
-```ts
-facingModeForShot(shotId)
-facingModeForEvidenceType(evidenceType)
-selfieCameraVoiceLine(shotId)
-shouldAccelerateCapture(evidence, target)
-awaitGeoForEvidence(timeoutMs?)
-geoDeniedVoiceLine()
-// PhoneFrameSource: setFacingMode, setFacingForShot, setFacingForEvidenceType, captureNow({ accelerate })
-// applyComplianceEvidence outcome: { accelerateCapture, facingMode }
+### Web client
+
+```typescript
+import { downloadEvidencePack } from "../lib/evidence-pack";
+
+// After stopSession succeeds, solar_install jobs with compliance captures:
+await downloadEvidencePack(sessionId);
 ```
+
+Uses `apiFetch` → same-origin `/api` or `NEXT_PUBLIC_API_URL` base. Expects the backend route (or a proxy) to be reachable at `/sessions/:id/evidence-pack`.
+
+## Integrator checklist (not done in this lane)
+
+1. **`backend/src/index.ts`** — register routes:
+   ```typescript
+   import { registerEvidencePackRoutes } from "./routes/evidence-pack.js";
+   // ...
+   await registerEvidencePackRoutes(app);
+   ```
+
+2. **`web/app/api/sessions/[id]/evidence-pack/route.ts`** — proxy GET to backend (mirror `web/app/api/sessions/[id]/stop/route.ts` pattern with `proxyToBackend`).
+
+3. **`web/components/camera-coach.tsx`** — in `stopJob`, after `stopSession` for `solar_install` with compliance records, prefer ZIP over JSON-only export:
+   ```typescript
+   import { downloadEvidencePack } from "../lib/evidence-pack";
+   // replace or supplement downloadEvidenceManifest(...)
+   await downloadEvidencePack(sessionId);
+   ```
+   Keep `downloadEvidenceManifest` as fallback if the pack endpoint returns 503/5xx.
+
+4. **CORS** — no change needed if traffic goes through the Next.js proxy (`same-origin`).
 
 ## Tests
 
-- `npx tsx --test lib/compliance-evidence-handler.test.ts lib/compliance-pack.test.ts` — **13 pass**
-- Full `npm test --workspace web`: **49 pass** in L3-owned suites; **3 fail** in `lib/evidence-pack.test.ts` (L4 lane, pre-existing on worktree — not L3 scope)
+```bash
+npm run test --workspace backend
+npm run test --workspace web
+```
 
-## Not pushed
+## Commit
 
-Branch committed locally; **not pushed** to `main` per swarm protocol.
+Lane branch: `swarm/l4-evidence-pack` — do **not** push to `main` from this lane; merge via `swarm/integration` train (L4 slot).

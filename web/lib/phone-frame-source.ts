@@ -5,6 +5,11 @@ import {
   type StampMeta,
 } from "./compress-frame";
 import {
+  facingModeForEvidenceType,
+  facingModeForShot,
+  type ComplianceShotId,
+} from "./compliance-evidence-handler";
+import {
   estimateFrameSharpness,
   SCAN_SHARPNESS_MIN,
 } from "./frame-sharpness";
@@ -14,6 +19,10 @@ import type { InteractionMode } from "./interaction-mode";
 const SAMPLE_INTERVAL_MS = 6000;
 const FIRST_FRAME_DELAY_MS = 500;
 const MIN_CAPTURE_GAP_MS = 2800;
+/** Retake loop after isGoodEvidence: false — ≤1.5s per R3 DoD. */
+const RETAKE_CAPTURE_GAP_MS = 1400;
+
+export type CameraFacingMode = "user" | "environment";
 
 interface PhoneFrameSourceOptions {
   includeAudio?: boolean;
@@ -21,6 +30,8 @@ interface PhoneFrameSourceOptions {
   mode?: InteractionMode;
   /** CER geotag + timestamp burned into each JPEG (install compliance pack). */
   stampMeta?: () => StampMeta | null;
+  /** Initial or dynamic rear/front policy (selfie shots use user). */
+  facingMode?: CameraFacingMode | (() => CameraFacingMode);
 }
 
 export class PhoneFrameSource implements FrameSource {
@@ -30,6 +41,7 @@ export class PhoneFrameSource implements FrameSource {
   private warmupAttempts = 0;
   private lastCaptureAt = 0;
   private paused = false;
+  private activeFacingMode: CameraFacingMode = "environment";
 
   constructor(
     private readonly video: HTMLVideoElement,
@@ -45,12 +57,17 @@ export class PhoneFrameSource implements FrameSource {
     return this.stream;
   }
 
+  getFacingMode(): CameraFacingMode {
+    return this.activeFacingMode;
+  }
+
   /** Capture as soon as the pipeline is ready (after analyse completes). */
-  captureNow(): void {
+  captureNow(options?: { accelerate?: boolean }): void {
     if (this.paused) {
       return;
     }
-    if (Date.now() - this.lastCaptureAt < MIN_CAPTURE_GAP_MS) {
+    const gap = options?.accelerate ? RETAKE_CAPTURE_GAP_MS : MIN_CAPTURE_GAP_MS;
+    if (Date.now() - this.lastCaptureAt < gap) {
       return;
     }
     this.captureFrame();
@@ -81,16 +98,9 @@ export class PhoneFrameSource implements FrameSource {
   }
 
   async start(): Promise<void> {
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 640, max: 960 },
-        height: { ideal: 480, max: 720 },
-      },
-      audio: this.options.includeAudio
-        ? { echoCancellation: true, noiseSuppression: true }
-        : false,
-    });
+    const facingMode = this.resolveFacingMode();
+    this.activeFacingMode = facingMode;
+    this.stream = await this.openMediaStream(facingMode);
 
     this.video.srcObject = this.stream;
     await this.video.play();
@@ -102,6 +112,28 @@ export class PhoneFrameSource implements FrameSource {
     }
   }
 
+  /** Switch camera for selfie vs environment evidence (keeps audio tracks). */
+  async setFacingMode(mode: CameraFacingMode): Promise<void> {
+    if (mode === this.activeFacingMode && this.stream?.getVideoTracks().length) {
+      return;
+    }
+    await this.recycleVideoStream(mode);
+    this.activeFacingMode = mode;
+    if (typeof this.options.facingMode !== "function") {
+      this.options.facingMode = mode;
+    }
+  }
+
+  /** Flip camera when the guided compliance target changes. */
+  async setFacingForShot(shotId: ComplianceShotId): Promise<void> {
+    await this.setFacingMode(facingModeForShot(shotId));
+  }
+
+  /** Flip when model evidenceShot requests a selfie type (setup / testing). */
+  async setFacingForEvidenceType(evidenceType: string): Promise<void> {
+    await this.setFacingMode(facingModeForEvidenceType(evidenceType));
+  }
+
   async stop(): Promise<void> {
     if (this.intervalId !== null) {
       clearInterval(this.intervalId);
@@ -111,6 +143,48 @@ export class PhoneFrameSource implements FrameSource {
     this.stream?.getTracks().forEach((track) => track.stop());
     this.stream = null;
     this.video.srcObject = null;
+  }
+
+  private resolveFacingMode(): CameraFacingMode {
+    const source = this.options.facingMode;
+    if (typeof source === "function") {
+      return source();
+    }
+    return source ?? "environment";
+  }
+
+  private async openMediaStream(
+    facingMode: CameraFacingMode,
+  ): Promise<MediaStream> {
+    return navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: facingMode },
+        width: { ideal: 640, max: 960 },
+        height: { ideal: 480, max: 720 },
+      },
+      audio: this.options.includeAudio
+        ? { echoCancellation: true, noiseSuppression: true }
+        : false,
+    });
+  }
+
+  private async recycleVideoStream(facingMode: CameraFacingMode): Promise<void> {
+    const audioTracks = this.stream?.getAudioTracks() ?? [];
+    this.stream?.getVideoTracks().forEach((track) => track.stop());
+
+    const videoOnly = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: facingMode },
+        width: { ideal: 640, max: 960 },
+        height: { ideal: 480, max: 720 },
+      },
+      audio: false,
+    });
+
+    const tracks = [...audioTracks, ...videoOnly.getVideoTracks()];
+    this.stream = new MediaStream(tracks);
+    this.video.srcObject = this.stream;
+    await this.video.play();
   }
 
   private captureFrame(): void {

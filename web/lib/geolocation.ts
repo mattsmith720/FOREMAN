@@ -5,8 +5,34 @@ export interface GeoFix {
   capturedAt: string;
 }
 
+export const GEO_EVIDENCE_TIMEOUT_MS = 12_000;
+
 /** Best-effort fix for CER geotagged evidence (folded into job-start gesture). */
 export function captureGeoFix(): Promise<GeoFix | null> {
+  return readGeoFix(GEO_EVIDENCE_TIMEOUT_MS);
+}
+
+/**
+ * Await a fix inside the Start-tap gesture window before first stamped capture.
+ * Integrator should call from camera-coach beginJob; Permissions-Policy is integrator-owned.
+ */
+export function awaitGeoForEvidence(
+  timeoutMs = GEO_EVIDENCE_TIMEOUT_MS,
+): Promise<GeoFix | null> {
+  return readGeoFix(timeoutMs);
+}
+
+export function geoDeniedVoiceLine(): {
+  text: string;
+  severity: "warning";
+} {
+  return {
+    text: "Location off — evidence may need manual geotag.",
+    severity: "warning",
+  };
+}
+
+function readGeoFix(timeoutMs: number): Promise<GeoFix | null> {
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     return Promise.resolve(null);
   }
@@ -22,7 +48,7 @@ export function captureGeoFix(): Promise<GeoFix | null> {
         });
       },
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 60_000 },
     );
   });
 }
