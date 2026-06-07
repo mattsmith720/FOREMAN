@@ -3,6 +3,14 @@
 # Requires: CLOUDFLARE_API_TOKEN with Zone.DNS Edit on the zone.
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ -f "${ROOT}/backend/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "${ROOT}/backend/.env"
+  set +a
+fi
+
 ZONE_NAME="${CLOUDFLARE_ZONE:-unicityai.com.au}"
 VERCEL_IP="${VERCEL_A_RECORD_IP:-76.76.21.21}"
 PROXIED="${CLOUDFLARE_PROXIED:-true}"

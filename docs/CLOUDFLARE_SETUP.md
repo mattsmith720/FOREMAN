@@ -31,14 +31,23 @@ Vercel expects **A records** → `76.76.21.21` for each subdomain.
 ### Option A — script (recommended)
 
 1. Create API token: [Cloudflare dashboard](https://dash.cloudflare.com/profile/api-tokens) → **Edit zone DNS** for `unicityai.com.au`.
-2. Run:
+2. Put the real token in **`backend/.env`** only (never `backend/.env.example`):
 
 ```bash
-export CLOUDFLARE_API_TOKEN='your-token'
+CLOUDFLARE_API_TOKEN=your-token-here
+CLOUDFLARE_ACCOUNT_ID=your-account-id
+CLOUDFLARE_ZONE=unicityai.com.au
+```
+
+3. Run:
+
+```bash
 chmod +x scripts/cloudflare-dns-setup.sh scripts/cloudflare-verify.sh
 ./scripts/cloudflare-dns-setup.sh
 ./scripts/cloudflare-verify.sh
 ```
+
+The DNS script auto-loads `backend/.env` if present.
 
 Creates/updates:
 
