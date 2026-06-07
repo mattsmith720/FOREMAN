@@ -16,35 +16,43 @@ Show your mate live AI coaching on a real scene in ~90 seconds.
 
 ## The 90-second demo
 
-### 1. Consent (10s)
-- Read the consent overlay:
+### 1. Consent + start (15s)
 
-  > Foreman captures camera, microphone, and job context. Recordings are treated as sensitive personal data under Australian privacy rules (see CLAUDE.md). Tap I understand to continue.
+One screen — consent, phase, and start in a single tap:
 
-- Tap **I understand — continue** → allow camera + mic when Safari prompts.
+- Read the consent copy:
+
+  > Foreman watches the job through your camera and mic and coaches you live — flagging safety and quality issues, sharpening your pitch, and keeping a secure record of every job. Footage is stored securely and never shared publicly. Make sure everyone in view is OK with being recorded.
+
+- Pick a phase — **Survey**, **Install**, or **Pitch**.
+- Tap **I understand — start coaching** → allow camera + mic when Safari prompts.
 - Point at something interesting (gym equipment, roof line out the window, anything with structure).
 - Say: *"This is Foreman — live AI coaching for field work. It watches the job and gives you feedback."*
 
-### 2. Pick phase + start (5s)
-- On the boot screen ("What are you doing on site?") tap a phase — **Survey**, **Install**, or **Pitch**.
-- Tap **Start install** (the button is labelled for the phase you picked).
-- A red **REC** badge appears top-left; the top bar shows the **phase chip** and a **status pill** cycling **Live → Analyzing…** (through **Summarising…** at the end).
+### 2. Coaching (30s)
 
-### 3. Coaching (30s)
+- A red **REC** badge appears top-left; the top bar shows the **phase chip** and a **status pill** cycling **Live → Analyzing…**.
 - Pan the camera slowly across the scene.
 - Every few seconds: status flips to **Analyzing…** → hero coaching card updates with the top cue.
 - Warnings and safety issues show in amber/red on the card.
 - Optional: tap **Details** for the full sheet — **Seeing**, **Heard**, **Advice**, **Marks**.
+- Optional: tap **Pause job** → badge turns amber **PAUSED** → **Resume job** to continue.
 
-### 4. Audio (15s)
+**Install bonus:** pick **Install** and Foreman voice-prompts six compliance shots (meter box, switchboard, serial plate, etc.). On **End job** a `foreman-evidence-*.json` manifest downloads if any shots were captured.
+
+### 3. Audio (15s)
+
 - Say clearly: *"This install is going smooth, customer loves the savings, we're on schedule."*
 - Tap **Details** → **Heard** shows your latest transcript; **Advice → Pitch & upsell** critiques the line.
 - Frames and coaching save to the job log in the background — confirmed by the counts at **End job**.
 
-### 5. Close (30s)
+### 4. Close (30s)
+
 - Tap **End job**.
 - Status shows **Summarising…**, then the **Job complete** panel with stored counts (frames, coaching events, labels, transcript segments).
+- Scroll to **Was the coaching right?** — tap **👍 Right** on one cue to show the training loop.
 - Say: *"Every job builds our training dataset — that's the moat."*
+- Tap **Start new job** if you want another run.
 
 ---
 
@@ -64,7 +72,7 @@ Append `?debug=1` to the URL for a capture health strip:
 
 | Symptom | Fix |
 |---------|-----|
-| Start job fails immediately | Render cold start — wait 60s, retry |
+| Start fails immediately | Render cold start — wait 60s, retry |
 | "Job complete" shows 0 frames | Cold start before Claude warmed up — retry; check `SUPABASE_*` + `ANTHROPIC_API_KEY` on Render |
 | No transcript | Mic permission or iOS audio — vision-only still works |
 | 413 error | Hard refresh — compression should keep frames small |

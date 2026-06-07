@@ -1,31 +1,33 @@
-# L5 Eval — Lane Handoff
+# L10 Polish — Lane Handoff
 
-**Branch:** `swarm/l5-eval`  
-**Lane:** L5 (S3 eval-coaching harness)  
-**Spec:** R5
+**Branch:** `swarm/l10-polish`  
+**Lane:** L10 — pilot doc truth sync + touch targets  
+**Status:** Complete, tests green. Not pushed.
 
 ## Shipped
 
-- **`.github/workflows/eval-coaching.yml`** — standalone offline coaching eval workflow (PR + main push + manual dispatch). Runs `npm run eval-coaching --workspace backend -- --offline --json`, prints human summary, uploads `coaching-eval-report` artifact (30-day retention). Non-blocking (`continue-on-error` on eval step).
-- **`backend/eval/frames/.gitkeep`** — placeholder for CER detection photos (activates the five pending scenarios in `scenarios.ts` once frames land).
+- **PILOT_HANDOFF.md** — synced to current UI: one-tap **I understand — start coaching**, pause/resume, post-job review, Install evidence pack.
+- **PHONE_DEMO.md** — 90s demo script updated to match boot screen, pause/resume, review, evidence JSON.
+- **YOUR_ACTIONS.md** — replaced stale deploy blockers with production-ready status; Step 4 iPhone walk matches live UI.
+- **`web/app/globals.css`** — `min-height: 2.75rem` on `.callout-chip` and `.coach-detail-close` (gloved-hand touch targets).
 
 ## Verified
 
 ```bash
-npm run eval-coaching --workspace backend -- --offline
-# 6/11 scenarios scored (5 CER frames pending), OVERALL 31/31 (100%)
+npm run lint --workspace web   # ✔ no warnings
+npm test --workspace web       # 40 pass, 0 fail
 ```
 
-## Deferred (needs assets or L2 goldens)
+## UI truth anchors (from `camera-coach.tsx`)
 
-| Item | Blocker |
-|------|---------|
-| `install-compliant` scenario with `expect.speak: false` | Needs compliant frame + golden with `spokenCue.speak: false` |
-| CER detection goldens (`cer-no-shutdown-label`, etc.) | Drop labelled photos into `backend/eval/frames/`, run `--update-golden` locally |
-| `criticalSafety` scenario | Needs harness/PPE defect frame + golden with critical severity |
+| Element | Label / behaviour |
+|---------|-------------------|
+| Consent + start | **I understand — start coaching** (first visit); **Start install/survey/pitch** (return) |
+| Pause / resume | **Pause job** / **Resume job**; badge **PAUSED** (amber) |
+| End flow | **End job** → **Job complete** → **Was the coaching right?** |
+| Install evidence | Six CER voice prompts; `foreman-evidence-*.json` on end |
 
 ## Integrator notes
 
-- R5 prefers **single source** for CI eval: consider removing the duplicate non-blocking step from `.github/workflows/ci.yml` once this workflow is merged.
-- L5 did **not** modify `scenarios.ts`, prompts, or shared schema (lane boundary).
+- Docs-only + CSS touch targets; no schema or API changes.
 - No push to `main`.

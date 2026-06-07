@@ -2,7 +2,7 @@
 
 > **Pilot walkthrough:** the canonical on-phone guide is **[PILOT_HANDOFF.md](PILOT_HANDOFF.md)**. This file is the operator setup / infrastructure checklist (env vars, deploy, keys).
 
-**Last updated:** 2026-06-06
+**Last updated:** 2026-06-07
 
 Everything below is **your** side only. The repo, Vercel UI, Supabase database, security hardening, and deploy pipeline are already built and pushed.
 
@@ -28,17 +28,25 @@ Everything below is **your** side only. The repo, Vercel UI, Supabase database, 
 
 ---
 
-## What is still blocking you
+## Production status — ready for phone testing
 
-| Blocker | Why it matters |
-|---------|----------------|
-| **3 API keys empty** in `backend/.env` | No vision coaching, transcription, or session storage locally |
-| **Render API not deployed** (or keys missing on Render) | No public backend for your phone to reach |
-| **`BACKEND_URL` missing on Vercel** | Vercel can't proxy API calls → errors on Start job |
+Production is **live and wired**. No deploy blockers for the iPhone pilot:
 
-Until those three are done, the Foreman UI loads but **Start job will fail**.
+| Check | Status |
+|-------|--------|
+| Vercel UI | ✅ https://foreman-phi.vercel.app |
+| Render API | ✅ https://foreman-api-y31r.onrender.com |
+| `BACKEND_URL` + `FOREMAN_API_KEY` on Vercel | ✅ |
+| API keys on Render | ✅ (verify with `/ready`) |
 
-> Production is already live at `https://foreman-api-y31r.onrender.com` when Render env vars are set. If `curl https://foreman-phi.vercel.app/api/health` returns ok, skip to **Step 4** for the iPhone walk.
+```bash
+curl https://foreman-phi.vercel.app/api/health   # → {"status":"ok"}
+curl https://foreman-api-y31r.onrender.com/health  # → {"status":"ok"} (may be slow on cold start)
+```
+
+If both return ok, **skip to Step 4** for the iPhone walk. See **[PILOT_HANDOFF.md](PILOT_HANDOFF.md)** for the full on-phone script.
+
+**Local dev only:** Steps 1–3 below matter if you want to run the backend on your Mac or redeploy from scratch. Empty keys in `backend/.env` block local `npm run dev:backend` but do **not** block the production phone test.
 
 ---
 
@@ -145,11 +153,11 @@ BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY=$FOREMAN_API_KEY 
 **Works on any network** (cellular, job site, different Wi‑Fi):
 
 1. iPhone Safari → **https://foreman-phi.vercel.app**
-2. If Render has been idle, wait ~30–60s before the first **Start job** (free-tier cold start), then retry
-3. Read the consent overlay (Australian privacy / sensitive-data wording), then tap **I understand — continue**
-4. Pick a job phase — **Survey**, **Install**, or **Pitch**
-5. Tap **Start install** (the button is labelled for the phase) → allow **camera** and **microphone**
-6. Confirm the red **REC** badge appears top-left while the session runs
+2. If Render has been idle, wait ~30–60s on first coaching tap (free-tier cold start); the boot screen shows **Waking Foreman…** while it pre-warms
+3. Read the consent copy on the boot screen, pick a job phase — **Survey**, **Install**, or **Pitch**
+4. Optional: enter your name (remembered on this device)
+5. Tap **I understand — start coaching** (one tap — consent + start) → allow **camera** and **microphone**
+6. Confirm the red **REC** badge appears top-left; try **Pause job** / **Resume job** (badge turns amber **PAUSED**)
 7. Point camera at a scene and talk through what you're doing
 
 **Try saying:**
@@ -162,6 +170,8 @@ BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY=$FOREMAN_API_KEY 
 - Tap **Details** for the full sheet: **Seeing**, **Heard** (your speech), **Advice**, **Marks**
 - Optional: **Cue voice on/off** and **Talk live** / **End talk** when voice routes are configured
 - **End job** → **Job complete** summary with frame/transcript counts
+- **Was the coaching right?** post-job review — **👍 Right** / **Fix** on top cues, optional job notes
+- On **Install**: voice-guided compliance shots; `foreman-evidence-*.json` downloads on end if any shots captured
 
 **Confirm data in Supabase (optional):**  
 [Table Editor](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/editor) → `sessions`, `frames`, `transcript_segments` should have rows.
@@ -180,7 +190,7 @@ npm run dev:phone
 ```
 
 3. On iPhone Safari → **`https://YOUR-MAC-IP:3000`** (script prints IP, e.g. `https://192.168.0.88:3000`).
-4. Accept certificate warning → tap **I understand — continue** → **Start job**.
+4. Accept certificate warning → pick a phase → tap **I understand — start coaching**.
 
 This does **not** work on cellular or a different network.
 
