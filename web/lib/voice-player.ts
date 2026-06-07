@@ -1,6 +1,32 @@
 let currentAudio: HTMLAudioElement | null = null;
 let currentUrl: string | null = null;
 let playbackGeneration = 0;
+let speaking = false;
+let unlockEl: HTMLAudioElement | null = null;
+
+// ~50ms of silence. Playing this INSIDE a user gesture unlocks programmatic
+// audio playback on iOS Safari, so the first spoken coaching cue isn't blocked.
+const SILENT_WAV =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
+
+export function unlockAudio(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    if (!unlockEl) {
+      unlockEl = new Audio();
+    }
+    unlockEl.src = SILENT_WAV;
+    void unlockEl.play().catch(() => undefined);
+  } catch {
+    // ignore — best-effort unlock
+  }
+}
+
+export function isVoicePlaying(): boolean {
+  return speaking;
+}
 
 function isBenignPlaybackError(err: unknown): boolean {
   if (!(err instanceof Error)) {
@@ -33,6 +59,7 @@ function disposeCurrentAudio(): void {
 
 export function stopVoicePlayback(): void {
   playbackGeneration++;
+  speaking = false;
   disposeCurrentAudio();
 }
 
@@ -47,6 +74,7 @@ export function playAudioBlob(blob: Blob): Promise<void> {
     currentAudio = audio;
 
     const finish = () => {
+      speaking = false;
       if (generation !== playbackGeneration) {
         resolve();
         return;
@@ -59,6 +87,7 @@ export function playAudioBlob(blob: Blob): Promise<void> {
     audio.onended = finish;
     audio.onerror = finish;
 
+    speaking = true;
     void audio.play().catch((err) => {
       if (generation !== playbackGeneration || isBenignPlaybackError(err)) {
         resolve();

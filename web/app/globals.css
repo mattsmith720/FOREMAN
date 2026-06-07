@@ -1517,3 +1517,215 @@ button.coach-card:active {
   color: var(--muted, #94a3b8);
   word-break: break-all;
 }
+
+/* ── Uplift: boot/consent, post-job review, /ops, a11y ──────────────────── */
+
+.boot-tagline {
+  margin: 0.1rem 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent, #38bdf8);
+}
+
+.consent-copy {
+  max-width: 32rem;
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text, #f8fafc);
+}
+
+.boot-start {
+  margin-top: 0.5rem;
+  min-width: 16rem;
+}
+
+.worker-name-input,
+.review-notes-input {
+  width: min(28rem, 100%);
+  min-height: 2.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--panel-border, rgba(148, 163, 184, 0.22));
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text, #f8fafc);
+  font-size: 1rem;
+}
+
+.worker-name-input::placeholder,
+.review-notes-input::placeholder {
+  color: var(--muted, #94a3b8);
+}
+
+.boot-waking {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Post-job review sheet */
+.review-panel {
+  margin: 0.75rem auto 0;
+  width: min(40rem, 100%);
+  padding: 1rem 1.1rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--panel-border, rgba(148, 163, 184, 0.2));
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text, #f8fafc);
+}
+
+.review-panel h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+}
+
+.review-sub {
+  margin: 0 0 0.7rem;
+  font-size: 0.82rem;
+  color: var(--muted, #94a3b8);
+}
+
+.review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.review-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--panel-border, rgba(148, 163, 184, 0.15));
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.review-item.sev-critical {
+  border-color: rgba(239, 68, 68, 0.55);
+}
+.review-item.sev-warning {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.review-cat {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #94a3b8);
+}
+
+.review-msg {
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.review-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.review-done {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--success, #22c55e);
+  white-space: nowrap;
+}
+
+.review-btn {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.review-notes {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.review-notes label {
+  font-size: 0.8rem;
+  color: var(--muted, #94a3b8);
+}
+
+/* Internal /ops dashboard */
+.ops-page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.25rem;
+  color: var(--text, #f8fafc);
+}
+
+.ops-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ops-login {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ops-error {
+  margin-top: 0.6rem;
+  color: #fecaca;
+  font-size: 0.88rem;
+}
+
+.ops-link {
+  display: inline-block;
+  margin: 0.3rem 0 0.6rem;
+  color: var(--accent, #38bdf8);
+  font-size: 0.85rem;
+}
+
+.ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.ops-table th,
+.ops-table td {
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--panel-border, rgba(148, 163, 184, 0.15));
+  vertical-align: top;
+}
+
+.ops-table th {
+  color: var(--muted, #94a3b8);
+  font-weight: 600;
+}
+
+.ops-table tr.ops-stuck {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.ops-summary {
+  max-width: 22rem;
+  color: var(--muted, #cbd5e1);
+}
+
+/* a11y: gloved-hand touch targets + visible keyboard focus */
+.button,
+.button-voice,
+.job-phase-option {
+  min-height: 2.75rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent, #38bdf8);
+  outline-offset: 2px;
+}

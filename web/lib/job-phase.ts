@@ -10,17 +10,17 @@ export const JOB_PHASES: JobPhaseOption[] = [
   {
     id: "site_survey",
     label: "Survey",
-    hint: "Walk the site and assess the roof",
+    hint: "Spot access and roof issues before you quote",
   },
   {
     id: "solar_install",
     label: "Install",
-    hint: "On-roof quality, safety, and pacing",
+    hint: "Catch safety and quality issues before they become callbacks",
   },
   {
     id: "customer_pitch",
     label: "Pitch",
-    hint: "Door-knock and customer conversation",
+    hint: "Sharpen your door-knock and close more",
   },
 ];
 

@@ -28,6 +28,13 @@ export function SessionSummary({
         </p>
       )}
       <div className="stored-counts">
+        {!noFrames && (
+          <p className="summary-value">
+            This job is logged — {stored.frames} moments captured and{" "}
+            {stored.coaching_events} coaching calls. Every job makes Foreman
+            sharper for your crew.
+          </p>
+        )}
         <p>
           <strong>Saved to this job</strong>
         </p>

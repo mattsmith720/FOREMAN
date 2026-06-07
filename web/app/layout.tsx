@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Foreman",
-  description: "AI coach for field work teams — live vision and audio guidance.",
+  title: "Foreman — AI coach for solar crews",
+  description:
+    "Live, hands-free AI coaching for solar installers and door-knock reps — catches safety and quality issues on the spot, sharpens the pitch, and logs proof of every job.",
   appleWebApp: {
     capable: true,
     title: "Foreman",

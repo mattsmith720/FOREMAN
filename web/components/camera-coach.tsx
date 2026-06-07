@@ -9,6 +9,7 @@ import {
   isCoachVoiceAvailable,
   setCoachVoiceEnabled,
   speakCoachLine,
+  unlockCoachVoice,
 } from "../lib/coach-voice";
 import { fetchVoiceConfig, type VoiceConfig } from "../lib/voice-config";
 import {
@@ -46,6 +47,12 @@ import {
   JobPhasePicker,
 } from "./job-phase-picker";
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
+import { pickSpokenCue } from "../lib/pick-spoken-cue";
+import {
+  CONSENT_VERSION,
+  loadWorkerProfile,
+  saveWorkerProfile,
+} from "../lib/worker-profile";
 import { SessionSummary } from "./session-summary";
 import { PostJobReview } from "./post-job-review";
 import { clearSessionToken } from "../lib/session-auth";
@@ -148,6 +155,27 @@ export function CameraCoach() {
     setDebugMode(new URLSearchParams(window.location.search).has("debug"));
   }, []);
 
+  // Hydrate the per-device profile so repeat opens skip consent + name typing.
+  // (Camera/mic still need one Start tap — a browser gesture requirement.)
+  useEffect(() => {
+    const profile = loadWorkerProfile();
+    if (profile.workerName) {
+      setWorkerName(profile.workerName);
+    }
+    if (
+      profile.lastPhase === "site_survey" ||
+      profile.lastPhase === "solar_install" ||
+      profile.lastPhase === "customer_pitch"
+    ) {
+      setJobPhase(profile.lastPhase);
+    }
+    if (profile.consentAt && profile.consentVersion === CONSENT_VERSION) {
+      consentAtRef.current = profile.consentAt;
+      hasConsentedRef.current = true;
+      setHasConsented(true);
+    }
+  }, []);
+
   const prewarmBackend = useCallback(async () => {
     // Render free tier cold-starts in 30–60s. Wake it as soon as the worker
     // consents so the first Start job isn't a confusing dead wait.
@@ -193,10 +221,12 @@ export function CameraCoach() {
 
   useEffect(() => {
     jobPhaseRef.current = jobPhase;
+    saveWorkerProfile({ lastPhase: jobPhase });
   }, [jobPhase]);
 
   useEffect(() => {
     workerNameRef.current = workerName;
+    saveWorkerProfile({ workerName: workerName.trim() });
   }, [workerName]);
 
   useEffect(() => {
@@ -382,21 +412,12 @@ export function CameraCoach() {
           pushActivity("saved", "Frame queued for job log");
         }
 
-        const hero =
-          callouts[highlightIndex]?.message ??
-          result.coaching.installQualityFlags.find(
-            (f) => f.severity === "critical" || f.severity === "warning",
-          )?.message ??
-          result.coaching.nextSteps[0] ??
-          result.coaching.observations[0];
-
-        if (hero && hero !== lastHeroRef.current) {
-          lastHeroRef.current = hero;
-          const severity =
-            callouts[highlightIndex]?.severity ??
-            result.coaching.installQualityFlags[0]?.severity ??
-            "info";
-          void speakCoachLine(hero, severity);
+        // Safety-first spoken cue (same selection the hero card shows). Returns
+        // null when there's nothing worth interrupting a hands-free worker for.
+        const cue = pickSpokenCue(result.coaching, jobPhaseRef.current);
+        if (cue && cue.text !== lastHeroRef.current) {
+          lastHeroRef.current = cue.text;
+          void speakCoachLine(cue.text, cue.severity);
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Analysis failed";
@@ -569,6 +590,12 @@ export function CameraCoach() {
 
       await requestWakeLock();
       setStatus("running");
+      // Audible "recording on" confirmation — the primary signal for the
+      // screenless / hands-free case (critical bypasses the cue throttle).
+      void speakCoachLine(
+        "Foreman is recording and coaching now. I'll call out anything important.",
+        "critical",
+      );
     } catch (err) {
       const orphanedSessionId = sessionIdRef.current;
       sessionIdRef.current = null;
@@ -580,6 +607,24 @@ export function CameraCoach() {
       setStatus("error");
     }
   }, [handleAudioChunk, handleFrame, pushActivity]);
+
+  // One tap to go live: unlock audio (iOS), record consent once, remember the
+  // profile, then start. During the job itself the worker never taps.
+  const beginJob = useCallback(async () => {
+    unlockCoachVoice();
+    if (!hasConsentedRef.current) {
+      const at = new Date().toISOString();
+      consentAtRef.current = at;
+      hasConsentedRef.current = true;
+      setHasConsented(true);
+      saveWorkerProfile({ consentAt: at, consentVersion: CONSENT_VERSION });
+    }
+    saveWorkerProfile({
+      lastPhase: jobPhaseRef.current,
+      workerName: workerNameRef.current.trim(),
+    });
+    await startJob();
+  }, [startJob]);
 
   useEffect(() => {
     const onVisibilityChange = () => {
@@ -622,9 +667,19 @@ export function CameraCoach() {
           muted
           playsInline
         />
-        {!isActive && hasConsented && (
-          <div className="camera-placeholder boot-screen">
+        {!isActive && !endedSession && (
+          <div className="camera-placeholder boot-screen consent-overlay">
             <p className="boot-title">Foreman</p>
+            <p className="boot-tagline">Your second set of eyes on every job.</p>
+            {!hasConsented && (
+              <p className="consent-copy">
+                Foreman watches the job through your camera and mic and coaches
+                you live — flagging safety and quality issues, sharpening your
+                pitch, and keeping a secure record of every job. Footage is
+                stored securely and never shared publicly. Make sure everyone in
+                view is OK with being recorded.
+              </p>
+            )}
             <p className="boot-sub">What are you doing on site?</p>
             <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
             <input
@@ -632,46 +687,24 @@ export function CameraCoach() {
               type="text"
               value={workerName}
               onChange={(event) => setWorkerName(event.target.value)}
-              placeholder="Your name (optional)"
+              placeholder="Your name (optional, remembered)"
               autoComplete="name"
               aria-label="Your name"
             />
-            {backendStatus === "waking" || backendStatus === "slow" ? (
-              <p className="boot-muted boot-waking" role="status">
-                {backendStatusMessage(backendStatus)}
-                {backendStatus === "slow" && (
-                  <button
-                    type="button"
-                    className="button button-secondary boot-retry"
-                    onClick={() => void prewarmBackend()}
-                  >
-                    Retry
-                  </button>
-                )}
-              </p>
-            ) : (
-              <p className="boot-muted">Tap Start job when you are ready</p>
-            )}
-          </div>
-        )}
-        {!hasConsented && (
-          <div className="camera-placeholder consent-overlay boot-screen">
-            <p className="boot-title">Foreman</p>
-            <p>
-              Foreman captures camera, microphone, and job context. Recordings
-              are treated as sensitive personal data under Australian privacy
-              rules (see CLAUDE.md). Tap I understand to continue.
-            </p>
             <button
               type="button"
-              className="button button-primary"
-              onClick={() => {
-                consentAtRef.current = new Date().toISOString();
-                setHasConsented(true);
-              }}
+              className="button button-primary boot-start"
+              onClick={() => void beginJob()}
             >
-              I understand — continue
+              {hasConsented
+                ? `Start ${jobPhaseLabel(jobPhase).toLowerCase()}`
+                : "I understand — start coaching"}
             </button>
+            {(backendStatus === "waking" || backendStatus === "slow") && (
+              <p className="boot-muted boot-waking" role="status">
+                {backendStatusMessage(backendStatus)}
+              </p>
+            )}
           </div>
         )}
         {isActive && status === "analysing" && <CoachScanOverlay active />}
@@ -767,15 +800,6 @@ export function CameraCoach() {
       />
 
       <footer className="controls">
-        <button
-          type="button"
-          className="button button-primary"
-          disabled={!hasConsented || isActive}
-          onClick={() => void startJob()}
-          title={`Start ${jobPhaseLabel(jobPhase)} job`}
-        >
-          Start {jobPhaseLabel(jobPhase).toLowerCase()}
-        </button>
         <button
           type="button"
           className="button button-secondary"
