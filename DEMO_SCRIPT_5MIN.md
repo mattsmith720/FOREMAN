@@ -39,7 +39,7 @@ Both should return `{"status":"ok"}`. First request after sleep may take 30–60
 
 > "Before anything records, we show Australian privacy consent — everyone in frame has to be OK with it. I'm picking Install because that's where we guide six compliance shots and build a geo-stamped evidence pack at the end. Trust audit verified those six guided shots and the ZIP export."
 
-**[ACTION]** Tap **I understand — start coaching**. Allow camera and microphone when Safari prompts.
+**[ACTION]** Tap **I understand — start job**. Allow camera and microphone when Safari prompts.
 
 **SAY:**
 
