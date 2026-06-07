@@ -22,6 +22,11 @@ import { registerMetricsRoutes } from "./routes/metrics.js";
 import { registerEvidencePackRoutes } from "./routes/evidence-pack.js";
 import { registerOpsRoutes } from "./routes/ops.js";
 import { registerReadyRoute } from "./routes/ready.js";
+import {
+  logHttpRequestComplete,
+  logHttpRequestStart,
+  REQUEST_ID_HEADER,
+} from "./structured-log.js";
 
 assertProductionSecurity();
 
@@ -74,16 +79,12 @@ const app = Fastify({
 });
 
 app.addHook("onRequest", async (request, reply) => {
-  reply.header("x-request-id", request.id);
+  reply.header(REQUEST_ID_HEADER, request.id);
+  logHttpRequestStart(request);
 });
 
 app.addHook("onResponse", async (request, reply) => {
-  if (reply.statusCode >= 500) {
-    request.log.error(
-      { reqId: request.id, statusCode: reply.statusCode },
-      "request completed with server error",
-    );
-  }
+  logHttpRequestComplete(request, reply);
 });
 
 // Per-route rate limits are declared on each route's own `config.rateLimit`
