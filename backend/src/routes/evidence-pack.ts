@@ -6,6 +6,10 @@ import {
   buildEvidencePackZip,
   evidencePackFilename,
 } from "../evidence-pack.js";
+import {
+  buildEvidenceReportPdf,
+  evidenceReportFilename,
+} from "../evidence-report.js";
 import { requireSessionToken } from "../require-session-token.js";
 
 const sessionIdSchema = z.object({
@@ -65,6 +69,40 @@ export async function registerEvidencePackRoutes(
       const { statusCode, message } = toClientError(
         err,
         "Failed to build evidence pack",
+      );
+      return reply.status(statusCode).send({ error: message });
+    }
+  });
+
+  app.get("/sessions/:id/evidence-report.pdf", async (request, reply) => {
+    if (!dependencies.isSupabaseConfigured()) {
+      return supabaseUnavailable(reply);
+    }
+
+    const params = sessionIdSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.status(400).send({ error: "Invalid session id" });
+    }
+
+    const { id } = params.data;
+
+    if (!dependencies.requireSessionToken(request, reply, id)) {
+      return;
+    }
+
+    try {
+      const pdf = await buildEvidenceReportPdf(id);
+      reply.header("content-type", "application/pdf");
+      reply.header(
+        "content-disposition",
+        `attachment; filename="${evidenceReportFilename(id)}"`,
+      );
+      return reply.send(Buffer.from(pdf));
+    } catch (err) {
+      request.log.error(err);
+      const { statusCode, message } = toClientError(
+        err,
+        "Failed to build evidence report",
       );
       return reply.status(statusCode).send({ error: message });
     }

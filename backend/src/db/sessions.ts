@@ -28,10 +28,15 @@ export interface CreateSessionInput {
   consentAt?: string;
   /** AU pilot retention policy; defaults to pilot_90d. */
   dataRetention?: string;
+  orgId?: string;
+  crewId?: string;
+  installerId?: string;
+  accreditationNumber?: string;
 }
 
-function isMissingIterationAColumn(
+function isMissingColumn(
   error: { code?: string; message?: string } | null,
+  columns: string[],
 ): boolean {
   if (!error) {
     return false;
@@ -39,31 +44,55 @@ function isMissingIterationAColumn(
   const message = error.message ?? "";
   return (
     error.code === "PGRST204" ||
-    message.includes("consent_at") ||
-    message.includes("data_retention")
+    columns.some((column) => message.includes(column))
   );
+}
+
+function isMissingIterationAColumn(
+  error: { code?: string; message?: string } | null,
+): boolean {
+  return isMissingColumn(error, ["consent_at", "data_retention"]);
+}
+
+function isMissingCrewColumn(
+  error: { code?: string; message?: string } | null,
+): boolean {
+  return isMissingColumn(error, ["org_id", "crew_id", "installer_id"]);
 }
 
 export async function createSession(
   input: CreateSessionInput,
 ): Promise<SessionRow> {
   const supabase = getSupabase();
+  const accreditationNote = input.accreditationNumber
+    ? `accreditation:${input.accreditationNumber}`
+    : null;
   const base = {
     worker: input.worker ?? null,
     job_type: input.jobType ?? "solar_install",
-    notes: input.notes ?? null,
+    notes: accreditationNote ?? input.notes ?? null,
   };
   const withConsent = {
     ...base,
     consent_at: input.consentAt ?? null,
     data_retention: input.dataRetention ?? "pilot_90d",
   };
+  const withCrew = {
+    ...withConsent,
+    org_id: input.orgId ?? null,
+    crew_id: input.crewId ?? null,
+    installer_id: input.installerId ?? null,
+  };
 
-  let insert = await supabase
-    .from("sessions")
-    .insert(withConsent)
-    .select("*")
-    .single();
+  let insert = await supabase.from("sessions").insert(withCrew).select("*").single();
+
+  if (insert.error && isMissingCrewColumn(insert.error)) {
+    insert = await supabase
+      .from("sessions")
+      .insert(withConsent)
+      .select("*")
+      .single();
+  }
 
   // consent_at / data_retention arrive with training-iteration-a.sql. Until that
   // migration is applied, retry without them so session start never breaks.

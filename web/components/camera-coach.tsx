@@ -78,6 +78,16 @@ import {
   loadWorkerProfile,
   saveWorkerProfile,
 } from "../lib/worker-profile";
+import { startOfflineSync } from "../lib/offline-sync";
+import {
+  enqueueAnalyseFrame,
+  enqueueEvidencePack,
+  enqueueTranscribeChunk,
+  formatOfflineStatusMessage,
+  isRetriableApiFailure,
+  subscribeOfflineUiState,
+  type OfflineUiState,
+} from "../lib/offline-queue";
 import { SessionSummary } from "./session-summary";
 import { PostJobReview } from "./post-job-review";
 import { clearSessionToken } from "../lib/session-auth";
@@ -174,10 +184,13 @@ export function CameraCoach() {
   const [voiceOn, setVoiceOn] = useState(true);
   const [backendStatus, setBackendStatus] = useState<BackendStatus>("unknown");
   const [workerName, setWorkerName] = useState("");
+  const [accreditationNumber, setAccreditationNumber] = useState("");
+  const [offlineUi, setOfflineUi] = useState<OfflineUiState | null>(null);
   const [livePanelOpen, setLivePanelOpen] = useState(false);
   const [jobPhase, setJobPhase] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
   const jobPhaseRef = useRef<JobPhaseId>(DEFAULT_JOB_PHASE);
   const workerNameRef = useRef<string>("");
+  const accreditationRef = useRef<string>("");
 
   const pushActivity = useCallback(
     (kind: ActivityItem["kind"], message: string) => {
@@ -200,6 +213,9 @@ export function CameraCoach() {
     const profile = loadWorkerProfile();
     if (profile.workerName) {
       setWorkerName(profile.workerName);
+    }
+    if (profile.accreditationNumber) {
+      setAccreditationNumber(profile.accreditationNumber);
     }
     if (
       profile.lastPhase === "site_survey" ||
@@ -270,6 +286,14 @@ export function CameraCoach() {
     workerNameRef.current = workerName;
     saveWorkerProfile({ workerName: workerName.trim() });
   }, [workerName]);
+
+  useEffect(() => {
+    accreditationRef.current = accreditationNumber;
+    saveWorkerProfile({ accreditationNumber: accreditationNumber.trim() });
+  }, [accreditationNumber]);
+
+  useEffect(() => startOfflineSync(), []);
+  useEffect(() => subscribeOfflineUiState(setOfflineUi), []);
 
   useEffect(() => {
     setCoachVoiceEnabled(true);
@@ -357,9 +381,18 @@ export function CameraCoach() {
       try {
         await transcribeChunk(blob, sessionId);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Transcription failed";
-        setWarningMessage(message);
+        if (isRetriableApiFailure(err)) {
+          await enqueueTranscribeChunk({
+            sessionId,
+            blob,
+            speaker: workerNameRef.current.trim() || "worker",
+          });
+          setWarningMessage("Voice chunk queued — will upload when back online.");
+        } else {
+          const message =
+            err instanceof Error ? err.message : "Transcription failed";
+          setWarningMessage(message);
+        }
       } finally {
         transcribingRef.current = false;
         const next = audioQueueRef.current.shift();
@@ -543,8 +576,29 @@ export function CameraCoach() {
 
         complianceAccelerateRef.current = complianceOutcome.accelerateCapture;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Analysis failed";
-        setWarningMessage(message);
+        const sessionId = sessionIdRef.current;
+        if (sessionId && isRetriableApiFailure(err)) {
+          await enqueueAnalyseFrame({
+            sessionId,
+            image,
+            context: { jobType: jobPhaseRef.current },
+            recentTranscript: transcriptRef.current,
+            captureMeta:
+              jobPhaseRef.current === "solar_install"
+                ? buildInstallCaptureMeta(
+                    geoRef.current,
+                    complianceStateRef.current.captured,
+                    new Date().toISOString(),
+                  )
+                : undefined,
+          });
+          setWarningMessage(
+            "Connection weak — frame saved locally, coaching paused until sync.",
+          );
+        } else {
+          const message = err instanceof Error ? err.message : "Analysis failed";
+          setWarningMessage(message);
+        }
         setStatus("running");
       } finally {
         analysingRef.current = false;
@@ -611,9 +665,14 @@ export function CameraCoach() {
         let packLine = `Evidence pack ${done} of ${total} shots saved.`;
         try {
           await downloadEvidencePack(sessionId);
-        } catch {
-          downloadEvidenceManifest(sessionId, complianceStateRef.current.records);
-          packLine = `Evidence manifest ${done} of ${total} shots saved.`;
+        } catch (err) {
+          if (isRetriableApiFailure(err)) {
+            await enqueueEvidencePack(sessionId);
+            packLine = `Evidence pack queued — ${done} of ${total} shots saved locally.`;
+          } else {
+            downloadEvidenceManifest(sessionId, complianceStateRef.current.records);
+            packLine = `Evidence manifest ${done} of ${total} shots saved.`;
+          }
         }
         void speakCoachLine(packLine, "info");
       }
@@ -699,6 +758,7 @@ export function CameraCoach() {
         jobType: jobPhaseRef.current,
         notes: `Phone session — ${jobPhaseLabel(jobPhaseRef.current)}`,
         consentAt: consentAtRef.current ?? undefined,
+        accreditationNumber: accreditationRef.current.trim() || undefined,
       });
       sessionIdRef.current = session.id;
       setActiveSessionId(session.id);
@@ -875,6 +935,15 @@ export function CameraCoach() {
               autoComplete="name"
               aria-label="Your name"
             />
+            <input
+              className="worker-name-input"
+              type="text"
+              value={accreditationNumber}
+              onChange={(event) => setAccreditationNumber(event.target.value)}
+              placeholder="CEC accreditation # (optional)"
+              autoComplete="off"
+              aria-label="CEC accreditation number"
+            />
             <button
               type="button"
               className="button button-primary boot-start"
@@ -964,6 +1033,11 @@ export function CameraCoach() {
       {errorMessage && (
         <p className="error-banner" role="alert">
           {errorMessage}
+        </p>
+      )}
+      {offlineUi && offlineUi.queued.total > 0 && !errorMessage && (
+        <p className="warning-banner offline-queue-banner" role="status">
+          {formatOfflineStatusMessage(offlineUi)}
         </p>
       )}
       {warningMessage && !errorMessage && (

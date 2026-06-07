@@ -44,6 +44,28 @@ interface OpsDataset {
   frames: number;
 }
 
+interface OpsDashboard {
+  jobsToday: number;
+  packsReady: number;
+  defectsByCategory: Record<string, number>;
+  installerActivity: Array<{ worker: string; jobs: number }>;
+}
+
+interface EvalTrendPoint {
+  recordedAt: string;
+  scenariosPassed: number;
+  scenariosTotal: number;
+  rubricRate: number;
+}
+
+interface OpsErrorEvent {
+  at: string;
+  requestId: string;
+  method: string;
+  url: string;
+  statusCode: number;
+}
+
 interface OpsVideo {
   id: string;
   status?: string;
@@ -65,6 +87,9 @@ export default function OpsPage() {
   const [latency, setLatency] = useState<OpsLatency | null>(null);
   const [costModel, setCostModel] = useState<OpsCostModel | null>(null);
   const [dataset, setDataset] = useState<OpsDataset | null>(null);
+  const [dashboard, setDashboard] = useState<OpsDashboard | null>(null);
+  const [evalTrendline, setEvalTrendline] = useState<EvalTrendPoint[]>([]);
+  const [opsErrors, setOpsErrors] = useState<OpsErrorEvent[]>([]);
   const [videos, setVideos] = useState<OpsVideo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -93,6 +118,9 @@ export default function OpsPage() {
         latency?: OpsLatency;
         costModel?: OpsCostModel;
         dataset?: OpsDataset;
+        dashboard?: OpsDashboard;
+        evalTrendline?: EvalTrendPoint[];
+        errors?: OpsErrorEvent[];
       };
       const ingestBody = ingestRes.ok
         ? ((await ingestRes.json()) as { videos: OpsVideo[] })
@@ -102,6 +130,9 @@ export default function OpsPage() {
       setLatency(sessionsBody.latency ?? null);
       setCostModel(sessionsBody.costModel ?? null);
       setDataset(sessionsBody.dataset ?? null);
+      setDashboard(sessionsBody.dashboard ?? null);
+      setEvalTrendline(sessionsBody.evalTrendline ?? []);
+      setOpsErrors(sessionsBody.errors ?? []);
       setVideos(ingestBody.videos ?? []);
       setAuthed(true);
       window.sessionStorage.setItem(PW_KEY, pw);
@@ -186,12 +217,43 @@ export default function OpsPage() {
       </header>
       {error && <p className="ops-error">{error}</p>}
 
-      <h2>Dataset moat</h2>
+      <h2>Mission control</h2>
       <p className="ops-metrics">
+        {dashboard
+          ? `Today: ${dashboard.jobsToday} jobs started · ${dashboard.packsReady} completed`
+          : "Daily stats —"}
         {dataset
-          ? `${dataset.sessions} sessions · ${dataset.frames} frames · ${dataset.labels} labels`
-          : "Dataset counts —"}
+          ? ` · Dataset: ${dataset.sessions} sessions · ${dataset.frames} frames · ${dataset.labels} labels`
+          : ""}
       </p>
+
+      <h2>Eval trendline</h2>
+      {evalTrendline.length === 0 ? (
+        <p>No committed trend points yet — run eval in CI or record via scripts/record-eval-trend.ts.</p>
+      ) : (
+        <ul className="ops-trend-list">
+          {evalTrendline.slice(-8).map((point) => (
+            <li key={point.recordedAt}>
+              {point.recordedAt.slice(0, 10)} — {point.scenariosPassed}/{point.scenariosTotal}{" "}
+              scenarios · rubric {(point.rubricRate * 100).toFixed(1)}%
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2>Error feed (recent 5xx)</h2>
+      {opsErrors.length === 0 ? (
+        <p>No server errors recorded since last API restart.</p>
+      ) : (
+        <ul className="ops-error-list">
+          {opsErrors.map((event) => (
+            <li key={`${event.at}-${event.requestId}`}>
+              {event.at} — {event.method} {event.url} — {event.statusCode} (
+              {event.requestId.slice(0, 8)})
+            </li>
+          ))}
+        </ul>
+      )}
 
       <h2>Recent jobs ({sessions.length})</h2>
       <p className="ops-metrics">

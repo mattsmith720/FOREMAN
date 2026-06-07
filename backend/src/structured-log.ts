@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { recordOpsError } from "./ops-errors.js";
 
 export const REQUEST_ID_HEADER = "x-request-id";
 
@@ -76,6 +77,13 @@ export function logHttpRequestComplete(
 
   if (reply.statusCode >= 500) {
     request.log.error(fields, "request completed with server error");
+    recordOpsError({
+      requestId: request.id,
+      method: request.method,
+      url: request.url,
+      statusCode: reply.statusCode,
+      sessionId: extractSessionId(request),
+    });
     return;
   }
 

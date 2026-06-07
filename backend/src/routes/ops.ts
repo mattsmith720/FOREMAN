@@ -5,11 +5,14 @@ import { getAnalyseCostUsd, getTranscribeCostUsd } from "../config.js";
 import { getLatencyMetrics } from "../metrics.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
 import {
+  getDashboardStats,
   getDatasetStats,
   getSessionExportRecords,
   listRecentSessions,
   listSiteVideoQueue,
 } from "../db/ops.js";
+import { listOpsErrors } from "../ops-errors.js";
+import { loadEvalTrendline } from "../ops-trends.js";
 import { needsSummaryRetry } from "../stuck-summary.js";
 
 const UUID_RE =
@@ -82,11 +85,17 @@ export async function registerOpsRoutes(app: FastifyInstance): Promise<void> {
         { frames: 0, transcripts: 0, est_cost_usd: 0 },
       );
       totals.est_cost_usd = Math.round(totals.est_cost_usd * 100) / 100;
-      const dataset = await getDatasetStats();
+      const [dataset, dashboard] = await Promise.all([
+        getDatasetStats(),
+        getDashboardStats(),
+      ]);
       return reply.send({
         sessions,
         totals,
         dataset,
+        dashboard,
+        evalTrendline: loadEvalTrendline(),
+        errors: listOpsErrors(15),
         latency: getLatencyMetrics(),
         costModel: { analyse_usd: analyseCost, transcribe_usd: transcribeCost },
       });

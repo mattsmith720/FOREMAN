@@ -1,6 +1,10 @@
 import { getApiUrl } from "./api-url";
 import { withRetry } from "./retry";
 import { getSessionAuthHeaders } from "./session-auth";
+import {
+  getRequestIdFromResponse,
+  structuredLog,
+} from "./structured-log";
 
 export function getApiHeaders(
   extra?: Record<string, string>,
@@ -35,8 +39,22 @@ export async function apiFetch(
       headers,
     });
 
+  const logApiResult = (response: Response, sessionId?: string) => {
+    if (response.status >= 500) {
+      structuredLog("error", "api request failed", {
+        event: "api.request.error",
+        path,
+        status: response.status,
+        requestId: getRequestIdFromResponse(response),
+        sessionId,
+      });
+    }
+  };
+
   if (!shouldRetryRequest) {
-    return doFetch();
+    const response = await doFetch();
+    logApiResult(response);
+    return response;
   }
 
   return withRetry(doFetch, {
@@ -49,5 +67,8 @@ export async function apiFetch(
       }
       return true;
     },
+  }).then((response) => {
+    logApiResult(response);
+    return response;
   });
 }

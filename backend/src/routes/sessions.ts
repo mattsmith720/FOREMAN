@@ -28,6 +28,10 @@ const startSessionSchema = z.object({
   jobType: z.string().max(200).optional(),
   notes: z.string().max(2000).optional(),
   consentAt: z.string().datetime().optional(),
+  accreditationNumber: z.string().max(50).optional(),
+  orgId: z.string().uuid().optional(),
+  crewId: z.string().uuid().optional(),
+  installerId: z.string().uuid().optional(),
 });
 
 const sessionIdSchema = z.object({

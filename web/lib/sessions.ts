@@ -27,6 +27,7 @@ export interface StartSessionInput {
   notes?: string;
   /** ISO timestamp captured when the worker accepted the consent overlay. */
   consentAt?: string;
+  accreditationNumber?: string;
 }
 
 export async function startSession(

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RoiCalculator } from "../../components/roi-calculator";
 
 export const metadata: Metadata = {
   title: "Foreman — AI coach for solar install crews",
@@ -72,24 +73,21 @@ export default function WelcomePage() {
         </p>
         <ul className="marketing-metrics">
           <li className="marketing-metric">
-            <span className="marketing-metric-value">6</span>
-            <span className="marketing-metric-label">guided compliance shots per install evidence pack</span>
-          </li>
-          <li className="marketing-metric">
-            <span className="marketing-metric-value">31/31</span>
+            <span className="marketing-metric-value">11/11</span>
             <span className="marketing-metric-label">
-              coaching rubric passes on scored eval scenarios (100% on the 6 scenarios with
-              committed goldens today)
+              offline eval scenarios scored with committed CER goldens (97% rubric pass rate)
             </span>
           </li>
           <li className="marketing-metric">
-            <span className="marketing-metric-value">11</span>
+            <span className="marketing-metric-value">6</span>
             <span className="marketing-metric-label">
-              total eval scenarios in the harness — full coverage as CER goldens land
+              guided shots assembled into a geo-stamped evidence ZIP per install
             </span>
           </li>
         </ul>
       </section>
+
+      <RoiCalculator />
 
       <footer className="marketing-footer">
         <p className="marketing-footer-copy">

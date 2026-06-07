@@ -1,0 +1,26 @@
+name: lighthouse
+
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - ".github/workflows/lighthouse.yml"
+      - "web/lighthouserc.cjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run build --workspace web
+      - name: Lighthouse CI
+        run: npx --yes @lhci/cli@0.14.0 autorun --config=web/lighthouserc.cjs
+        continue-on-error: true

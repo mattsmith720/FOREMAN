@@ -1793,3 +1793,115 @@ button.coach-card:active {
   font-size: 0.9rem;
   color: var(--muted);
 }
+
+.roi-calculator {
+  max-width: 40rem;
+  margin: 2.5rem auto 0;
+  padding: 1.5rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.roi-intro,
+.roi-footnote {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.roi-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.roi-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.roi-field input {
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.roi-results {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.roi-results div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.roi-results dt {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.roi-results dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.roi-highlight dd {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.offline-queue-banner {
+  border-color: #b8860b;
+}
+
+.dashboard-page .ops-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-stat {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.dashboard-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.dashboard-stat-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ops-trend-list,
+.ops-error-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.ops-trend-list li,
+.ops-error-list li {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.88rem;
+}

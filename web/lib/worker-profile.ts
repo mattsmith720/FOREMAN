@@ -6,6 +6,9 @@ export const CONSENT_VERSION = 1;
 
 export interface WorkerProfile {
   workerName?: string;
+  accreditationNumber?: string;
+  crewName?: string;
+  orgName?: string;
   lastPhase?: string;
   consentAt?: string;
   consentVersion?: number;

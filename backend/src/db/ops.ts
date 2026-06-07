@@ -155,6 +155,57 @@ export interface DatasetStats {
  * - On Supabase error this throws — catch in the route and map via `toClientError`.
  * - Uses base tables only (`sessions`, `labels`, `frames`); no migration-specific columns.
  */
+export interface DashboardStats {
+  jobsToday: number;
+  packsReady: number;
+  defectsByCategory: Record<string, number>;
+  installerActivity: Array<{ worker: string; jobs: number }>;
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const supabase = getSupabase();
+  const startOfDay = new Date();
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const since = startOfDay.toISOString();
+
+  const [todayRes, endedRes, eventsRes] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select("id, worker")
+      .gte("started_at", since),
+    supabase
+      .from("sessions")
+      .select("id")
+      .gte("ended_at", since)
+      .not("ended_at", "is", null),
+    supabase
+      .from("coaching_events")
+      .select("category")
+      .gte("ts", since),
+  ]);
+
+  const jobsToday = todayRes.data?.length ?? 0;
+  const packsReady = endedRes.data?.length ?? 0;
+
+  const defectsByCategory: Record<string, number> = {};
+  for (const row of eventsRes.data ?? []) {
+    const cat = (row as { category?: string }).category ?? "unknown";
+    defectsByCategory[cat] = (defectsByCategory[cat] ?? 0) + 1;
+  }
+
+  const byWorker = new Map<string, number>();
+  for (const row of todayRes.data ?? []) {
+    const worker = (row as { worker?: string | null }).worker?.trim() || "unknown";
+    byWorker.set(worker, (byWorker.get(worker) ?? 0) + 1);
+  }
+  const installerActivity = [...byWorker.entries()]
+    .map(([worker, jobs]) => ({ worker, jobs }))
+    .sort((a, b) => b.jobs - a.jobs)
+    .slice(0, 10);
+
+  return { jobsToday, packsReady, defectsByCategory, installerActivity };
+}
+
 export async function getDatasetStats(): Promise<DatasetStats> {
   const supabase = getSupabase();
   const [sessionsRes, labelsRes, framesRes] = await Promise.all([
