@@ -1,0 +1,18 @@
+// Copy to Local.xcconfig (git-ignored) and fill in. Real values are never committed.
+// Local.xcconfig is included at the end of Debug/Release.xcconfig via `#include?`,
+// so anything here overrides the committed placeholders.
+
+// From the Meta Wearables Developer Center → your Foreman project:
+META_APP_ID = your_meta_app_id
+CLIENT_TOKEN = your_client_token
+
+// NO = real Meta glasses; YES = phone camera via MockDeviceKit (dev)
+FOREMAN_USE_MOCK_DEVICE = NO
+
+// Your Apple Developer Team ID
+DEVELOPMENT_TEAM = your_apple_team_id
+// Same value as FOREMAN_API_KEY in backend/.env (auth for the production backend)
+FOREMAN_API_KEY = same_as_backend_env
+
+// https for production, or http:/$()/<your-mac-LAN-ip>:8080 for same-Wi-Fi dev
+BACKEND_API_URL = https:/$()/foreman-api-y31r.onrender.com

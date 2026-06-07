@@ -1,5 +1,8 @@
-BACKEND_API_URL = https:/$()/your-backend.example.com
+BACKEND_API_URL = https:/$()/foreman-api-y31r.onrender.com
 FOREMAN_USE_MOCK_DEVICE = NO
 META_APP_ID = 0
 CLIENT_TOKEN =
 DEVELOPMENT_TEAM =
+FOREMAN_API_KEY =
+
+#include? "Local.xcconfig"

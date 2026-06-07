@@ -62,17 +62,26 @@ cd native/ios && xcodegen generate
 
 ### 3. Configure the app
 
-In `Foreman/Config/Debug.xcconfig`:
+Secrets live in **`Foreman/Config/Local.xcconfig`** (git-ignored), which
+`Debug.xcconfig` / `Release.xcconfig` pull in via `#include?` and which overrides
+their committed placeholders. Copy the template if needed and fill it in:
+
+```bash
+cd native/ios/Foreman/Config
+cp Local.xcconfig.example Local.xcconfig   # if it doesn't already exist
+```
 
 ```
-FOREMAN_USE_MOCK_DEVICE = NO
-META_APP_ID = <from developer center>
-CLIENT_TOKEN = <from developer center>
+META_APP_ID    = <from Wearables Developer Center>   # pre-filled for this org
+CLIENT_TOKEN   = <from Wearables Developer Center>    # pre-filled for this org
+FOREMAN_USE_MOCK_DEVICE = NO                          # YES = phone-camera mock
 DEVELOPMENT_TEAM = <your Apple Team ID>
-BACKEND_API_URL = http://<your-mac-lan-ip>:8080
+FOREMAN_API_KEY  = <same as FOREMAN_API_KEY in backend/.env>
+BACKEND_API_URL  = https://foreman-api-y31r.onrender.com   # or http://<mac-ip>:8080
 ```
 
-Regenerate the Xcode project:
+**Never commit `Local.xcconfig`** (it holds the Client Token). Regenerate the
+Xcode project:
 
 ```bash
 cd native/ios && xcodegen generate
@@ -211,6 +220,23 @@ native/ios/Foreman/
 **DAT SDK reference (verified in `project.yml`):**
 
 - Package: `MetaWearablesDAT`
-- URL: `https://github.com/facebook/meta-wearables-dat-ios`
+- URL: `https://github.com/facebook/meta-wearables-dat-ios` (canonical Meta repo, 0.7.0).
+  The `wesly-michel/meta-wearables-dat-ios` fork mirrors an older 0.3.0 snapshot and is
+  behind upstream — swap the SPM URL in `project.yml` only if you need fork-specific changes.
 - Version: `from: 0.7.0`
 - Products: `MWDATCore`, `MWDATCamera`, `MWDATMockDevice`
+
+**Native client capabilities (now at parity with the web pipeline):**
+
+- **Voice-first coaching** — `VoiceCoach` (AVSpeechSynthesizer, en-AU) speaks the model's
+  ear-first `spokenCue` (severity-first fallback) aloud, plus an audible "recording on/off".
+  Glasses have no screen, so audio is the primary coaching channel.
+- **Authenticated backend** — `BackendClient` sends `x-foreman-api-key` and the HMAC
+  `x-session-token` captured at session start, so it works against the production backend.
+- **Hands-free auto-start** — once consent is given and the glasses connect, `ContentView`
+  auto-starts the job; no taps during a job.
+- **Not yet ported (parity gap):** glasses-mic capture → `/transcribe` (pitch coaching is
+  vision-only on glasses for now) and on-screen visual callouts (audio-only path).
+
+> Xcode build + on-device run is a **Mac-only manual step** (no Xcode in CI) — see the
+> "xcodegen not available in CI" note above.

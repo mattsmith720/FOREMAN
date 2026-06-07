@@ -19,7 +19,7 @@ final class BackendClient {
     static let shared = BackendClient()
 
     private let decoder = JSONDecoder()
-    private let encoder = JSONEncoder()
+    private var sessionToken: String?
 
     private var baseURL: URL? {
         guard
@@ -31,49 +31,76 @@ final class BackendClient {
         return url
     }
 
-    func startSession() async throws -> SessionRow {
-        try await post(
-            path: "/sessions/start",
-            body: [
-                "jobType": "solar_install",
-                "notes": "Native iOS mock glasses job",
-            ],
-            responseKey: "session"
+    /// FOREMAN_API_KEY from the xcconfig/Info.plist — required by the production
+    /// backend on every non-public route. Empty in pure mock/dev setups.
+    private var apiKey: String? {
+        let value = Bundle.main.object(forInfoDictionaryKey: "FOREMAN_API_KEY") as? String
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (trimmed?.isEmpty == false) ? trimmed : nil
+    }
+
+    private func makeRequest(path: String, method: String) throws -> URLRequest {
+        guard let baseURL else { throw BackendClientError.invalidURL }
+        let url = baseURL.appendingPathComponent(
+            path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         )
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let apiKey {
+            request.setValue(apiKey, forHTTPHeaderField: "x-foreman-api-key")
+        }
+        if let sessionToken {
+            request.setValue(sessionToken, forHTTPHeaderField: "x-session-token")
+        }
+        return request
+    }
+
+    func startSession(
+        jobType: String,
+        worker: String?,
+        consentAt: String?
+    ) async throws -> SessionRow {
+        var request = try makeRequest(path: "/sessions/start", method: "POST")
+        var body: [String: Any] = ["jobType": jobType]
+        if let worker, !worker.isEmpty { body["worker"] = worker }
+        if let consentAt { body["consentAt"] = consentAt }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+
+        struct StartResponse: Decodable {
+            let session: SessionRow
+            let token: String?
+        }
+        let decoded = try decoder.decode(StartResponse.self, from: data)
+        // Capture the HMAC session token so analyse/stop authenticate.
+        sessionToken = decoded.token
+        return decoded.session
     }
 
     func analyseFrame(
         image: UIImage,
         sessionId: String,
+        jobType: String,
         recentTranscript: [String] = []
     ) async throws -> CoachingResponse {
-        guard let baseURL else { throw BackendClientError.invalidURL }
-
-        guard
-            let jpeg = image.jpegData(compressionQuality: 0.8)
-        else {
+        guard let jpeg = image.jpegData(compressionQuality: 0.7) else {
             throw BackendClientError.badResponse("Could not encode frame.")
         }
-
-        let base64 = jpeg.base64EncodedString()
-        let imagePayload = "data:image/jpeg;base64,\(base64)"
+        let imagePayload = "data:image/jpeg;base64,\(jpeg.base64EncodedString())"
 
         var body: [String: Any] = [
             "image": imagePayload,
             "sessionId": sessionId,
-            "context": [
-                "jobType": "solar_install",
-            ],
+            "context": ["jobType": jobType],
         ]
-
         if !recentTranscript.isEmpty {
             body["recentTranscript"] = recentTranscript
         }
 
-        let url = baseURL.appendingPathComponent("analyse")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var request = try makeRequest(path: "/analyse", method: "POST")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -82,16 +109,14 @@ final class BackendClient {
         struct AnalyseResponse: Decodable {
             let coaching: CoachingResponse
         }
-
         return try decoder.decode(AnalyseResponse.self, from: data).coaching
     }
 
     func stopSession(sessionId: String) async throws -> (SessionRow, SessionCounts) {
-        guard let baseURL else { throw BackendClientError.invalidURL }
-
-        let url = baseURL.appendingPathComponent("sessions/\(sessionId)/stop")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        let request = try makeRequest(
+            path: "/sessions/\(sessionId)/stop",
+            method: "POST"
+        )
 
         let (data, response) = try await URLSession.shared.data(for: request)
         try validate(response: response, data: data)
@@ -100,36 +125,9 @@ final class BackendClient {
             let session: SessionRow
             let stored: SessionCounts
         }
-
         let decoded = try decoder.decode(StopResponse.self, from: data)
+        sessionToken = nil
         return (decoded.session, decoded.stored)
-    }
-
-    private func post<T: Decodable>(
-        path: String,
-        body: [String: Any],
-        responseKey: String
-    ) async throws -> T {
-        guard let baseURL else { throw BackendClientError.invalidURL }
-
-        let url = baseURL.appendingPathComponent(path.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        try validate(response: response, data: data)
-
-        guard
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let payload = json[responseKey]
-        else {
-            throw BackendClientError.badResponse("Missing \(responseKey) in response.")
-        }
-
-        let payloadData = try JSONSerialization.data(withJSONObject: payload)
-        return try decoder.decode(T.self, from: payloadData)
     }
 
     private func validate(response: URLResponse, data: Data) throws {

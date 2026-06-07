@@ -41,6 +41,20 @@ struct ContentView: View {
             .task {
                 await connectionViewModel.start()
             }
+            .onChange(of: connectionViewModel.isReady) { ready in
+                // Hands-free: once consent is given and the glasses are connected,
+                // start coaching automatically — no taps on a screenless device.
+                if ready, hasConsented, !isJobActive, !isSummarising,
+                    endedSession == nil {
+                    Task { await startJob() }
+                }
+            }
+            .onChange(of: hasConsented) { consented in
+                if consented, connectionViewModel.isReady, !isJobActive,
+                    endedSession == nil {
+                    Task { await startJob() }
+                }
+            }
         }
     }
 
@@ -110,10 +124,10 @@ struct ContentView: View {
     }
 
     private var consentText: String {
-        if DeviceMode.useMockDevice {
-            return "Foreman uses a mock glasses feed (your phone camera) during development. Footage is sent to our backend for analysis. Do not start without consent from everyone in view."
-        }
-        return "Foreman streams live video from your Meta glasses to our backend for coaching. Do not start without consent from everyone in view."
+        let source = DeviceMode.useMockDevice
+            ? "your phone camera (mock glasses feed)"
+            : "your Meta glasses"
+        return "Foreman watches the job through \(source) and coaches you out loud — flagging safety and quality issues and keeping a secure record of the job. Footage is stored securely and never shared publicly. Make sure everyone in view is OK with being recorded."
     }
 
     private var controls: some View {
@@ -136,6 +150,8 @@ struct ContentView: View {
         endedSession = nil
         storedCounts = nil
         isJobActive = true
+        streamViewModel.jobType = "solar_install"
+        streamViewModel.consentAt = ISO8601DateFormatter().string(from: Date())
         await streamViewModel.startJob()
         if streamViewModel.errorMessage != nil {
             isJobActive = false

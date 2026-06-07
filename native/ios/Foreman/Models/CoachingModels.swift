@@ -12,12 +12,20 @@ struct CoachingFlag: Codable, Identifiable {
     let severity: CoachingSeverity
 }
 
+struct SpokenCue: Codable {
+    let say: String
+    let severity: CoachingSeverity
+    let speak: Bool
+}
+
 struct CoachingResponse: Codable {
     let observations: [String]
     let installQualityFlags: [CoachingFlag]
     let salesPitchFeedback: [CoachingFlag]
     let timeOnTaskNote: String
     let nextSteps: [String]
+    /// Ear-first single line to say on glasses (optional; see shared coaching schema).
+    let spokenCue: SpokenCue?
 }
 
 struct SessionRow: Codable, Identifiable {

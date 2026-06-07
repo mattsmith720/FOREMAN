@@ -4,6 +4,8 @@
 <dict>
 	<key>BACKEND_API_URL</key>
 	<string>$(BACKEND_API_URL)</string>
+	<key>FOREMAN_API_KEY</key>
+	<string>$(FOREMAN_API_KEY)</string>
 	<key>FOREMAN_USE_MOCK_DEVICE</key>
 	<string>$(FOREMAN_USE_MOCK_DEVICE)</string>
 	<key>CFBundleDevelopmentRegion</key>
