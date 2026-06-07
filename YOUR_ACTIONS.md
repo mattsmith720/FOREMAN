@@ -156,7 +156,7 @@ BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY=$FOREMAN_API_KEY 
 2. If Render has been idle, wait ~30–60s on first coaching tap (free-tier cold start); the boot screen shows **Waking Foreman…** while it pre-warms
 3. Read the consent copy on the boot screen, pick a job phase — **Survey**, **Install**, or **Pitch**
 4. Optional: enter your name (remembered on this device)
-5. Tap **I understand — start coaching** (one tap — consent + start) → allow **camera** and **microphone**
+5. Tap **I understand — start job** (one tap — consent + start) → allow **camera** and **microphone**
 6. Confirm the red **REC** badge appears top-left; try **Pause job** / **Resume job** (badge turns amber **PAUSED**)
 7. Point camera at a scene and talk through what you're doing
 
@@ -190,7 +190,7 @@ npm run dev:phone
 ```
 
 3. On iPhone Safari → **`https://YOUR-MAC-IP:3000`** (script prints IP, e.g. `https://192.168.0.88:3000`).
-4. Accept certificate warning → pick a phase → tap **I understand — start coaching**.
+4. Accept certificate warning → pick a phase → tap **I understand — start job**.
 
 This does **not** work on cellular or a different network.
 
