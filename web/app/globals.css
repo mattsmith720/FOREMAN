@@ -360,6 +360,7 @@ body {
   background: transparent;
   color: var(--muted);
   font-size: 0.75rem;
+  min-height: 2.75rem;
   cursor: pointer;
 }
 
@@ -455,6 +456,7 @@ body {
   color: #e2e8f0;
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
+  min-height: 2.75rem;
   font-size: 0.72rem;
   cursor: pointer;
 }
