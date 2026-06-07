@@ -108,17 +108,7 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
           return (
             <li
               key={`${item.category}-${index}`}
-              className={`review-item sev-${item.severity}`}
-              style={
-                isCorrecting
-                  ? {
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "stretch",
-                      gap: "0.5rem",
-                    }
-                  : undefined
-              }
+              className={`review-item sev-${item.severity}${isCorrecting ? " review-item-correcting" : ""}`}
             >
               <span className="review-cat">{item.category}</span>
               <span className="review-msg">{item.message}</span>
@@ -127,7 +117,7 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
               ) : state === "corrected" ? (
                 <span className="review-done">✓ Corrected</span>
               ) : isCorrecting ? (
-                <div className="review-notes" style={{ marginTop: 0 }}>
+                <div className="review-correction">
                   <label htmlFor={`correct-${index}`}>
                     What should the coaching have said?
                   </label>

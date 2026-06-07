@@ -944,22 +944,21 @@ export function CameraCoach() {
       </div>
 
       {endedSession && storedCounts && (
-        <>
-          <SessionSummary
-            session={endedSession}
-            stored={storedCounts}
-            onStartNew={() => {
-              clearSessionToken();
-              setEndedSession(null);
-              setStoredCounts(null);
-              setErrorMessage(null);
-              setWarningMessage(null);
-              setStatus("idle");
-              setIsPaused(false);
-            }}
-          />
+        <SessionSummary
+          session={endedSession}
+          stored={storedCounts}
+          onStartNew={() => {
+            clearSessionToken();
+            setEndedSession(null);
+            setStoredCounts(null);
+            setErrorMessage(null);
+            setWarningMessage(null);
+            setStatus("idle");
+            setIsPaused(false);
+          }}
+        >
           <PostJobReview sessionId={endedSession.id} />
-        </>
+        </SessionSummary>
       )}
 
       {errorMessage && (
@@ -986,6 +985,7 @@ export function CameraCoach() {
         onResumeJobAudio={() => void resumeJobAudio()}
       />
 
+      {!endedSession && (
       <footer className="controls">
         {activeSessionId && status !== "summarising" && (
           <button
@@ -1026,6 +1026,7 @@ export function CameraCoach() {
           </button>
         )}
       </footer>
+      )}
     </div>
   );
 }

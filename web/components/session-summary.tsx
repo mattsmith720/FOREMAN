@@ -1,15 +1,18 @@
+import type { ReactNode } from "react";
 import type { SessionCounts, SessionRow } from "../lib/sessions";
 
 interface SessionSummaryProps {
   session: SessionRow;
   stored: SessionCounts;
   onStartNew?: () => void;
+  children?: ReactNode;
 }
 
 export function SessionSummary({
   session,
   stored,
   onStartNew,
+  children,
 }: SessionSummaryProps) {
   const summaryFailed =
     session.summary?.startsWith("Summarising job") ?? false;
@@ -46,6 +49,8 @@ export function SessionSummary({
         </ul>
         <p className="session-id">Session {session.id.slice(0, 8)}</p>
       </div>
+      {children}
+
       {onStartNew && (
         <button type="button" className="button button-primary summary-new-job" onClick={onStartNew}>
           Start new job
