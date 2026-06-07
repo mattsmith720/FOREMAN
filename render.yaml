@@ -20,7 +20,10 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ANTHROPIC_MODEL
-        value: claude-sonnet-4-20250514
+        # claude-sonnet-4-20250514 is deprecated (EOL 2026-06-15). Verify this
+        # value is applied on the Render dashboard — a running service does not
+        # always pick up blueprint env changes automatically.
+        value: claude-sonnet-4-6
       - key: OPENAI_API_KEY
         sync: false
       - key: SUPABASE_URL
@@ -46,4 +49,6 @@ services:
       - key: AUDIO_PERSIST
         value: "false"
       - key: ANTHROPIC_MAX_TOKENS
-        value: "512"
+        # 512/1024 truncate claude-sonnet-4-6's JSON -> empty fallback coaching.
+        # Verify on the Render dashboard (blueprint env may not auto-apply).
+        value: "1500"

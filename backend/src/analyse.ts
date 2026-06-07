@@ -16,8 +16,15 @@ import {
 } from "./prompts/analysis.js";
 import { maxCalloutsForPhase } from "./prompts/analysis-phases.js";
 
-const DEFAULT_MODEL = "claude-sonnet-4-20250514";
-const DEFAULT_MAX_TOKENS = 512;
+// claude-sonnet-4-20250514 is deprecated (EOL 2026-06-15). Default to the
+// current Sonnet; override per-env with ANTHROPIC_MODEL (e.g. Haiku for lower
+// latency/cost — compare quality with `npm run eval-coaching`).
+const DEFAULT_MODEL = "claude-sonnet-4-6";
+// 512/1024 truncated the current Sonnet's richer JSON mid-response (esp. pitch
+// frames with several feedback items) -> parse fallback -> empty coaching. 1500
+// clears the full schema. Output tokens are billed only when generated, so a
+// higher ceiling adds no cost/latency on shorter replies — it just prevents truncation.
+const DEFAULT_MAX_TOKENS = 1500;
 const MAX_RETRIES = 3;
 
 type ImageMediaType = (typeof ALLOWED_IMAGE_MIME_TYPES)[number];
