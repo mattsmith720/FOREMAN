@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@foreman/shared"],
+  eslint: {
+    // Lint runs as its own gate (npm run lint / CI), decoupled from the
+    // production build so a lint finding can never block a deploy.
+    ignoreDuringBuilds: true,
+  },
   async headers() {
     return [
       {

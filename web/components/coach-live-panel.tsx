@@ -164,7 +164,7 @@ export function CoachLivePanel({
     } finally {
       setAsking(false);
     }
-  }, [asking, recentTranscript, sessionId]);
+  }, [asking, jobType, recentTranscript, sessionId]);
 
   const startAskRecording = useCallback(() => {
     if (!mediaStream || asking) {

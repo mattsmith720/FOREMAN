@@ -1,0 +1,30 @@
+name: ci
+
+# Build + lint (ESLint incl. jsx-a11y, zero warnings) + tests on every push to
+# main and every PR. Catches type, a11y, and behaviour regressions before they
+# reach the Vercel/Render deploys (which build from main).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Build (shared -> backend -> web)
+        run: npm run build
+      - name: Lint web (eslint + jsx-a11y, no warnings)
+        run: npm run lint --workspace web
+      - name: Backend tests
+        run: npm test --workspace backend
+      - name: Web tests
+        run: npm test --workspace web
