@@ -61,6 +61,8 @@ final class BackendClient {
         worker: String?,
         consentAt: String?
     ) async throws -> SessionRow {
+        // Drop any stale token from a prior job before issuing a fresh one.
+        sessionToken = nil
         var request = try makeRequest(path: "/sessions/start", method: "POST")
         var body: [String: Any] = ["jobType": jobType]
         if let worker, !worker.isEmpty { body["worker"] = worker }
@@ -84,7 +86,8 @@ final class BackendClient {
         image: UIImage,
         sessionId: String,
         jobType: String,
-        recentTranscript: [String] = []
+        recentTranscript: [String] = [],
+        captureMeta: CaptureMeta? = nil
     ) async throws -> CoachingResponse {
         guard let jpeg = image.jpegData(compressionQuality: 0.7) else {
             throw BackendClientError.badResponse("Could not encode frame.")
@@ -98,6 +101,11 @@ final class BackendClient {
         ]
         if !recentTranscript.isEmpty {
             body["recentTranscript"] = recentTranscript
+        }
+        if let captureMeta,
+           let metaData = try? JSONEncoder().encode(captureMeta),
+           let metaObject = try? JSONSerialization.jsonObject(with: metaData) {
+            body["captureMeta"] = metaObject
         }
 
         var request = try makeRequest(path: "/analyse", method: "POST")
@@ -151,7 +159,23 @@ final class BackendClient {
             let stored: SessionCounts
         }
         let decoded = try decoder.decode(StopResponse.self, from: data)
-        sessionToken = nil
+        // Keep the session token alive after stop so post-job review can read the
+        // session and confirm labels. Cleared when the worker starts a new job.
+        return (decoded.session, decoded.stored)
+    }
+
+    /// Fetch a stopped session for post-job review (requires the session token from start).
+    func getSession(sessionId: String) async throws -> (SessionRow, SessionCounts) {
+        let request = try makeRequest(path: "/sessions/\(sessionId)", method: "GET")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+
+        struct GetResponse: Decodable {
+            let session: SessionRow
+            let stored: SessionCounts
+        }
+        let decoded = try decoder.decode(GetResponse.self, from: data)
         return (decoded.session, decoded.stored)
     }
 

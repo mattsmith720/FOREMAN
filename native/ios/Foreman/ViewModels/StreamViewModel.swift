@@ -148,11 +148,18 @@ final class StreamViewModel: ObservableObject {
         defer { isAnalysing = false }
 
         do {
+            let captureMeta = CaptureMeta(
+                capturedAt: ISO8601DateFormatter().string(from: now),
+                lat: nil,
+                lng: nil,
+                complianceShotId: nil
+            )
             let result = try await backend.analyseFrame(
                 image: image,
                 sessionId: sessionId,
                 jobType: jobType,
-                recentTranscript: Array(transcript.suffix(6))
+                recentTranscript: Array(transcript.suffix(6)),
+                captureMeta: captureMeta
             )
             coaching = result
             speakCue(result)
