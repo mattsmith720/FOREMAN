@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { analyseFrame } from "../lib/analyse";
 import {
   initCoachVoice,
@@ -33,6 +33,15 @@ export function HudCoach() {
     "info",
   );
   const [error, setError] = useState<string | null>(null);
+
+  // Release the camera + stop the capture/analyse loop when the HUD unmounts
+  // (route change) — otherwise the stream stays live and keeps hitting /analyse.
+  useEffect(() => {
+    return () => {
+      void sourceRef.current?.stop();
+      sourceRef.current = null;
+    };
+  }, []);
 
   const handleFrame = useCallback(async (image: string) => {
     if (analysingRef.current) {
