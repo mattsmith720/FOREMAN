@@ -25,6 +25,12 @@ service-account*.json
 *.log
 npm-debug.log*
 
+# python bytecode (build-whisper-dataset.py) + training export output
+__pycache__/
+*.pyc
+backend/exports/
+exports/
+
 # agent skills (local tooling, not needed for deploy)
 .agents/
 skills-lock.json
