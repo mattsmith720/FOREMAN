@@ -6,12 +6,10 @@ import { analyseFrame } from "../lib/analyse";
 import { checkApiHealth } from "../lib/health";
 import {
   initCoachVoice,
-  isCoachVoiceAvailable,
   setCoachVoiceEnabled,
   speakCoachLine,
   unlockCoachVoice,
 } from "../lib/coach-voice";
-import { fetchVoiceConfig, type VoiceConfig } from "../lib/voice-config";
 import {
   createActivity,
   type ActivityItem,
@@ -32,7 +30,6 @@ import {
   releaseWakeLock,
   requestWakeLock,
 } from "../lib/wake-lock";
-import { CoachAnnotations } from "./coach-annotations";
 import { CoachOverlay } from "./coach-overlay";
 import { CoachScanOverlay } from "./coach-scan-overlay";
 import {
@@ -41,12 +38,14 @@ import {
 } from "./capture-health";
 import { endLiveCoach } from "../lib/coach-live";
 import { syncLiveVisionContext } from "../lib/live-vision-sync";
-import { CoachLivePanel } from "./coach-live-panel";
 import {
   DEFAULT_JOB_PHASE,
   JobPhasePicker,
 } from "./job-phase-picker";
-import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
+import {
+  MAINTENANCE_JOB_PHASES,
+  type JobPhaseId,
+} from "../lib/job-phase";
 import {
   applyComplianceEvidence,
   buildInstallCaptureMeta,
@@ -89,7 +88,6 @@ import {
   type OfflineUiState,
 } from "../lib/offline-queue";
 import { SessionSummary } from "./session-summary";
-import { PostJobReview } from "./post-job-review";
 import { clearSessionToken } from "../lib/session-auth";
 import {
   backendStatusMessage,
@@ -180,18 +178,12 @@ export function CameraCoach() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   const [healthStats, setHealthStats] = useState<CaptureHealthStats>(EMPTY_HEALTH);
-  const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null);
-  const [voiceOn, setVoiceOn] = useState(true);
   const [backendStatus, setBackendStatus] = useState<BackendStatus>("unknown");
   const [workerName, setWorkerName] = useState("");
-  const [accreditationNumber, setAccreditationNumber] = useState("");
   const [offlineUi, setOfflineUi] = useState<OfflineUiState | null>(null);
-  const [livePanelOpen, setLivePanelOpen] = useState(false);
   const [jobPhase, setJobPhase] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
   const jobPhaseRef = useRef<JobPhaseId>(DEFAULT_JOB_PHASE);
   const workerNameRef = useRef<string>("");
-  const accreditationRef = useRef<string>("");
-
   const pushActivity = useCallback(
     (kind: ActivityItem["kind"], message: string) => {
       const item = createActivity(kind, message);
@@ -214,15 +206,11 @@ export function CameraCoach() {
     if (profile.workerName) {
       setWorkerName(profile.workerName);
     }
-    if (profile.accreditationNumber) {
-      setAccreditationNumber(profile.accreditationNumber);
-    }
     if (
-      profile.lastPhase === "site_survey" ||
-      profile.lastPhase === "solar_install" ||
-      profile.lastPhase === "customer_pitch"
+      profile.lastPhase &&
+      MAINTENANCE_JOB_PHASES.some((p) => p.id === profile.lastPhase)
     ) {
-      setJobPhase(profile.lastPhase);
+      setJobPhase(profile.lastPhase as JobPhaseId);
     }
     if (profile.consentAt && profile.consentVersion === CONSENT_VERSION) {
       consentAtRef.current = profile.consentAt;
@@ -287,33 +275,12 @@ export function CameraCoach() {
     saveWorkerProfile({ workerName: workerName.trim() });
   }, [workerName]);
 
-  useEffect(() => {
-    accreditationRef.current = accreditationNumber;
-    saveWorkerProfile({ accreditationNumber: accreditationNumber.trim() });
-  }, [accreditationNumber]);
-
   useEffect(() => startOfflineSync(), []);
   useEffect(() => subscribeOfflineUiState(setOfflineUi), []);
 
   useEffect(() => {
     setCoachVoiceEnabled(true);
-    void (async () => {
-      await initCoachVoice();
-      try {
-        const config = await fetchVoiceConfig();
-        setVoiceConfig(config);
-      } catch {
-        // Voice optional until backend is deployed with /voice routes
-      }
-    })();
-  }, []);
-
-  const toggleVoice = useCallback(() => {
-    setVoiceOn((current) => {
-      const next = !current;
-      setCoachVoiceEnabled(next);
-      return next;
-    });
+    void initCoachVoice();
   }, []);
 
   const pauseJobAudio = useCallback(async () => {
@@ -620,7 +587,6 @@ export function CameraCoach() {
   const stopJob = useCallback(async () => {
     const sessionId = sessionIdRef.current;
 
-    setLivePanelOpen(false);
     await endLiveCoach();
 
     await releaseWakeLock();
@@ -756,9 +722,8 @@ export function CameraCoach() {
       const session = await startSession({
         worker: workerNameRef.current.trim() || undefined,
         jobType: jobPhaseRef.current,
-        notes: `Phone session — ${jobPhaseLabel(jobPhaseRef.current)}`,
+        notes: `Phone session — ${jobPhaseRef.current}`,
         consentAt: consentAtRef.current ?? undefined,
-        accreditationNumber: accreditationRef.current.trim() || undefined,
       });
       sessionIdRef.current = session.id;
       setActiveSessionId(session.id);
@@ -919,44 +884,19 @@ export function CameraCoach() {
         {!isActive && !endedSession && (
           <div className="camera-placeholder boot-screen consent-overlay">
             <p className="boot-title">Foreman</p>
-            <p className="boot-tagline">Your second set of eyes on every job.</p>
             {!hasConsented && (
-              <p className="consent-copy">
-                Foreman watches the job through your camera and mic and coaches
-                you live — flagging safety and quality issues, sharpening your
-                pitch, and keeping a secure record of every job. Footage is
-                stored securely and never shared publicly. Make sure everyone in
-                view is OK with being recorded.
+              <p className="consent-copy consent-copy--short">
+                Camera and mic record this job for coaching and training. Only
+                start if everyone on site is OK with that.
               </p>
             )}
-            <p className="boot-sub">What are you doing on site?</p>
             <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
-            <input
-              className="worker-name-input"
-              type="text"
-              value={workerName}
-              onChange={(event) => setWorkerName(event.target.value)}
-              placeholder="Your name (optional, remembered)"
-              autoComplete="name"
-              aria-label="Your name"
-            />
-            <input
-              className="worker-name-input"
-              type="text"
-              value={accreditationNumber}
-              onChange={(event) => setAccreditationNumber(event.target.value)}
-              placeholder="CEC accreditation # (optional)"
-              autoComplete="off"
-              aria-label="CEC accreditation number"
-            />
             <button
               type="button"
               className="button button-primary boot-start"
               onClick={() => void beginJob()}
             >
-              {hasConsented
-                ? `Start ${jobPhaseLabel(jobPhase).toLowerCase()}`
-                : "I understand — start coaching"}
+              {hasConsented ? "Start job" : "I understand — start job"}
             </button>
             {(backendStatus === "waking" || backendStatus === "slow") && (
               <p className="boot-muted boot-waking" role="status">
@@ -981,14 +921,6 @@ export function CameraCoach() {
           </div>
         )}
 
-        {hasConsented && !endedSession && isActive && (
-          <CoachAnnotations
-            callouts={coaching?.visualCallouts ?? []}
-            activeIndex={activeCalloutIndex}
-            onSelect={setActiveCalloutIndex}
-          />
-        )}
-
         {hasConsented && !endedSession && (
           <CoachOverlay
             coaching={coaching}
@@ -1004,9 +936,8 @@ export function CameraCoach() {
             callouts={coaching?.visualCallouts ?? []}
             activeCalloutIndex={activeCalloutIndex}
             onCalloutSelect={setActiveCalloutIndex}
-            livePanelOpen={livePanelOpen}
             showPipeline={debugMode}
-            onDetailsOpen={() => setLivePanelOpen(false)}
+            minimal
           />
         )}
 
@@ -1030,9 +961,7 @@ export function CameraCoach() {
             setStatus("idle");
             setIsPaused(false);
           }}
-        >
-          <PostJobReview sessionId={endedSession.id} />
-        </SessionSummary>
+        />
       )}
 
       {errorMessage && (
@@ -1051,60 +980,17 @@ export function CameraCoach() {
         </p>
       )}
 
-      <CoachLivePanel
-        open={livePanelOpen}
-        liveAvailable={voiceConfig?.liveAvailable ?? false}
-        sessionId={activeSessionId}
-        jobType={jobPhase}
-        recentTranscript={transcriptLines}
-        coaching={coaching}
-        mediaStream={mediaStream}
-        onClose={() => setLivePanelOpen(false)}
-        onPauseJobAudio={() => void pauseJobAudio()}
-        onResumeJobAudio={() => void resumeJobAudio()}
-      />
-
-      {!endedSession && (
-      <footer className="controls">
-        {activeSessionId && status !== "summarising" && (
+      {!endedSession && activeSessionId && (
+        <footer className="controls controls--simple">
           <button
             type="button"
-            className="button button-secondary"
-            onClick={() => void (isPaused ? resumeJob() : pauseJob())}
-            aria-pressed={isPaused}
+            className="button button-primary controls-end"
+            disabled={status === "summarising"}
+            onClick={() => void stopJob()}
           >
-            {isPaused ? "Resume job" : "Pause job"}
+            End job
           </button>
-        )}
-        <button
-          type="button"
-          className="button button-secondary"
-          disabled={!activeSessionId || status === "summarising"}
-          onClick={() => void stopJob()}
-        >
-          End job
-        </button>
-        {activeSessionId && isCoachVoiceAvailable() && (
-          <button
-            type="button"
-            className={`button button-voice ${voiceOn ? "on" : ""}`}
-            onClick={toggleVoice}
-            aria-pressed={voiceOn}
-            title="ElevenLabs reads coaching cues aloud"
-          >
-            Cue voice {voiceOn ? "on" : "off"}
-          </button>
-        )}
-        {activeSessionId && voiceConfig?.liveAvailable && (
-          <button
-            type="button"
-            className={`button button-voice ${livePanelOpen ? "on" : ""}`}
-            onClick={() => setLivePanelOpen((open) => !open)}
-          >
-            {livePanelOpen ? "End talk" : "Talk live"}
-          </button>
-        )}
-      </footer>
+        </footer>
       )}
     </div>
   );

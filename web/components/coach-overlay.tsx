@@ -26,6 +26,8 @@ interface CoachOverlayProps {
   livePanelOpen?: boolean;
   showPipeline?: boolean;
   onDetailsOpen?: () => void;
+  /** Field mode: coaching card only, no chrome. */
+  minimal?: boolean;
 }
 
 function pickHeroCue(
@@ -352,6 +354,7 @@ export function CoachOverlay({
   livePanelOpen = false,
   showPipeline = false,
   onDetailsOpen,
+  minimal = false,
 }: CoachOverlayProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [manualCueIndex, setManualCueIndex] = useState(0);
@@ -407,7 +410,7 @@ export function CoachOverlay({
   return (
     <>
       <div className="coach-overlay" aria-live="polite">
-        {isWatching && (
+        {isWatching && !minimal && (
           <header className="coach-top coach-top-minimal">
             <span className="coach-phase-chip">{jobPhaseLabel(jobPhase)}</span>
             <span
@@ -460,7 +463,7 @@ export function CoachOverlay({
             </p>
           </button>
 
-          {isWatching && (
+          {isWatching && !minimal && (
             <button
               type="button"
               className={`toolbar-btn details-btn ${detailsOpen ? "active" : ""} ${hasDetails ? "has-data" : ""}`}
@@ -474,7 +477,7 @@ export function CoachOverlay({
       </div>
 
       <CoachDetailPanel
-        open={detailsOpen}
+        open={!minimal && detailsOpen}
         title="Job details"
         onClose={() => setDetailsOpen(false)}
       >

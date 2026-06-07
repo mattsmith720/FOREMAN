@@ -1,12 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
-  <rect width="400" height="400" fill="#f5f1eb"/>
-  <rect width="400" height="3" fill="#ff6b00"/>
-  <rect x="24" y="24" width="352" height="352" rx="10" fill="#fffefb" stroke="#1a1a1e" stroke-width="1.5" stroke-opacity="0.15"/>
-  <text x="48" y="72" fill="#ff6b00" font-family="system-ui,sans-serif" font-size="12" font-weight="700" letter-spacing="0.1em">F1</text>
-  <text x="48" y="108" fill="#1a1a1e" font-family="system-ui,sans-serif" font-size="22" font-weight="700">Voice Capture</text>
-  <rect x="48" y="130" width="120" height="6" rx="3" fill="#ff6b00" opacity="0.85"/>
-  <rect x="48" y="160" width="280" height="8" rx="4" fill="#1a1a1e" opacity="0.06"/>
-  <rect x="48" y="180" width="220" height="8" rx="4" fill="#1a1a1e" opacity="0.06"/>
-  <rect x="48" y="220" width="304" height="120" rx="8" fill="#ebe5dc" stroke="#1a1a1e" stroke-width="1" stroke-opacity="0.08"/>
-  <text x="64" y="252" fill="#5c5c66" font-size="11" font-family="system-ui">Notebook LM placeholder</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none" role="img" aria-label="Record maintenance visits into a private training library">
+  <rect width="1200" height="800" fill="#0d1117"/>
+  <rect width="1200" height="4" fill="#22d3ee"/>
+  <text x="60" y="72" fill="#e2e8f0" font-family="system-ui,sans-serif" font-size="32" font-weight="700">Record Real Jobs</text>
+  <text x="60" y="112" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="22">Your footage becomes your training library</text>
+
+  <!-- Left: tradie on roof -->
+  <rect x="60" y="160" width="480" height="560" rx="16" fill="#111820" stroke="#e2e8f0" stroke-width="2" stroke-opacity="0.1"/>
+  <path d="M120 520 L300 360 L480 520 Z" fill="#161f2c" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="180" y="520" width="240" height="140" fill="#111820" stroke="#e2e8f0" stroke-width="2"/>
+  <circle cx="260" cy="440" r="32" fill="#64748b" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="232" y="472" width="56" height="72" rx="6" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="300" y="500" width="44" height="64" rx="8" stroke="#e2e8f0" stroke-width="2" fill="#0d1117"/>
+  <circle cx="322" cy="518" r="5" fill="#e2e8f0"/>
+  <!-- Sound waves -->
+  <path d="M380 420c20-20 50-20 70 0" stroke="#22d3ee" stroke-width="3" fill="none"/>
+  <path d="M395 420c12-12 30-12 42 0" stroke="#22d3ee" stroke-width="2" fill="none"/>
+  <text x="120" y="640" fill="#94a3b8" font-family="system-ui" font-size="18">Phone in pocket · hands on the job</text>
+
+  <!-- Right: dataset -->
+  <rect x="580" y="160" width="560" height="560" rx="16" fill="#111820" stroke="#e2e8f0" stroke-width="2" stroke-opacity="0.1"/>
+  <text x="620" y="220" fill="#e2e8f0" font-family="system-ui" font-size="22" font-weight="700">Private dataset</text>
+
+  <rect x="620" y="250" width="480" height="56" rx="8" fill="#0d1117" stroke="#e2e8f0" stroke-width="1.5" stroke-opacity="0.1"/>
+  <circle cx="650" cy="278" r="10" fill="#0e9b8a"/>
+  <text x="675" y="284" fill="#e2e8f0" font-family="system-ui" font-size="18">Frames + coaching labels</text>
+
+  <rect x="620" y="320" width="480" height="56" rx="8" fill="#0d1117" stroke="#e2e8f0" stroke-width="1.5" stroke-opacity="0.1"/>
+  <circle cx="650" cy="348" r="10" fill="#0e9b8a"/>
+  <text x="675" y="354" fill="#e2e8f0" font-family="system-ui" font-size="18">Audio + transcripts</text>
+
+  <rect x="620" y="390" width="480" height="56" rx="8" fill="#0d1117" stroke="#e2e8f0" stroke-width="1.5" stroke-opacity="0.1"/>
+  <circle cx="650" cy="418" r="10" fill="#0e9b8a"/>
+  <text x="675" y="424" fill="#e2e8f0" font-family="system-ui" font-size="18">Job type · worker · timestamps</text>
+
+  <rect x="620" y="480" width="480" height="200" rx="10" fill="#161f2c" stroke="#e2e8f0" stroke-width="1.5" stroke-opacity="0.08"/>
+  <text x="650" y="530" fill="#e2e8f0" font-family="system-ui" font-size="20" font-weight="600">Export for model training</text>
+  <text x="650" y="570" fill="#94a3b8" font-family="system-ui" font-size="17">train.jsonl · val.jsonl · whisper manifest</text>
+  <rect x="650" y="600" width="180" height="44" rx="22" fill="#22d3ee"/>
+  <text x="740" y="630" text-anchor="middle" fill="#e2e8f0" font-family="system-ui" font-size="16" font-weight="700">Your data · your model</text>
 </svg>

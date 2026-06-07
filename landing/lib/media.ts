@@ -1,11 +1,9 @@
 /**
- * Landing visual assets. Swap infographics in public/assets/infographics/
- * without touching page copy. See docs/landing/NOTEBOOKLM_IMAGE_BRIEF.md
+ * Landing visual assets — editorial SVG infographics in public/assets/infographics/.
+ * Dark ops palette — cyan accent (#22d3ee), no orange.
  */
 
 const INFO = "/assets/infographics";
-
-/** Swap `.svg` → `.png` when Notebook LM exports land (same basename). */
 export const media = {
   hero: {
     src: `${INFO}/hero-job-flow.svg`,

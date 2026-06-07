@@ -130,7 +130,7 @@ export function LandingVisual({
         .lp-visual__skeleton-accent {
           flex-shrink: 0;
           height: 3px;
-          background: var(--accent, #ff6b00);
+          background: var(--accent, #22d3ee);
           opacity: 0.45;
         }
 
@@ -145,7 +145,7 @@ export function LandingVisual({
         .lp-visual__skeleton-block {
           display: block;
           border-radius: var(--radius-md, 0.75rem);
-          background: rgb(26 26 30 / 0.06);
+          background: rgb(10 22 40 / 0.06);
           min-height: 2.5rem;
         }
 
@@ -206,16 +206,16 @@ export function LandingVisual({
           padding: 2rem 1.5rem;
           text-align: center;
           background: var(--bg-card, #fffefb);
-          border: 1px solid var(--border-strong, rgb(26 26 30 / 0.18));
-          border-top: 3px solid var(--accent, #ff6b00);
+          border: 1px solid var(--border-strong, rgb(10 22 40 / 0.18));
+          border-top: 3px solid var(--accent, #22d3ee);
           border-radius: var(--radius-xl, 1.25rem);
-          box-shadow: var(--shadow-card, 0 1px 0 rgb(26 26 30 / 0.04), 0 8px 32px rgb(26 26 30 / 0.06));
+          box-shadow: var(--shadow-card, 0 1px 0 rgb(10 22 40 / 0.04), 0 8px 32px rgb(10 22 40 / 0.07));
         }
 
         .lp-visual__icon {
           width: 2.75rem;
           height: 2.75rem;
-          color: var(--accent, #ff6b00);
+          color: var(--accent, #22d3ee);
           opacity: 0.85;
         }
 
@@ -224,13 +224,13 @@ export function LandingVisual({
           font-family: var(--font-display, Georgia, serif);
           font-size: 1rem;
           font-weight: 600;
-          color: var(--text, #1a1a1e);
+          color: var(--text, #0a1628);
         }
 
         .lp-visual__fallback-caption {
           font-size: 0.8125rem;
           line-height: 1.45;
-          color: var(--ink-faint, rgb(26 26 30 / 0.55));
+          color: var(--ink-faint, rgb(10 22 40 / 0.55));
           max-width: 32ch;
         }
 

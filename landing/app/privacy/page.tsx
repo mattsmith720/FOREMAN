@@ -57,7 +57,7 @@ export default function PrivacyPage() {
             </h1>
             <p className="lp-section-lede">
               A plain-language summary of how Foreman handles sensitive job data during
-              the SolarShield maintenance pilot. Last updated {site.year}.
+              the maintenance pilot. Last updated {site.year}.
             </p>
 
             <div className="lp-legal-body">

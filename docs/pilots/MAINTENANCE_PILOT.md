@@ -1,6 +1,6 @@
-# SolarShield pilot · Foreman
+# Maintenance pilot · Foreman
 
-**Partner:** [SolarShield](https://www.solarshieldau.com.au/) · Brisbane solar maintenance  
+**Focus:** Brisbane solar maintenance crews  
 **Primary value:** Turn field video into proprietary training data and auto-built onboarding packages  
 **Status:** Private pilot
 
@@ -19,10 +19,10 @@ Foreman delivers that loop:
 
 ---
 
-## SolarShield services in Foreman
+## Maintenance services in Foreman
 
-| Job type in app | SolarShield service |
-|-----------------|---------------------|
+| Job type in app | Service |
+|-----------------|---------|
 | `panel_clean` | Solar panel cleaning, Debris-Block, annual plans |
 | `pigeon_proofing` | Nest removal, mesh, repellent |
 | `thermal_scan` | Thermal imaging, hotspot reports |
@@ -54,7 +54,7 @@ Foreman delivers that loop:
 
 ### Phase 4 · Model training (ongoing)
 
-- Whisper fine-tune on SolarShield audio (see `docs/WHISPER_FINETUNE.md`)
+- Whisper fine-tune on crew audio (see `docs/WHISPER_FINETUNE.md`)
 - Vision labels accumulate session by session
 - Continual export via `scripts/training-pipeline.sh`
 
@@ -66,7 +66,7 @@ Foreman delivers that loop:
 |---------|-----|
 | Web coach + ingest | https://foreman-phi.vercel.app |
 | Training module generator | https://foreman-phi.vercel.app/training |
-| Landing (SolarShield positioning) | https://landing-lac-mu.vercel.app |
+| Landing | https://landing-lac-mu.vercel.app |
 | API | https://foreman-api-y31r.onrender.com |
 
 ---
@@ -103,7 +103,7 @@ Requires a session with frames or transcript (from live job or ingest).
 
 - Consent overlay before any capture (AU wording)
 - `pilot_90d` retention default until legal sign-off
-- SolarShield data isolated; not mixed with other operators without consent
+- Operator data isolated; not mixed with other crews without consent
 
 ---
 
@@ -112,4 +112,4 @@ Requires a session with frames or transcript (from live job or ingest).
 - Fully automated model training (export + manual fine-tune steps first)
 - Customer-facing branded PDF packs (modules are web/JSON today)
 - Smart glasses (phone-first; glasses path unchanged on roadmap)
-- Install / CER compliance (maintenance focus only for SolarShield)
+- Install / CER compliance (maintenance focus only)

@@ -14,7 +14,7 @@ const ITEMS = [
     a: "Foreman is an AI layer for solar maintenance crews. It runs on the phone during real jobs, coaches technique and safety on the roof, and turns visit footage into structured training data and onboarding modules.",
   },
   {
-    q: "How does this help SolarShield scale?",
+    q: "How does this help us scale?",
     a: "Your best techs record gold-standard visits once. Foreman extracts steps, safety notes, and common mistakes into training packages new hires follow · without the owner on every roof.",
   },
   {

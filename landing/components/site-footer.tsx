@@ -66,7 +66,7 @@ export function SiteFooter() {
             © {site.year} {site.name} · A {site.company} product · {site.location}
           </p>
           <p className="lp-footer-fine">
-            Piloting with SolarShield · consent-first recording · private training data
+            Consent-first recording · private training data
           </p>
         </div>
       </div>

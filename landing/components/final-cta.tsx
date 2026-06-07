@@ -12,7 +12,7 @@ export function FinalCta() {
             </h2>
             <p className="lp-final-sub">
               Book a demo. We run a live maintenance visit on the phone and generate your
-              first training module from SolarShield footage.
+              first training module from your own footage.
             </p>
           </div>
         </ScrollReveal>

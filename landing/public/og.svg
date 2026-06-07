@@ -1,31 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
-  <defs>
-    <linearGradient id="band" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a1a1e"/>
-      <stop offset="100%" stop-color="#121214"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="1200" height="630" fill="#f5f1eb"/>
-  <rect width="1200" height="112" fill="url(#band)"/>
-  <rect y="112" width="1200" height="4" fill="#ff6b00"/>
-
-  <text x="80" y="72" font-family="Georgia, 'Times New Roman', serif" font-size="44" font-weight="600" letter-spacing="-0.02em">
-    <tspan fill="#f5f1eb">Fore</tspan><tspan fill="#ff6b00">man</tspan>
+  <rect width="1200" height="630" fill="#0a0e14"/>
+  <rect width="1200" height="3" fill="#22d3ee" opacity="0.6"/>
+  <text x="80" y="100" font-family="ui-monospace, monospace" font-size="40" font-weight="600" letter-spacing="-0.02em">
+    <tspan fill="#e2e8f0">Fore</tspan><tspan fill="#22d3ee">man</tspan>
   </text>
-
-  <text x="80" y="248" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="600" fill="#1a1a1e" letter-spacing="-0.03em">
-    <tspan x="80" dy="0">Compliance execution</tspan>
-    <tspan x="80" dy="68">for solar install crews</tspan>
+  <text x="80" y="280" font-family="ui-monospace, monospace" font-size="52" font-weight="600" fill="#e2e8f0" letter-spacing="-0.03em">
+    <tspan x="80" dy="0">Job footage in.</tspan>
+    <tspan x="80" dy="62">Trained crews out.</tspan>
   </text>
-
-  <text x="80" y="420" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="26" fill="#5c5c66" letter-spacing="0.01em">
-    Voice-guided evidence &#183; real-time defect coaching
+  <text x="80" y="420" font-family="ui-monospace, monospace" font-size="22" fill="#94a3b8">
+    field_intelligence :: maintenance_crews
   </text>
-
-  <rect x="80" y="480" width="228" height="52" rx="26" fill="#ff6b00"/>
-  <text x="194" y="513" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="20" font-weight="700" fill="#fffefb" letter-spacing="0.04em">foreman.tech</text>
-
-  <rect x="1080" y="520" width="40" height="4" fill="#ff6b00" opacity="0.35"/>
-  <rect x="1120" y="480" width="4" height="40" fill="#ff6b00" opacity="0.35"/>
+  <rect x="80" y="480" width="240" height="48" rx="6" fill="#111820" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="200" y="512" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" font-weight="600" fill="#22d3ee">foreman.tech</text>
 </svg>

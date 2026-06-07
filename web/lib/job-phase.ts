@@ -73,7 +73,7 @@ export const INSTALL_JOB_PHASES: JobPhaseOption[] = [
   },
 ];
 
-/** Maintenance first for the SolarShield pilot; install phases kept for other crews. */
+/** Maintenance first for the pilot; install phases kept for other crews. */
 export const JOB_PHASES: JobPhaseOption[] = [
   ...MAINTENANCE_JOB_PHASES,
   ...INSTALL_JOB_PHASES,

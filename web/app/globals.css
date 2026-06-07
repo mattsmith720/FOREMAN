@@ -283,6 +283,47 @@ body {
   color: var(--muted);
 }
 
+.job-phase-picker--simple {
+  flex-flow: row wrap;
+  flex-direction: row;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.job-phase-picker--simple .job-phase-option {
+  flex: 1 1 calc(50% - 0.25rem);
+  min-width: 7rem;
+  padding: 0.65rem 0.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.consent-copy--short {
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.controls--simple {
+  justify-content: center;
+  padding-top: 0.75rem;
+  padding-bottom: calc(0.85rem + env(safe-area-inset-bottom));
+}
+
+.controls--simple .controls-end {
+  flex: 1;
+  max-width: 20rem;
+  min-height: 3rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.summary-panel--simple .stored-counts,
+.summary-panel--simple .session-id {
+  display: none;
+}
+
 .coach-dock {
   margin-top: auto;
   pointer-events: auto;

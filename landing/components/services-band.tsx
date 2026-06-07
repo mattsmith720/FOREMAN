@@ -1,4 +1,4 @@
-/** SolarShield maintenance services covered in the pilot. */
+/** Maintenance services covered in the pilot. */
 
 const SERVICES = [
   {
@@ -36,14 +36,14 @@ export function ServicesBand() {
     >
       <div className="lp-wrap lp-cer-inner">
         <header className="lp-cer-intro">
-          <p className="lp-cer-kicker">SolarShield pilot scope</p>
+          <p className="lp-cer-kicker">Pilot scope</p>
           <h2 id="services-band-title" className="lp-cer-title">
             Maintenance jobs Foreman trains on
           </h2>
           <p className="lp-cer-lede">
-            Built for the work SolarShield runs every day in Brisbane · panel cleans,
-            pigeon proofing, thermal imaging, and maintenance plans. Each service gets its
-            own coaching profile and training module output.
+            Built for daily maintenance work · panel cleans, pigeon proofing, thermal
+            imaging, and maintenance plans. Each service gets its own coaching profile and
+            training module output.
           </p>
         </header>
 
@@ -62,8 +62,8 @@ export function ServicesBand() {
         </ol>
 
         <p className="lp-cer-disclaimer">
-          Private pilot for SolarShield field operations. Job recordings and training data
-          stay in access-controlled systems · not shared publicly.
+          Private pilot for field operations. Job recordings and training data stay in
+          access-controlled systems · not shared publicly.
         </p>
       </div>
     </section>

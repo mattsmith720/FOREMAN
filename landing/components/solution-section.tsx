@@ -40,7 +40,7 @@ export function SolutionSection() {
           </h2>
           <p className="lp-section-lede">
             Foreman turns field video into proprietary training data and auto-built onboarding
-            · so SolarShield scales crews without scaling owner time on the roof.
+            · so you scale crews without scaling owner time on the roof.
           </p>
         </ScrollReveal>
         <div className="lp-showcase-stack">

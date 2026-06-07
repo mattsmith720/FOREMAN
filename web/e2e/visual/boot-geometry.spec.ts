@@ -18,7 +18,7 @@ for (const viewportKey of IN_JOB_VIEWPORTS) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto("/");
       await expect(
-        page.getByRole("button", { name: /start coaching/i }),
+        page.getByRole("button", { name: /start job/i }),
       ).toBeVisible();
 
       await assertNoHorizontalOverflow(page);
@@ -45,7 +45,7 @@ for (const viewportKey of IN_JOB_VIEWPORTS) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto("/");
       await expect(
-        page.getByRole("button", { name: /start coaching/i }),
+        page.getByRole("button", { name: /start job/i }),
       ).toBeVisible();
       await expect(page).toHaveScreenshot(`boot-${viewportKey}.png`, {
         maxDiffPixelRatio: 0.02,

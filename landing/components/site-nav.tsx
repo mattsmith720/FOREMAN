@@ -1,14 +1,10 @@
 import Link from "next/link";
 import { BookDemo } from "./book-demo";
-import { MobileNav } from "./mobile-nav";
-import { DEMO_URL } from "@/lib/config";
 
 const LINKS = [
-  { href: "#pain", label: "Problem" },
-  { href: "#how-it-works", label: "Flow" },
-  { href: "#solution", label: "Product" },
-  { href: "#services", label: "Services" },
-  { href: "#faq", label: "FAQ" },
+  { href: "#pipeline", label: "Pipeline" },
+  { href: "#capabilities", label: "Capabilities" },
+  { href: "/pricing", label: "Pricing" },
 ] as const;
 
 export function SiteNav() {
@@ -18,23 +14,14 @@ export function SiteNav() {
         <Link href="/" className="lp-logo">
           Fore<span className="lp-logo-mark">man</span>
         </Link>
-
-        <div className="lp-nav-links">
+        <div className="lp-nav-links" aria-label="Sections">
           {LINKS.map((link) => (
-            <a key={link.href} href={link.href}>
+            <Link key={link.href} href={link.href} className="lp-nav-link">
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
-
-        <div className="lp-nav-actions">
-          <a href={DEMO_URL} className="lp-nav-demo">
-            Demo
-          </a>
-          <BookDemo label="Book a demo" className="lp-nav-cta" />
-        </div>
-
-        <MobileNav />
+        <BookDemo label="book_demo()" className="lp-nav-cta" />
       </div>
     </nav>
   );

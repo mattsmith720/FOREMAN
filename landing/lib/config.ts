@@ -12,9 +12,7 @@ export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://foreman-phi.vercel.app";
 
 export const PILOT_BADGE =
-  process.env.NEXT_PUBLIC_PILOT_BADGE ??
-  "Piloting with SolarShield · Brisbane maintenance crews";
+  process.env.NEXT_PUBLIC_PILOT_BADGE ?? "Private pilot · Brisbane";
 
 export const ANNOUNCEMENT =
-  process.env.NEXT_PUBLIC_ANNOUNCEMENT ??
-  "Now piloting with SolarShield · Brisbane · Book a demo";
+  process.env.NEXT_PUBLIC_ANNOUNCEMENT ?? "Private pilot · Book a demo";

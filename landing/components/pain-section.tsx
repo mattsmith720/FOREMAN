@@ -34,9 +34,9 @@ export function PainSection() {
             Scaling a maintenance crew shouldn&apos;t mean scaling your training load
           </h2>
           <p className="lp-section-lede">
-            SolarShield runs panel cleans, pigeon proofing, thermal scans, and maintenance
-            plans across Brisbane. The bottleneck is not leads · it is getting every new tech
-            to work like your best tech without you on every roof.
+            Panel cleans, pigeon proofing, thermal scans, and maintenance plans stack up fast.
+            The bottleneck is not leads · it is getting every new tech to work like your best
+            tech without you on every roof.
           </p>
         </ScrollReveal>
         <div className="lp-pain-grid">

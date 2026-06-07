@@ -25,9 +25,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Foreman — AI coach for solar crews",
+  title: "Foreman — field coach for solar maintenance",
   description:
-    "Live, hands-free AI coaching for solar installers and door-knock reps — catches safety and quality issues on the spot, sharpens the pitch, and logs proof of every job.",
+    "Point your phone at the job. Foreman coaches technique and safety live, and saves footage for crew training.",
   appleWebApp: {
     capable: true,
     title: "Foreman",

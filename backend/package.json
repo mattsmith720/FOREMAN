@@ -15,6 +15,7 @@
     "process-videos": "tsx scripts/process-pending-videos.ts",
     "split-training": "tsx scripts/split-training-data.ts",
     "eval-baseline": "tsx scripts/eval-baseline.ts",
+    "integration-test": "tsx scripts/integration-test.ts",
     "eval-coaching": "tsx scripts/eval-coaching.ts",
     "validate-pack": "tsx scripts/validate-pack.ts",
     "bench": "tsx ../scripts/bench-api.ts"

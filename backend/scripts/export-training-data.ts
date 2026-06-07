@@ -53,16 +53,31 @@ async function fetchAllRows(
   columns: string,
   sessionId: string,
   orderColumn: string,
+  fallbackColumns?: string,
 ): Promise<any[]> {
   const PAGE = 1000;
   const all: any[] = [];
+  let activeColumns = columns;
   for (let offset = 0; ; offset += PAGE) {
     const res = await supabase
       .from(table)
-      .select(columns)
+      .select(activeColumns)
       .eq("session_id", sessionId)
       .order(orderColumn, { ascending: true })
       .range(offset, offset + PAGE - 1);
+    if (
+      res.error &&
+      fallbackColumns &&
+      activeColumns !== fallbackColumns
+    ) {
+      console.warn(
+        `${table} missing optional columns — apply training-iteration-a.sql; retrying with ${fallbackColumns}`,
+      );
+      activeColumns = fallbackColumns;
+      offset = 0;
+      all.length = 0;
+      continue;
+    }
     if (res.error) {
       throw new Error(res.error.message);
     }
@@ -79,20 +94,38 @@ async function main() {
   const { out, limit, jobType, maintenanceOnly } = parseArgs(process.argv.slice(2));
   const supabase = getSupabase();
 
-  let query = supabase
-    .from("sessions")
-    .select("id, started_at, ended_at, job_type, worker, consent_at")
-    .not("ended_at", "is", null)
-    .order("started_at", { ascending: false })
-    .limit(limit);
+  const sessionColumns = "id, started_at, ended_at, job_type, worker";
+  const sessionColumnsWithConsent = `${sessionColumns}, consent_at`;
 
-  if (jobType) {
-    query = query.eq("job_type", jobType);
-  } else if (maintenanceOnly) {
-    query = query.in("job_type", [...MAINTENANCE_JOB_TYPES]);
+  async function fetchSessions(select: string) {
+    let query = supabase
+      .from("sessions")
+      .select(select)
+      .not("ended_at", "is", null)
+      .order("started_at", { ascending: false })
+      .limit(limit);
+
+    if (jobType) {
+      query = query.eq("job_type", jobType);
+    } else if (maintenanceOnly) {
+      query = query.in("job_type", [...MAINTENANCE_JOB_TYPES]);
+    }
+
+    return query;
   }
 
-  const { data: sessions, error: sessionsError } = await query;
+  let sessionsResult = await fetchSessions(sessionColumnsWithConsent);
+  if (
+    sessionsResult.error &&
+    (sessionsResult.error.message ?? "").includes("consent_at")
+  ) {
+    console.warn(
+      "sessions.consent_at missing — apply training-iteration-a.sql; exporting without consent metadata",
+    );
+    sessionsResult = await fetchSessions(sessionColumns);
+  }
+
+  const { data: sessions, error: sessionsError } = sessionsResult;
 
   if (sessionsError) {
     throw new Error(sessionsError.message);
@@ -112,6 +145,7 @@ async function main() {
         "id, ts, storage_ref, analysis, transcript_window",
         session.id,
         "ts",
+        "id, ts, storage_ref, analysis",
       ),
       fetchAllRows(
         supabase,
@@ -119,6 +153,7 @@ async function main() {
         "key, value, label_source, frame_id, confirmed_at",
         session.id,
         "key",
+        "key, value",
       ),
       fetchAllRows(
         supabase,
