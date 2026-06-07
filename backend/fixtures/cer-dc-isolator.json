@@ -1,0 +1,18 @@
+{
+  "observations": ["Roof array DC cabling visible near inverter entry."],
+  "installQualityFlags": [
+    {
+      "message": "DC isolator missing or unlabelled at array — required for CER claim.",
+      "severity": "warning"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Rooftop isolation compliance.",
+  "nextSteps": ["Install and label rooftop DC isolator per manufacturer spec."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Fit and label the rooftop DC isolator.",
+    "severity": "warning",
+    "speak": true
+  }
+}

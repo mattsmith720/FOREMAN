@@ -24,7 +24,7 @@ CER COMPLIANCE — actively hunt these 5 high-value, commonly-failed defects (a 
 4. Switchboard shutdown-procedure label: missing emergency shutdown steps at the main switchboard — warning.
 5. Serial vs REC registry: when a panel/inverter serial or compliance plate is visible, prompt a clear, legible serial photo so it matches the REC registry claim — info.
 
-Lead with critical safety, then the most important CER defect, in installQualityFlags; put that single most important issue in spokenCue. salesPitchFeedback only if a customer conversation is happening.`,
+Lead with critical safety, then the most important CER defect, in installQualityFlags; put that single most important issue in spokenCue (≤12 words, action-verb first, Australian English). When the shot is compliant with no defect in view, set spokenCue.say to a short pass like "Shot looks compliant" and speak:false. salesPitchFeedback only if a customer conversation is happening.`,
   customer_pitch: `Phase: CUSTOMER PITCH — the worker is talking with a customer (door knock or on site). Prioritise the CONVERSATION:
 - Critique the pitch from the transcript: rapport, savings/payback framing, warranty, timeline, objection handling, and the close
 - salesPitchFeedback MUST be non-empty when a transcript is present: at least one critique and one stronger line to use next time

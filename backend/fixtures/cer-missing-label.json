@@ -1,0 +1,18 @@
+{
+  "observations": ["Switchboard interior with solar breaker fitted."],
+  "installQualityFlags": [
+    {
+      "message": "Solar supply main switch label missing — add compliant CER signage.",
+      "severity": "warning"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Label compliance check at switchboard.",
+  "nextSteps": ["Fit Solar Supply Main Switch label per AS/NZS 5033."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Add the solar supply main switch label now.",
+    "severity": "warning",
+    "speak": true
+  }
+}

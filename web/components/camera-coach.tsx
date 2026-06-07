@@ -49,6 +49,7 @@ import {
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
 import { reportCueE2eMs } from "../lib/cue-metrics";
 import { pickSpokenCue } from "../lib/pick-spoken-cue";
+import { interactionModeForPhase } from "../lib/interaction-mode";
 import { estimateSessionCostUsd } from "../lib/session-cost";
 import {
   CONSENT_VERSION,
@@ -616,7 +617,10 @@ export function CameraCoach() {
       setActiveSessionId(session.id);
       pushActivity("system", "Job session started — live coaching active");
 
-      const source = new PhoneFrameSource(video, canvas, { includeAudio: true });
+      const source = new PhoneFrameSource(video, canvas, {
+        includeAudio: true,
+        mode: interactionModeForPhase(jobPhaseRef.current),
+      });
       source.onFrame((frame) => {
         void handleFrame(frame.data);
       });
@@ -771,7 +775,9 @@ export function CameraCoach() {
             )}
           </div>
         )}
-        {isActive && status === "analysing" && <CoachScanOverlay active />}
+        {isActive &&
+          interactionModeForPhase(jobPhaseRef.current) === "scan" &&
+          status !== "summarising" && <CoachScanOverlay active />}
 
         {isActive && (
           <div

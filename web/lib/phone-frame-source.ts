@@ -1,5 +1,10 @@
 import type { Frame, FrameHandler, FrameSource } from "@foreman/shared";
 import { captureCompressedJpeg } from "./compress-frame";
+import {
+  estimateFrameSharpness,
+  SCAN_SHARPNESS_MIN,
+} from "./frame-sharpness";
+import type { InteractionMode } from "./interaction-mode";
 
 /** Steady interval while idle; adaptive captureNow() fires sooner after each analyse. */
 const SAMPLE_INTERVAL_MS = 6000;
@@ -8,6 +13,8 @@ const MIN_CAPTURE_GAP_MS = 2800;
 
 interface PhoneFrameSourceOptions {
   includeAudio?: boolean;
+  /** scan = point-and-verdict (no steady tick); watch = continuous coaching. */
+  mode?: InteractionMode;
 }
 
 export class PhoneFrameSource implements FrameSource {
@@ -83,10 +90,10 @@ export class PhoneFrameSource implements FrameSource {
     await this.video.play();
 
     setTimeout(() => this.captureFrame(), FIRST_FRAME_DELAY_MS);
-    // Watchdog tick via captureNow() so the steady interval honors
-    // MIN_CAPTURE_GAP_MS and doesn't race the post-analyse captureNow() into a
-    // double capture on a fast link.
-    this.intervalId = setInterval(() => this.captureNow(), SAMPLE_INTERVAL_MS);
+    // Watch mode keeps a steady tick; scan mode only fires after each analyse.
+    if (this.options.mode !== "scan") {
+      this.intervalId = setInterval(() => this.captureNow(), SAMPLE_INTERVAL_MS);
+    }
   }
 
   async stop(): Promise<void> {
@@ -108,6 +115,14 @@ export class PhoneFrameSource implements FrameSource {
         setTimeout(() => this.captureFrame(), 400);
       }
       return;
+    }
+
+    if (this.options.mode === "scan") {
+      const sharpness = estimateFrameSharpness(this.canvas);
+      if (sharpness < SCAN_SHARPNESS_MIN) {
+        setTimeout(() => this.captureNow(), 900);
+        return;
+      }
     }
 
     this.warmupAttempts = 0;
