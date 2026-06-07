@@ -114,6 +114,7 @@ export function CameraCoach() {
   const consentAtRef = useRef<string | null>(null);
 
   const [status, setStatus] = useState<CoachStatus>("idle");
+  const [isPaused, setIsPaused] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [coaching, setCoaching] = useState<CoachingResponse | null>(null);
   const [transcriptLines, setTranscriptLines] = useState<string[]>([]);
@@ -354,6 +355,25 @@ export function CameraCoach() {
     }
   }, [handleAudioChunk, mediaStream]);
 
+  // Pause/Resume: suspend capture + voice without ending the session, so a
+  // worker can step away mid-job. The camera stream stays live (no re-prompt),
+  // mirroring the audio pause/resume above. Maps to a glasses gesture later.
+  const pauseJob = useCallback(async () => {
+    frameSourceRef.current?.pause();
+    await pauseJobAudio();
+    setIsPaused(true);
+    pushActivity("system", "Job paused — capture and coaching stopped");
+    void speakCoachLine("Paused. Tap resume when you're ready.", "critical");
+  }, [pauseJobAudio, pushActivity]);
+
+  const resumeJob = useCallback(async () => {
+    setIsPaused(false);
+    frameSourceRef.current?.resume();
+    await resumeJobAudio();
+    pushActivity("system", "Job resumed — coaching live");
+    void speakCoachLine("Back on. Coaching again.", "critical");
+  }, [resumeJobAudio, pushActivity]);
+
   const handleFrame = useCallback(
     async (image: string) => {
       if (!sessionIdRef.current) {
@@ -450,6 +470,7 @@ export function CameraCoach() {
     await audioSourceRef.current?.stop();
     audioSourceRef.current = null;
     setMicActive(false);
+    setIsPaused(false);
     setMediaStream(null);
     await frameSourceRef.current?.stop();
     frameSourceRef.current = null;
@@ -533,6 +554,7 @@ export function CameraCoach() {
     setEndedSession(null);
     setStoredCounts(null);
     setActivity([]);
+    setIsPaused(false);
     pendingAudioChunkRef.current = null;
     setFrameCount(0);
     setLastAnalyseMs(null);
@@ -714,13 +736,13 @@ export function CameraCoach() {
 
         {isActive && (
           <div
-            className="recording-indicator"
+            className={`recording-indicator${isPaused ? " paused" : ""}`}
             data-testid="recording-indicator"
             role="status"
             aria-live="polite"
           >
             <span className="recording-indicator-dot" aria-hidden="true" />
-            <span>REC</span>
+            <span>{isPaused ? "PAUSED" : "REC"}</span>
           </div>
         )}
 
@@ -735,10 +757,10 @@ export function CameraCoach() {
         {hasConsented && !endedSession && (
           <CoachOverlay
             coaching={coaching}
-            status={STATUS_LABELS[status]}
+            status={isPaused ? "Paused" : STATUS_LABELS[status]}
             isListening={micActive}
-            isWatching={isActive}
-            isAnalysing={status === "analysing"}
+            isWatching={isActive && !isPaused}
+            isAnalysing={!isPaused && status === "analysing"}
             jobPhase={jobPhase}
             latestTranscript={latestTranscript}
             frameCount={frameCount}
@@ -772,6 +794,7 @@ export function CameraCoach() {
               setErrorMessage(null);
               setWarningMessage(null);
               setStatus("idle");
+              setIsPaused(false);
             }}
           />
           <PostJobReview sessionId={endedSession.id} />
@@ -803,6 +826,16 @@ export function CameraCoach() {
       />
 
       <footer className="controls">
+        {activeSessionId && status !== "summarising" && (
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={() => void (isPaused ? resumeJob() : pauseJob())}
+            aria-pressed={isPaused}
+          >
+            {isPaused ? "Resume job" : "Pause job"}
+          </button>
+        )}
         <button
           type="button"
           className="button button-secondary"

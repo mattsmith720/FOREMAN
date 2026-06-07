@@ -16,6 +16,7 @@ export class PhoneFrameSource implements FrameSource {
   private handlers: FrameHandler[] = [];
   private warmupAttempts = 0;
   private lastCaptureAt = 0;
+  private paused = false;
 
   constructor(
     private readonly video: HTMLVideoElement,
@@ -33,10 +34,37 @@ export class PhoneFrameSource implements FrameSource {
 
   /** Capture as soon as the pipeline is ready (after analyse completes). */
   captureNow(): void {
+    if (this.paused) {
+      return;
+    }
     if (Date.now() - this.lastCaptureAt < MIN_CAPTURE_GAP_MS) {
       return;
     }
     this.captureFrame();
+  }
+
+  /**
+   * Suspend frame capture without tearing down the camera stream or preview, so
+   * a job can be paused and resumed with no getUserMedia / user gesture.
+   */
+  pause(): void {
+    this.paused = true;
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  /** Resume capture on the existing live stream. No-op if not paused. */
+  resume(): void {
+    if (!this.paused) {
+      return;
+    }
+    this.paused = false;
+    if (this.stream && this.intervalId === null) {
+      this.intervalId = setInterval(() => this.captureNow(), SAMPLE_INTERVAL_MS);
+    }
+    this.captureNow();
   }
 
   async start(): Promise<void> {

@@ -135,6 +135,18 @@ body {
   animation: pulse 1.2s ease-in-out infinite;
 }
 
+/* Paused: amber, steady (not recording). */
+.recording-indicator.paused {
+  border-color: rgba(245, 158, 11, 0.55);
+  background: rgba(120, 53, 15, 0.8);
+  color: #fde68a;
+}
+
+.recording-indicator.paused .recording-indicator-dot {
+  background: var(--warning);
+  animation: none;
+}
+
 .capture-canvas {
   display: none;
 }
