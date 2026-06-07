@@ -1,5 +1,13 @@
+import { stampEvidenceOverlay } from "./stamp-frame";
+
 /** Stay under Vercel's ~4.5 MB serverless body limit (JSON + base64 overhead). */
 export const MAX_DATA_URL_CHARS = 900_000;
+
+export interface StampMeta {
+  capturedAt: string;
+  lat: number | null;
+  lng: number | null;
+}
 
 export function dataUrlWithinLimit(dataUrl: string): boolean {
   return dataUrl.length <= MAX_DATA_URL_CHARS;
@@ -51,12 +59,16 @@ function encodeJpeg(
   return null;
 }
 
-export function captureCompressedJpeg(
+function captureWithOptionalStamp(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
+  stamp?: StampMeta,
 ): string | null {
   if (!drawScaled(video, canvas, DEFAULT_MAX_WIDTH)) {
     return null;
+  }
+  if (stamp) {
+    stampEvidenceOverlay(canvas, stamp);
   }
 
   const primary = encodeJpeg(canvas, DEFAULT_QUALITY);
@@ -67,6 +79,9 @@ export function captureCompressedJpeg(
   for (const maxWidth of FALLBACK_WIDTHS) {
     if (!drawScaled(video, canvas, maxWidth)) {
       continue;
+    }
+    if (stamp) {
+      stampEvidenceOverlay(canvas, stamp);
     }
     for (const quality of FALLBACK_QUALITIES) {
       const dataUrl = encodeJpeg(canvas, quality);
@@ -79,6 +94,24 @@ export function captureCompressedJpeg(
   if (!drawScaled(video, canvas, 240)) {
     return null;
   }
+  if (stamp) {
+    stampEvidenceOverlay(canvas, stamp);
+  }
 
   return encodeJpeg(canvas, 0.22);
+}
+
+export function captureCompressedJpeg(
+  video: HTMLVideoElement,
+  canvas: HTMLCanvasElement,
+): string | null {
+  return captureWithOptionalStamp(video, canvas);
+}
+
+export function captureStampedJpeg(
+  video: HTMLVideoElement,
+  canvas: HTMLCanvasElement,
+  stamp: StampMeta,
+): string | null {
+  return captureWithOptionalStamp(video, canvas, stamp);
 }

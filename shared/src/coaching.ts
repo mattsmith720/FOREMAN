@@ -84,6 +84,24 @@ export const coachingResponseSchema = z.object({
       speak: z.boolean(),
     })
     .optional(),
+  /** CER evidence classification for this frame (compliance pack assembly). */
+  evidenceShot: z
+    .object({
+      type: z.enum([
+        "meter_box",
+        "switchboard",
+        "dc_isolator",
+        "inverter",
+        "serial_plate",
+        "battery_label",
+        "array_complete",
+        "roof_penetration",
+        "setup",
+        "testing",
+      ]),
+      isGoodEvidence: z.boolean(),
+    })
+    .optional(),
 });
 
 export type CoachingCategory = z.infer<typeof coachingCategory>;

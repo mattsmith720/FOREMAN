@@ -49,6 +49,15 @@ import {
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
 import { reportCueE2eMs } from "../lib/cue-metrics";
 import { pickSpokenCue } from "../lib/pick-spoken-cue";
+import {
+  complianceProgress,
+  downloadEvidenceManifest,
+  nextComplianceShot,
+  shotForEvidenceType,
+  type ComplianceShotId,
+  type EvidenceCaptureRecord,
+} from "../lib/compliance-pack";
+import { captureGeoFix, type GeoFix } from "../lib/geolocation";
 import { interactionModeForPhase } from "../lib/interaction-mode";
 import { estimateSessionCostUsd } from "../lib/session-cost";
 import {
@@ -122,6 +131,9 @@ export function CameraCoach() {
   const transcriptRef = useRef<string[]>([]);
   const lastHeroRef = useRef<string>("");
   const consentAtRef = useRef<string | null>(null);
+  const geoRef = useRef<GeoFix | null>(null);
+  const complianceCapturedRef = useRef<Set<ComplianceShotId>>(new Set());
+  const complianceRecordsRef = useRef<EvidenceCaptureRecord[]>([]);
 
   const [status, setStatus] = useState<CoachStatus>("idle");
   const [isPaused, setIsPaused] = useState(false);
@@ -413,10 +425,25 @@ export function CameraCoach() {
       }
 
       try {
+        const complianceTarget =
+          jobPhaseRef.current === "solar_install"
+            ? nextComplianceShot(complianceCapturedRef.current)
+            : null;
+        const capturedAt = new Date().toISOString();
+
         const result = await analyseFrame(image, {
           sessionId: sessionIdRef.current,
           context: { jobType: jobPhaseRef.current },
           recentTranscript: transcriptRef.current,
+          captureMeta:
+            jobPhaseRef.current === "solar_install"
+              ? {
+                  capturedAt,
+                  lat: geoRef.current?.lat,
+                  lng: geoRef.current?.lng,
+                  complianceShotId: complianceTarget?.id,
+                }
+              : undefined,
         });
 
         const analyseMs = Math.round(performance.now() - startedAt);
@@ -453,6 +480,36 @@ export function CameraCoach() {
 
         // Safety-first spoken cue (same selection the hero card shows). Returns
         // null when there's nothing worth interrupting a hands-free worker for.
+        const evidence = result.coaching.evidenceShot;
+        if (
+          jobPhaseRef.current === "solar_install" &&
+          evidence?.isGoodEvidence
+        ) {
+          const shot = shotForEvidenceType(evidence.type);
+          if (shot && !complianceCapturedRef.current.has(shot.id)) {
+            complianceCapturedRef.current.add(shot.id);
+            complianceRecordsRef.current.push({
+              shotId: shot.id,
+              capturedAt,
+              lat: geoRef.current?.lat ?? null,
+              lng: geoRef.current?.lng ?? null,
+              evidenceType: evidence.type,
+            });
+            const nextShot = nextComplianceShot(complianceCapturedRef.current);
+            if (nextShot) {
+              void speakCoachLine(nextShot.prompt, "info");
+            } else {
+              void speakCoachLine("All compliance shots captured.", "info");
+            }
+          }
+        } else if (
+          jobPhaseRef.current === "solar_install" &&
+          evidence &&
+          !evidence.isGoodEvidence
+        ) {
+          void speakCoachLine("Hold steady — retake that shot.", "warning");
+        }
+
         const cue = pickSpokenCue(result.coaching, jobPhaseRef.current);
         if (cue && cue.text !== lastHeroRef.current) {
           lastHeroRef.current = cue.text;
@@ -537,6 +594,17 @@ export function CameraCoach() {
         "system",
         `Job complete — ${result.stored.frames} frames saved`,
       );
+      if (
+        jobPhaseRef.current === "solar_install" &&
+        complianceRecordsRef.current.length > 0
+      ) {
+        downloadEvidenceManifest(sessionId, complianceRecordsRef.current);
+        const { done, total } = complianceProgress(complianceCapturedRef.current);
+        void speakCoachLine(
+          `Evidence pack ${done} of ${total} shots saved.`,
+          "info",
+        );
+      }
     } catch {
       // Never dead-end the worker: the job data is already saved server-side.
       // Try to show whatever counts we can and mark the summary as pending.
@@ -595,6 +663,12 @@ export function CameraCoach() {
     setActivity([]);
     setIsPaused(false);
     audioQueueRef.current = [];
+    complianceCapturedRef.current = new Set();
+    complianceRecordsRef.current = [];
+    geoRef.current = null;
+    void captureGeoFix().then((fix) => {
+      geoRef.current = fix;
+    });
     framesCapturedRef.current = 0;
     setFrameCount(0);
     setLastAnalyseMs(null);
@@ -620,6 +694,14 @@ export function CameraCoach() {
       const source = new PhoneFrameSource(video, canvas, {
         includeAudio: true,
         mode: interactionModeForPhase(jobPhaseRef.current),
+        stampMeta:
+          jobPhaseRef.current === "solar_install"
+            ? () => ({
+                capturedAt: new Date().toISOString(),
+                lat: geoRef.current?.lat ?? null,
+                lng: geoRef.current?.lng ?? null,
+              })
+            : undefined,
       });
       source.onFrame((frame) => {
         void handleFrame(frame.data);
@@ -664,6 +746,12 @@ export function CameraCoach() {
         "Foreman is recording and coaching now. I'll call out anything important.",
         "critical",
       );
+      if (jobPhaseRef.current === "solar_install") {
+        const firstShot = nextComplianceShot(complianceCapturedRef.current);
+        if (firstShot) {
+          void speakCoachLine(firstShot.prompt, "info");
+        }
+      }
     } catch (err) {
       const orphanedSessionId = sessionIdRef.current;
       sessionIdRef.current = null;

@@ -43,6 +43,8 @@ HANDS-FREE VOICE (most important): the worker hears coaching through glasses and
 - severity matches the issue; lead with safety.
 - speak = false on MOST frames. Only set speak true when there is a NEW, important safety/quality/pitch change worth interrupting for. If nothing new is worth saying, set speak false.
 
+COMPLIANCE EVIDENCE: set evidenceShot ONLY when this frame is a clean photo of a required CER evidence item — type is one of meter_box, switchboard, dc_isolator, inverter, serial_plate, battery_label, array_complete, roof_penetration, setup, testing. isGoodEvidence = true only if in focus, legible and well framed; false if the right subject but blurry/cut off/glare. Omit evidenceShot if not one of these items.
+
 Return exactly this JSON shape:
 {
   "observations": ["string"],
@@ -62,7 +64,8 @@ Return exactly this JSON shape:
     "h": 0.15,
     "shape": "circle" | "box" | "pointer"
   }],
-  "spokenCue": { "say": "string (<=12 words, spoken Australian English)", "severity": "info" | "warning" | "critical", "speak": true }
+  "spokenCue": { "say": "string (<=12 words, spoken Australian English)", "severity": "info" | "warning" | "critical", "speak": true },
+  "evidenceShot": { "type": "meter_box" | "switchboard" | "dc_isolator" | "inverter" | "serial_plate" | "battery_label" | "array_complete" | "roof_penetration" | "setup" | "testing", "isGoodEvidence": true }
 }`;
 
 export function buildAnalysisUserPrompt(context?: SessionContext): string {

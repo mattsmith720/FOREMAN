@@ -28,6 +28,14 @@ const analyseRequestSchema = z.object({
       notes: z.string().max(2000).optional(),
     })
     .optional(),
+  captureMeta: z
+    .object({
+      capturedAt: z.string().max(64),
+      lat: z.number().finite().optional(),
+      lng: z.number().finite().optional(),
+      complianceShotId: z.string().max(64).optional(),
+    })
+    .optional(),
 });
 
 interface AnalyseRouteDependencies {
@@ -198,6 +206,15 @@ export async function registerAnalyseRoutes(
               mediaType,
               coaching,
               transcriptWindow: context?.recentTranscript,
+              foremanEvidence: parsed.data.captureMeta
+                ? {
+                    capturedAt: parsed.data.captureMeta.capturedAt,
+                    lat: parsed.data.captureMeta.lat ?? null,
+                    lng: parsed.data.captureMeta.lng ?? null,
+                    complianceShotId:
+                      parsed.data.captureMeta.complianceShotId ?? null,
+                  }
+                : undefined,
             })
             .then((persisted) => {
               request.log.info({ sessionId, frameId: persisted.frameId }, "frame persisted");

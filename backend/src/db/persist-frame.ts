@@ -5,6 +5,13 @@ import { getSupabase } from "./supabase.js";
 
 const FRAMES_BUCKET = "frames";
 
+export interface ForemanEvidenceMeta {
+  capturedAt: string;
+  lat?: number | null;
+  lng?: number | null;
+  complianceShotId?: string | null;
+}
+
 export interface PersistFrameInput {
   sessionId: string;
   base64: string;
@@ -12,6 +19,8 @@ export interface PersistFrameInput {
   coaching: CoachingResponse;
   /** Recent transcript lines aligned to this frame (Iteration A training signal). */
   transcriptWindow?: string[];
+  /** Geotag + compliance shot id stored alongside model analysis (CER pack). */
+  foremanEvidence?: ForemanEvidenceMeta;
 }
 
 export interface PersistFrameResult {
@@ -40,12 +49,16 @@ export async function persistFrame(
     throw new Error(`Failed to upload frame: ${upload.error.message}`);
   }
 
+  const analysisPayload = input.foremanEvidence
+    ? { ...input.coaching, foremanEvidence: input.foremanEvidence }
+    : input.coaching;
+
   const baseRow = {
     id: frameId,
     session_id: input.sessionId,
     ts: ts.toISOString(),
     storage_ref: storageRef,
-    analysis: input.coaching,
+    analysis: analysisPayload,
   };
   const rowWithWindow =
     input.transcriptWindow && input.transcriptWindow.length > 0

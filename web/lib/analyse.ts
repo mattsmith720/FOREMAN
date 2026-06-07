@@ -31,12 +31,20 @@ interface AnalyseError {
 // and immediately captures the next one.
 const ANALYSE_TIMEOUT_MS = 8000;
 
+export interface CaptureMeta {
+  capturedAt: string;
+  lat?: number;
+  lng?: number;
+  complianceShotId?: string;
+}
+
 export async function analyseFrame(
   image: string,
   options?: {
     context?: AnalyseContext;
     sessionId?: string;
     recentTranscript?: string[];
+    captureMeta?: CaptureMeta;
   },
 ): Promise<AnalyseResult> {
   const controller = new AbortController();
@@ -50,6 +58,7 @@ export async function analyseFrame(
         context: options?.context,
         sessionId: options?.sessionId,
         recentTranscript: options?.recentTranscript,
+        captureMeta: options?.captureMeta,
       }),
       signal: controller.signal,
       // One bounded retry on a transient 5xx so a brief backend blip doesn't

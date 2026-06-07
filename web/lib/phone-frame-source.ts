@@ -1,5 +1,9 @@
 import type { Frame, FrameHandler, FrameSource } from "@foreman/shared";
-import { captureCompressedJpeg } from "./compress-frame";
+import {
+  captureCompressedJpeg,
+  captureStampedJpeg,
+  type StampMeta,
+} from "./compress-frame";
 import {
   estimateFrameSharpness,
   SCAN_SHARPNESS_MIN,
@@ -15,6 +19,8 @@ interface PhoneFrameSourceOptions {
   includeAudio?: boolean;
   /** scan = point-and-verdict (no steady tick); watch = continuous coaching. */
   mode?: InteractionMode;
+  /** CER geotag + timestamp burned into each JPEG (install compliance pack). */
+  stampMeta?: () => StampMeta | null;
 }
 
 export class PhoneFrameSource implements FrameSource {
@@ -108,7 +114,10 @@ export class PhoneFrameSource implements FrameSource {
   }
 
   private captureFrame(): void {
-    const data = captureCompressedJpeg(this.video, this.canvas);
+    const stamp = this.options.stampMeta?.() ?? null;
+    const data = stamp
+      ? captureStampedJpeg(this.video, this.canvas, stamp)
+      : captureCompressedJpeg(this.video, this.canvas);
     if (!data) {
       if (this.warmupAttempts < 4) {
         this.warmupAttempts += 1;
