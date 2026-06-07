@@ -1,31 +1,33 @@
-# L5 Eval — Lane Handoff
+# L8 Reliability — Lane Handoff
 
-**Branch:** `swarm/l5-eval`  
-**Lane:** L5 (S3 eval-coaching harness)  
-**Spec:** R5
+**Lane:** L8 reliability (S5)  
+**Branch:** `swarm/l8-reliability`  
+**Status:** complete
 
-## Shipped
+## What changed
 
-- **`.github/workflows/eval-coaching.yml`** — standalone offline coaching eval workflow (PR + main push + manual dispatch). Runs `npm run eval-coaching --workspace backend -- --offline --json`, prints human summary, uploads `coaching-eval-report` artifact (30-day retention). Non-blocking (`continue-on-error` on eval step).
-- **`backend/eval/frames/.gitkeep`** — placeholder for CER detection photos (activates the five pending scenarios in `scenarios.ts` once frames land).
+| File | Change |
+|------|--------|
+| `web/lib/analyse.ts` | Per-attempt `AbortController` inside `withRetry`; 12s total deadline; 1 retry on 5xx/network (no retry on timeout) |
+| `web/lib/transcribe.ts` | 1 retry on 5xx/network via `allowUnsafe: true` |
+| `web/lib/retry.ts` | Optional `deadline` skips further retries once elapsed; retry predicates receive `attempt` index |
+| `backend/src/transcribe.ts` | 2 retries (3 attempts) with 500ms backoff on Whisper 5xx/network failures |
 
-## Verified
+## Verification
 
 ```bash
-npm run eval-coaching --workspace backend -- --offline
-# 6/11 scenarios scored (5 CER frames pending), OVERALL 31/31 (100%)
+npm test --workspace backend
+npm test --workspace web
 ```
 
-## Deferred (needs assets or L2 goldens)
-
-| Item | Blocker |
-|------|---------|
-| `install-compliant` scenario with `expect.speak: false` | Needs compliant frame + golden with `spokenCue.speak: false` |
-| CER detection goldens (`cer-no-shutdown-label`, etc.) | Drop labelled photos into `backend/eval/frames/`, run `--update-golden` locally |
-| `criticalSafety` scenario | Needs harness/PPE defect frame + golden with critical severity |
+Both suites green: backend 58 pass, web 40 pass.
 
 ## Integrator notes
 
-- R5 prefers **single source** for CI eval: consider removing the duplicate non-blocking step from `.github/workflows/ci.yml` once this workflow is merged.
-- L5 did **not** modify `scenarios.ts`, prompts, or shared schema (lane boundary).
-- No push to `main`.
+- Analyse retries moved from `apiFetch` to `analyseFrame` so each attempt gets a fresh abort signal bounded by remaining budget inside the 12s cap.
+- Transcribe POST is session-mutating but duplicate Whisper calls on short mic chunks are acceptable; `allowUnsafe` opts into one retry.
+- Backend Whisper retry is local to `transcribeAudio`; route handler unchanged.
+
+## Out of scope (integrator-only)
+
+`web/lib/api-fetch.ts`, `backend/src/routes/transcribe.ts`, tests outside lane write list.

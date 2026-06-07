@@ -45,7 +45,9 @@ export async function transcribeAudioChunk(
       sessionId,
       speaker,
     }),
-    retry: { retries: 0 },
+    // One bounded retry on transient 5xx/network blips; allowUnsafe because
+    // duplicate Whisper calls are acceptable for short mic chunks.
+    retry: { retries: 1, allowUnsafe: true },
   });
 
   const body = await parseApiResponse<{
