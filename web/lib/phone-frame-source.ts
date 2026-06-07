@@ -14,6 +14,16 @@ import {
   SCAN_SHARPNESS_MIN,
 } from "./frame-sharpness";
 import type { InteractionMode } from "./interaction-mode";
+import { SceneChangeGate } from "./scene-change";
+import type { SessionSpendCap } from "./session-spend-cap";
+
+/**
+ * L6 sampling CONTRACT (integrator: camera-coach.tsx):
+ * - Pass `spendCap: new SessionSpendCap()` at job start; wire `onSpendCapWarning` for voice/HUD.
+ * - Call `spendCap.recordTranscribe()` after each successful transcribe chunk.
+ * - `onFrameSkipped("scene")` when hash unchanged — optional debug counter; loop continues via captureNow.
+ * - Scene gating defaults on in watch mode, off in scan (L3 sharpness owns scan).
+ */
 
 /** Steady interval while idle; adaptive captureNow() fires sooner after each analyse. */
 const SAMPLE_INTERVAL_MS = 6000;
@@ -32,6 +42,12 @@ interface PhoneFrameSourceOptions {
   stampMeta?: () => StampMeta | null;
   /** Initial or dynamic rear/front policy (selfie shots use user). */
   facingMode?: CameraFacingMode | (() => CameraFacingMode);
+  /** Skip emit when frame hash unchanged (default: true except scan mode). */
+  sceneChangeGating?: boolean;
+  /** Soft spend tally; warning via onSpendCapWarning, never blocks emit. */
+  spendCap?: SessionSpendCap;
+  onFrameSkipped?: (reason: "scene") => void;
+  onSpendCapWarning?: () => void;
 }
 
 export class PhoneFrameSource implements FrameSource {
@@ -42,6 +58,7 @@ export class PhoneFrameSource implements FrameSource {
   private lastCaptureAt = 0;
   private paused = false;
   private activeFacingMode: CameraFacingMode = "environment";
+  private readonly sceneGate = new SceneChangeGate();
 
   constructor(
     private readonly video: HTMLVideoElement,
@@ -91,6 +108,7 @@ export class PhoneFrameSource implements FrameSource {
       return;
     }
     this.paused = false;
+    this.sceneGate.invalidate();
     if (this.stream && this.intervalId === null) {
       this.intervalId = setInterval(() => this.captureNow(), SAMPLE_INTERVAL_MS);
     }
@@ -210,6 +228,22 @@ export class PhoneFrameSource implements FrameSource {
 
     this.warmupAttempts = 0;
     this.lastCaptureAt = Date.now();
+
+    const sceneGating =
+      this.options.sceneChangeGating ?? this.options.mode !== "scan";
+    if (sceneGating) {
+      const { emit } = this.sceneGate.evaluate(this.canvas);
+      if (!emit) {
+        this.options.onFrameSkipped?.("scene");
+        this.captureNow();
+        return;
+      }
+    }
+
+    if (this.options.spendCap?.consumeWarning()) {
+      this.options.onSpendCapWarning?.();
+    }
+    this.options.spendCap?.recordAnalyse();
 
     const frame: Frame = {
       data,
