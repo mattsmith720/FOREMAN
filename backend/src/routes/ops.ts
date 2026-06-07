@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { toClientError } from "../api-error.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
@@ -16,14 +17,27 @@ const UUID_RE =
  * by the global auth hook); OPS_PASSWORD is an optional second factor. If unset,
  * /ops relies on the API key alone.
  */
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  try {
+    return crypto.timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+  } catch {
+    return false;
+  }
+}
+
 function opsAuthorized(request: FastifyRequest): boolean {
   const expected = process.env.OPS_PASSWORD?.trim();
   if (!expected) {
-    return true;
+    // Fail CLOSED in production: the Vercel proxy auto-injects FOREMAN_API_KEY,
+    // so the API key is not a real gate for /ops. Require OPS_PASSWORD in prod.
+    return process.env.NODE_ENV !== "production";
   }
   const provided = request.headers["x-ops-password"];
   const value = Array.isArray(provided) ? provided[0] : provided;
-  return value === expected;
+  return typeof value === "string" && safeEqual(value, expected);
 }
 
 export async function registerOpsRoutes(app: FastifyInstance): Promise<void> {

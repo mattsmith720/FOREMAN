@@ -50,10 +50,17 @@ async function main() {
   // Deterministic split by session: sort unique session ids and pick val with a
   // stable stride so the same input always yields the same split.
   const sessions = [...new Set(records.map((r) => r.sessionId))].sort();
-  const stride = valRatio > 0 ? Math.max(2, Math.round(1 / valRatio)) : 0;
-  const valSessions = new Set(
-    stride > 0 ? sessions.filter((_, i) => i % stride === 0) : [],
-  );
+  // Pick val by COUNT (not a stride) so the ratio holds and train is never empty.
+  // With <2 sessions there is nothing to hold out — keep everything in train.
+  const valCount =
+    sessions.length >= 2 && valRatio > 0
+      ? Math.min(
+          sessions.length - 1,
+          Math.max(1, Math.round(sessions.length * valRatio)),
+        )
+      : 0;
+  // Deterministic: hold out the last valCount of the sorted unique sessions.
+  const valSessions = new Set(sessions.slice(sessions.length - valCount));
 
   const trainLines: string[] = [];
   const valLines: string[] = [];

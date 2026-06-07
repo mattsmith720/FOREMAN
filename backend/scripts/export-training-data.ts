@@ -29,6 +29,36 @@ function parseArgs(argv: string[]) {
   return { out, limit };
 }
 
+// Paginate so sessions with more than PostgREST's default 1000-row cap are not
+// silently truncated (a long job can exceed 1000 frames / transcript segments).
+async function fetchAllRows(
+  supabase: ReturnType<typeof getSupabase>,
+  table: string,
+  columns: string,
+  sessionId: string,
+  orderColumn: string,
+): Promise<any[]> {
+  const PAGE = 1000;
+  const all: any[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const res = await supabase
+      .from(table)
+      .select(columns)
+      .eq("session_id", sessionId)
+      .order(orderColumn, { ascending: true })
+      .range(offset, offset + PAGE - 1);
+    if (res.error) {
+      throw new Error(res.error.message);
+    }
+    const rows = res.data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE) {
+      break;
+    }
+  }
+  return all;
+}
+
 async function main() {
   const { out, limit } = parseArgs(process.argv.slice(2));
   const supabase = getSupabase();
@@ -51,38 +81,40 @@ async function main() {
   const sessionTypeCounts: Record<string, number> = {};
 
   for (const session of sessions ?? []) {
-    const [framesRes, labelsRes, transcriptsRes] = await Promise.all([
-      supabase
-        .from("frames")
-        .select("id, ts, storage_ref, analysis, transcript_window")
-        .eq("session_id", session.id)
-        .order("ts", { ascending: true }),
-      supabase
-        .from("labels")
-        .select("key, value, label_source, frame_id, confirmed_at")
-        .eq("session_id", session.id),
-      supabase
-        .from("transcript_segments")
-        .select("ts, text, speaker")
-        .eq("session_id", session.id)
-        .order("ts", { ascending: true }),
+    const [frames, labels, transcripts] = await Promise.all([
+      fetchAllRows(
+        supabase,
+        "frames",
+        "id, ts, storage_ref, analysis, transcript_window",
+        session.id,
+        "ts",
+      ),
+      fetchAllRows(
+        supabase,
+        "labels",
+        "key, value, label_source, frame_id, confirmed_at",
+        session.id,
+        "key",
+      ),
+      fetchAllRows(
+        supabase,
+        "transcript_segments",
+        "ts, text, speaker",
+        session.id,
+        "ts",
+      ),
     ]);
-
-    if (framesRes.error) {
-      throw new Error(framesRes.error.message);
-    }
 
     const sessionType =
       session.job_type === "site_video_import" ? "site_video_import" : "live";
     sessionTypeCounts[sessionType] = (sessionTypeCounts[sessionType] ?? 0) + 1;
-    for (const label of labelsRes.data ?? []) {
+    for (const label of labels) {
       const source = (label.label_source as string | null) ?? "claude";
       labelSourceCounts[source] = (labelSourceCounts[source] ?? 0) + 1;
     }
 
-    const allLabels = labelsRes.data ?? [];
     const humanVerifiedKeys = new Set(
-      allLabels
+      labels
         .filter(
           (label) =>
             label.label_source === "human" ||
@@ -92,14 +124,19 @@ async function main() {
     );
     // Prefer human/corrected over claude: once a key is human-verified, drop the
     // claude rows for that key from the export.
-    const preferredLabels = allLabels.filter(
+    const preferredLabels = labels.filter(
       (label) =>
         label.label_source === "human" ||
         label.label_source === "corrected" ||
         !humanVerifiedKeys.has(label.key),
     );
+    // Session-scoped labels (no frame_id) and the full transcript are emitted
+    // ONCE per session (on the first frame) instead of duplicated onto every
+    // frame record, which previously caused an N×M blow-up in the export.
+    const sessionLabels = preferredLabels.filter((label) => !label.frame_id);
 
-    for (const frame of framesRes.data ?? []) {
+    for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
+      const frame = frames[frameIndex];
       let imageUrl: string | null = null;
       if (frame.storage_ref) {
         const signed = await supabase.storage
@@ -118,10 +155,11 @@ async function main() {
         image_url: imageUrl,
         analysis: frame.analysis,
         transcript_window: frame.transcript_window,
-        labels: (labelsRes.data ?? []).filter(
-          (label) => !label.frame_id || label.frame_id === frame.id,
-        ),
-        session_transcripts: transcriptsRes.data ?? [],
+        // Per-frame labels only (human confirmations tied to this frame).
+        labels: preferredLabels.filter((label) => label.frame_id === frame.id),
+        // Session-level fields once, on the first frame.
+        session_labels: frameIndex === 0 ? sessionLabels : [],
+        session_transcripts: frameIndex === 0 ? transcripts : [],
       };
 
       stream.write(`${JSON.stringify(record)}\n`);

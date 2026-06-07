@@ -38,9 +38,11 @@ async function main() {
     if (!trimmed) {
       continue;
     }
+    type LabelRow = { label_source?: string; key?: string; value?: string };
     let record: {
       analysis?: { installQualityFlags?: Array<{ message?: string }> };
-      labels?: Array<{ label_source?: string; key?: string; value?: string }>;
+      labels?: LabelRow[];
+      session_labels?: LabelRow[];
     };
     try {
       record = JSON.parse(trimmed);
@@ -55,7 +57,10 @@ async function main() {
       framesWithSafetyFlag++;
     }
 
-    for (const label of record.labels ?? []) {
+    for (const label of [
+      ...(record.labels ?? []),
+      ...(record.session_labels ?? []),
+    ]) {
       const source = label.label_source ?? "claude";
       labelSources[source] = (labelSources[source] ?? 0) + 1;
       const isHuman = source === "human" || source === "corrected";

@@ -155,6 +155,17 @@ function collectCues(
     });
   }
 
+  // Severity-first so the hero card (allCues[0]) never buries a critical safety
+  // call behind a lower-severity visual callout that happened to be listed first.
+  const severityRank: Record<string, number> = {
+    critical: 0,
+    warning: 1,
+    info: 2,
+  };
+  cues.sort(
+    (a, b) => (severityRank[a.severity] ?? 3) - (severityRank[b.severity] ?? 3),
+  );
+
   const seen = new Set<string>();
   return cues.filter((cue) => {
     const key = `${cue.label}:${cue.text}`;

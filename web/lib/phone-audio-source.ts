@@ -129,26 +129,40 @@ export class PhoneAudioSource {
       this.chunkTimer = null;
     }
 
-    if (!this.recorder || this.recorder.state === "inactive") {
+    const recorder = this.recorder;
+    this.recorder = null;
+    if (!recorder || recorder.state === "inactive") {
       return;
     }
 
     await new Promise<void>((resolve) => {
-      const recorder = this.recorder;
-      if (!recorder) {
+      let done = false;
+      const finish = () => {
+        if (done) {
+          return;
+        }
+        done = true;
         resolve();
-        return;
-      }
-
-      recorder.addEventListener("stop", () => resolve(), { once: true });
+      };
+      // Never let a wedged MediaRecorder hang End job — cap the wait. The mic
+      // tracks are released by PhoneFrameSource.stop() right after, so a missed
+      // final chunk is the only cost.
+      const timer = setTimeout(finish, 2000);
+      recorder.addEventListener(
+        "stop",
+        () => {
+          clearTimeout(timer);
+          finish();
+        },
+        { once: true },
+      );
       try {
         recorder.requestData();
         recorder.stop();
       } catch {
-        resolve();
+        clearTimeout(timer);
+        finish();
       }
     });
-
-    this.recorder = null;
   }
 }
