@@ -198,12 +198,15 @@ export function CameraCoach() {
     }
   }, []);
 
+  // Prewarm the backend on mount so a Render cold start overlaps the worker
+  // reading the consent/phase screen — not their first Start.
+  useEffect(() => {
+    void prewarmBackend();
+  }, [prewarmBackend]);
+
   useEffect(() => {
     hasConsentedRef.current = hasConsented;
-    if (hasConsented) {
-      void prewarmBackend();
-    }
-  }, [hasConsented, prewarmBackend]);
+  }, [hasConsented]);
 
   // Auto-recover from a cold-start "slow" state without making the worker tap
   // Retry — poll health until Render is awake, then flip to ready.
