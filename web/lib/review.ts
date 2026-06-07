@@ -33,7 +33,7 @@ export async function confirmLabel(input: {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
-    retry: { retries: 0 },
+    retry: { retries: 1, allowUnsafe: true },
   });
   await parseApiResponse<{ ok: boolean }>(response);
 }
