@@ -9,7 +9,19 @@
   "salesPitchFeedback": [],
   "timeOnTaskNote": "Rooftop isolation compliance.",
   "nextSteps": ["Install and label rooftop DC isolator per manufacturer spec."],
-  "visualCallouts": [],
+  "visualCallouts": [
+    {
+      "label": "DC isolator gap",
+      "message": "Install and label rooftop DC isolator at entry.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.65,
+      "y": 0.35,
+      "w": 0.2,
+      "h": 0.18,
+      "shape": "circle"
+    }
+  ],
   "spokenCue": {
     "say": "Fit and label the rooftop DC isolator.",
     "severity": "warning",

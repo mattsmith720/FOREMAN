@@ -1,0 +1,13 @@
+{
+  "observations": ["Solar supply main switch label fitted on breaker."],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Switchboard labelling compliant.",
+  "nextSteps": ["Proceed to next compliance shot."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Shot looks compliant",
+    "severity": "info",
+    "speak": false
+  }
+}
