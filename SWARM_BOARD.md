@@ -1,6 +1,7 @@
 # FOREMAN Swarm Board
 
-**Production:** https://foreman-phi.vercel.app
+**Product:** https://foreman-phi.vercel.app  
+**Marketing (canonical):** https://landing-lac-mu.vercel.app
 
 ## Phase status
 
@@ -8,6 +9,7 @@
 |-------|--------|
 | Mega A–D | **CLOSED** |
 | Factory E–H | **QUEUED** (recon at `docs/swarm/FACTORY_RECON.md`) |
+| **Landing strike (LP1–LP6)** | **DEPLOYED** — `docs/landing/LP6_REPORT.md` |
 | **Visual V0** | **CLOSED** — `docs/visual/DR1`–`DR5` |
 | **Visual VF1** | **MERGED pending** — tokens + UI primitives on `visual/vf1-foundation` |
 | **Visual VF2** | **PARTIAL** — boot + welcome geometry specs; matrix in CI |

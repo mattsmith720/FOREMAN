@@ -1,0 +1,28 @@
+{
+  "name": "foreman-landing",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint --max-warnings 0",
+    "capture-assets": "tsx scripts/capture-demo-assets.ts",
+    "test:e2e": "playwright test",
+    "lighthouse": "npx lighthouse http://127.0.0.1:3001 --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=./lighthouse-report.json --chrome-flags='--headless'"
+  },
+  "dependencies": {
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.4.5"
+  }
+}

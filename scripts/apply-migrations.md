@@ -17,6 +17,7 @@ exists`, bucket upserts), so re-running them is safe.
 | 2 | `backend/supabase/training-iteration-a.sql` | `labels.label_source/frame_id/confirmed_at`, `audio_segments` + private `audio` bucket, `frames.transcript_window`, **`sessions.consent_at` + `sessions.data_retention`** | Before relying on consent capture, human labels, or audio persistence |
 | 3 | `backend/supabase/site-videos-ingest.sql` | `site_videos` queue table + private `videos` bucket (500 MB) | Before using the `/ingest` upload page |
 | 4 | `backend/supabase/crew-model.sql` | `orgs`, `crews`, `installers` + `sessions.org_id/crew_id/installer_id` | Before multi-tenant crew attribution on jobs |
+| 5 | `backend/supabase/leads.sql` | `leads` table for marketing site demo requests | Before landing lead form persistence |
 
 For each: open the file, copy its full contents, paste into a new SQL editor query,
 and **Run**.
