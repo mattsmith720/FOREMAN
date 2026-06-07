@@ -20,11 +20,13 @@ export function BookDemo({
   );
   const [error, setError] = useState<string | null>(null);
 
+  const variant = primary ? "lp-btn--primary" : "lp-btn--secondary";
+
   if (BOOKING_URL) {
     return (
       <a
         href={BOOKING_URL}
-        className={`lp-btn ${primary ? "lp-btn--primary" : "lp-btn--secondary"} ${className}`}
+        className={`lp-btn ${variant} ${className}`}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -69,7 +71,7 @@ export function BookDemo({
     <>
       <button
         type="button"
-        className={`lp-btn ${primary ? "lp-btn--primary" : "lp-btn--secondary"} ${className}`}
+        className={`lp-btn ${variant} ${className}`}
         onClick={() => setOpen(true)}
       >
         {label}
