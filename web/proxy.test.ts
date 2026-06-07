@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it, before, after } from "node:test";
 import { NextRequest } from "next/server";
-import { middleware } from "./middleware.js";
+import { proxy } from "./proxy.js";
 
 const ALLOWED_ORIGIN = "https://foreman-phi.vercel.app";
 
@@ -29,14 +29,14 @@ function makeRequest(
   });
 }
 
-describe("web middleware origin gate", () => {
+describe("web proxy origin gate", () => {
   it("blocks /api/* calls without origin or referer", () => {
-    const res = middleware(makeRequest("/api/analyse"));
+    const res = proxy(makeRequest("/api/analyse"));
     assert.equal(res.status, 403);
   });
 
   it("blocks /api/* calls from a foreign origin", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/analyse", {
         origin: "https://attacker.example",
         referer: "https://attacker.example/page",
@@ -46,7 +46,7 @@ describe("web middleware origin gate", () => {
   });
 
   it("blocks /api/* calls when only an unrelated referer is present", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/transcribe", {
         referer: "https://google.com/search?q=foreman",
       }),
@@ -55,14 +55,14 @@ describe("web middleware origin gate", () => {
   });
 
   it("allows /api/* calls from the explicit allowed origin", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/analyse", { origin: ALLOWED_ORIGIN }),
     );
     assert.notEqual(res.status, 403);
   });
 
   it("allows /api/* calls with referer matching the allowed origin", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/analyse", {
         referer: `${ALLOWED_ORIGIN}/coach`,
       }),
@@ -71,17 +71,17 @@ describe("web middleware origin gate", () => {
   });
 
   it("allows /api/health without origin", () => {
-    const res = middleware(makeRequest("/api/health"));
+    const res = proxy(makeRequest("/api/health"));
     assert.notEqual(res.status, 403);
   });
 
   it("does not gate non-/api routes", () => {
-    const res = middleware(makeRequest("/dashboard"));
+    const res = proxy(makeRequest("/dashboard"));
     assert.notEqual(res.status, 403);
   });
 
   it("blocks bypass attempts where attacker referer just contains '.vercel.app' as substring", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/analyse", {
         referer: "https://attacker.example/?from=foreman.vercel.app",
       }),
@@ -90,7 +90,7 @@ describe("web middleware origin gate", () => {
   });
 
   it("blocks bypass attempts where attacker referer contains the host as substring", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/analyse", {
         host: "foreman-phi.vercel.app",
         referer: "https://attacker.example/foreman-phi.vercel.app/",
@@ -100,7 +100,7 @@ describe("web middleware origin gate", () => {
   });
 
   it("allows /api/* calls from a same-project preview at *.vercel.app", () => {
-    const res = middleware(
+    const res = proxy(
       makeRequest("/api/analyse", {
         origin: "https://foreman-git-feat-something.vercel.app",
       }),

@@ -74,7 +74,10 @@ function isAllowedApiCaller(request: NextRequest): boolean {
   return false;
 }
 
-export function middleware(request: NextRequest) {
+// Renamed from `middleware` to `proxy` for Next.js 16 (the `middleware` file
+// convention is deprecated). Same origin-gate behavior; the proxy convention
+// runs on the nodejs runtime, which is fine — this only inspects headers.
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (!path.startsWith("/api/") || path === "/api/health") {
     return NextResponse.next();
