@@ -25,7 +25,7 @@ One screen — consent, phase, and start in a single tap:
   > Foreman watches the job through your camera and mic and coaches you live — flagging safety and quality issues, sharpening your pitch, and keeping a secure record of every job. Footage is stored securely and never shared publicly. Make sure everyone in view is OK with being recorded.
 
 - Pick a phase — **Survey**, **Install**, or **Pitch**.
-- Tap **I understand — start coaching** → allow camera + mic when Safari prompts.
+- Tap **I understand — start job** → allow camera + mic when Safari prompts.
 - Point at something interesting (gym equipment, roof line out the window, anything with structure).
 - Say: *"This is Foreman — live AI coaching for field work. It watches the job and gives you feedback."*
 
