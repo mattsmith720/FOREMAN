@@ -33,6 +33,11 @@ interface OpsLatency {
   cueE2e: OpsLatencySlice;
 }
 
+interface OpsCostModel {
+  analyse_usd: number;
+  transcribe_usd: number;
+}
+
 interface OpsVideo {
   id: string;
   status?: string;
@@ -52,6 +57,7 @@ export default function OpsPage() {
   const [sessions, setSessions] = useState<OpsSession[]>([]);
   const [totals, setTotals] = useState<OpsTotals | null>(null);
   const [latency, setLatency] = useState<OpsLatency | null>(null);
+  const [costModel, setCostModel] = useState<OpsCostModel | null>(null);
   const [videos, setVideos] = useState<OpsVideo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -78,6 +84,7 @@ export default function OpsPage() {
         sessions: OpsSession[];
         totals?: OpsTotals;
         latency?: OpsLatency;
+        costModel?: OpsCostModel;
       };
       const ingestBody = ingestRes.ok
         ? ((await ingestRes.json()) as { videos: OpsVideo[] })
@@ -85,6 +92,7 @@ export default function OpsPage() {
       setSessions(sessionsBody.sessions ?? []);
       setTotals(sessionsBody.totals ?? null);
       setLatency(sessionsBody.latency ?? null);
+      setCostModel(sessionsBody.costModel ?? null);
       setVideos(ingestBody.videos ?? []);
       setAuthed(true);
       window.sessionStorage.setItem(PW_KEY, pw);
@@ -178,7 +186,10 @@ export default function OpsPage() {
           ? ` · analyse p50 ${latency.analyse.p50Ms}ms / p95 ${latency.analyse.p95Ms}ms`
           : ""}
         {latency?.cueE2e?.sampleCount
-          ? ` · cue→ear p50 ${latency.cueE2e.p50Ms}ms / p95 ${latency.cueE2e.p95Ms}ms`
+          ? ` · cue→attempt p50 ${latency.cueE2e.p50Ms}ms / p95 ${latency.cueE2e.p95Ms}ms`
+          : ""}
+        {costModel
+          ? ` · model $${costModel.analyse_usd}/frame · $${costModel.transcribe_usd}/chunk`
           : ""}
       </p>
       <a

@@ -20,7 +20,7 @@ export function recordAnalyseMs(ms: number): void {
   pushSample(analyseMsSamples, ms);
 }
 
-/** Frame captured → coaching cue audible (client-reported E2E). */
+/** Frame captured → spoken cue attempt (client-reported E2E; includes blocked/skipped plays). */
 export function recordCueE2eMs(ms: number): void {
   pushSample(cueE2eMsSamples, ms);
 }

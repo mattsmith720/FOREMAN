@@ -19,7 +19,7 @@ export function CaptureHealth({ stats }: CaptureHealthProps) {
     <div className="capture-health" aria-label="Capture diagnostics">
       <span>Frame {stats.frameKb ?? "—"} KB</span>
       <span>Analyse {stats.analyseMs ?? "—"} ms</span>
-      <span>Cue {stats.cueE2eMs ?? "—"} ms</span>
+      <span>Cue attempt {stats.cueE2eMs ?? "—"} ms</span>
       <span>Est ${stats.estCostUsd?.toFixed(3) ?? "—"}</span>
       <span>Persist {stats.persistQueued ? "async" : "—"}</span>
       <span>Mic {stats.micMime ?? "—"}</span>

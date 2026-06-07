@@ -1,5 +1,8 @@
-import { reportCueE2eMs } from "./cue-metrics";
-import { estimateSessionCostUsd } from "./session-cost";
+import { reportSpokenCueAttemptMs } from "./cue-metrics";
+import {
+  ensureCostModelSynced,
+  estimateSessionCostUsd,
+} from "./session-cost";
 import type { CaptureHealthStats } from "../components/capture-health";
 
 export interface FrameInstrumentationInput {
@@ -9,12 +12,16 @@ export interface FrameInstrumentationInput {
   startedAt: number;
   framesCaptured: number;
   transcriptChunkCount: number;
+  /** When true, records frame→spoken-cue-attempt E2E immediately (not only when audio plays). */
+  spokenCueAttempt?: boolean;
 }
 
 export interface FrameInstrumentationResult {
   healthPatch: Partial<CaptureHealthStats>;
-  /** Reports cue E2E ms; returns value for debug HUD update. */
-  onCueAudible?: () => number;
+  /** Reports spoken-cue-attempt E2E ms; returns value for debug HUD update. */
+  onCueAttempt: () => number;
+  /** @deprecated Use onCueAttempt — metrics are attempt-based, not play-audible-only. */
+  onCueAudible: () => number;
 }
 
 /** Lane L1 — per-frame cost/latency instrumentation (pure patches + side-effect hook). */
@@ -24,6 +31,7 @@ export function frameInstrumentation(
   const healthPatch: Partial<CaptureHealthStats> = {};
 
   if (input.debugMode) {
+    void ensureCostModelSynced();
     healthPatch.frameKb = input.frameKb;
     healthPatch.analyseMs = input.analyseMs;
     healthPatch.persistQueued = true;
@@ -33,12 +41,15 @@ export function frameInstrumentation(
     );
   }
 
+  const onCueAttempt = () => reportSpokenCueAttemptMs(input.startedAt);
+
+  if (input.spokenCueAttempt) {
+    onCueAttempt();
+  }
+
   return {
     healthPatch,
-    onCueAudible: () => {
-      const cueE2eMs = Math.round(performance.now() - input.startedAt);
-      reportCueE2eMs(cueE2eMs);
-      return cueE2eMs;
-    },
+    onCueAttempt,
+    onCueAudible: onCueAttempt,
   };
 }
