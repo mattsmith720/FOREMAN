@@ -1441,3 +1441,94 @@ button.coach-card:active {
   outline: 2px solid var(--accent, #38bdf8);
   outline-offset: 2px;
 }
+
+/* Ray-Ban Display HUD (~600x600 thin client) — hero line only, voice carries detail */
+.hud-root {
+  width: 100vw;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: #000;
+}
+
+.hud-square {
+  position: relative;
+  width: min(100vw, 100dvh);
+  height: min(100vw, 100dvh);
+  max-width: 600px;
+  max-height: 600px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.hud-feed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.25;
+}
+
+.hud-canvas {
+  display: none;
+}
+
+.hud-dot {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--critical);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.hud-line {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 0 1.5rem;
+  font-size: clamp(1.6rem, 7vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+}
+
+.hud-line.sev-warning {
+  color: var(--warning);
+}
+
+.hud-line.sev-critical {
+  color: var(--critical);
+}
+
+.hud-start {
+  position: relative;
+  z-index: 2;
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: rgba(2, 132, 199, 0.2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  min-height: 3.5rem;
+  cursor: pointer;
+}
+
+.hud-error {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--critical);
+}
