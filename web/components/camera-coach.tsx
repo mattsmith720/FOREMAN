@@ -82,6 +82,10 @@ const EMPTY_HEALTH: CaptureHealthStats = {
   chunkKb: null,
 };
 
+// Cap the transcription backlog so a stalled uplink on weak 4G can't grow it
+// without bound (~16s of audio); oldest/stalest chunks are shed first.
+const MAX_AUDIO_QUEUE = 4;
+
 function formatStartJobError(err: unknown): string {
   if (typeof window !== "undefined" && !window.isSecureContext) {
     return "Open the https:// URL — camera and microphone require a secure connection.";
@@ -107,7 +111,7 @@ export function CameraCoach() {
   const analysingRef = useRef(false);
   const pendingFrameRef = useRef<string | null>(null);
   const transcribingRef = useRef(false);
-  const pendingAudioChunkRef = useRef<Blob | null>(null);
+  const audioQueueRef = useRef<Blob[]>([]);
   const sessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef<string[]>([]);
   const lastHeroRef = useRef<string>("");
@@ -303,7 +307,13 @@ export function CameraCoach() {
       }
 
       if (transcribingRef.current) {
-        pendingAudioChunkRef.current = blob;
+        // Queue behind the in-flight upload so a slow link doesn't drop chunks;
+        // cap the backlog and shed the oldest (stalest) beyond the cap.
+        const queue = audioQueueRef.current;
+        queue.push(blob);
+        if (queue.length > MAX_AUDIO_QUEUE) {
+          queue.splice(0, queue.length - MAX_AUDIO_QUEUE);
+        }
         return;
       }
 
@@ -317,10 +327,9 @@ export function CameraCoach() {
         setWarningMessage(message);
       } finally {
         transcribingRef.current = false;
-        const pending = pendingAudioChunkRef.current;
-        pendingAudioChunkRef.current = null;
-        if (pending) {
-          void handleAudioChunk(pending);
+        const next = audioQueueRef.current.shift();
+        if (next) {
+          void handleAudioChunk(next);
         }
       }
     },
@@ -555,7 +564,7 @@ export function CameraCoach() {
     setStoredCounts(null);
     setActivity([]);
     setIsPaused(false);
-    pendingAudioChunkRef.current = null;
+    audioQueueRef.current = [];
     setFrameCount(0);
     setLastAnalyseMs(null);
     setActiveCalloutIndex(0);

@@ -1,5 +1,13 @@
 const CHUNK_INTERVAL_MS = 4000;
 
+// Voice-activity detection: sample the mic ~5x per chunk and only forward a
+// chunk that held enough speech, so on-site silence isn't transcribed (saves
+// Whisper cost + noise). Fails OPEN — if the AudioContext can't run, every
+// chunk is sent, preserving today's behaviour.
+const VAD_SAMPLE_MS = 200;
+const VOICE_RMS_THRESHOLD = 0.025;
+const MIN_VOICE_SAMPLES = 3;
+
 export type AudioChunkHandler = (blob: Blob) => void;
 export type AudioErrorHandler = (message: string) => void;
 
@@ -41,6 +49,12 @@ export class PhoneAudioSource {
   private chunkTimer: ReturnType<typeof setInterval> | null = null;
   private handlers: AudioChunkHandler[] = [];
   private errorHandler: AudioErrorHandler | null = null;
+  private audioContext: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
+  private vadTimer: ReturnType<typeof setInterval> | null = null;
+  private vadData: Uint8Array<ArrayBuffer> | null = null;
+  private voiceSamples = 0;
+  private vadReady = false;
 
   constructor(private readonly stream: MediaStream) {}
 
@@ -69,6 +83,8 @@ export class PhoneAudioSource {
       throw new Error("Microphone is not active");
     }
 
+    this.setupVad(audioStream);
+
     const optionsList = buildRecorderOptions();
     let lastError: Error | null = null;
 
@@ -79,6 +95,14 @@ export class PhoneAudioSource {
 
         recorder.addEventListener("dataavailable", (event) => {
           if (event.data.size === 0) {
+            return;
+          }
+          // VAD gate: only forward a chunk that held enough voice this window.
+          // Fails open when VAD isn't running (vadReady false).
+          const hadVoice =
+            !this.vadReady || this.voiceSamples >= MIN_VOICE_SAMPLES;
+          this.voiceSamples = 0;
+          if (!hadVoice) {
             return;
           }
           const blob =
@@ -123,7 +147,67 @@ export class PhoneAudioSource {
     throw lastError ?? new Error("Could not start MediaRecorder");
   }
 
+  private setupVad(audioStream: MediaStream): void {
+    try {
+      const Ctor =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctor) {
+        return;
+      }
+      const ctx = new Ctor();
+      void ctx.resume?.();
+      const source = ctx.createMediaStreamSource(audioStream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      source.connect(analyser);
+      this.audioContext = ctx;
+      this.analyser = analyser;
+      this.vadData = new Uint8Array(analyser.fftSize);
+      this.voiceSamples = 0;
+      this.vadReady = true;
+      this.vadTimer = setInterval(() => this.sampleVad(), VAD_SAMPLE_MS);
+    } catch {
+      // Fail open: leave vadReady false so every chunk is transcribed.
+      this.vadReady = false;
+    }
+  }
+
+  private sampleVad(): void {
+    const analyser = this.analyser;
+    const data = this.vadData;
+    if (!analyser || !data) {
+      return;
+    }
+    analyser.getByteTimeDomainData(data);
+    let sumSq = 0;
+    for (let i = 0; i < data.length; i += 1) {
+      const v = (data[i] - 128) / 128;
+      sumSq += v * v;
+    }
+    const rms = Math.sqrt(sumSq / data.length);
+    if (rms > VOICE_RMS_THRESHOLD) {
+      this.voiceSamples += 1;
+    }
+  }
+
+  private teardownVad(): void {
+    if (this.vadTimer !== null) {
+      clearInterval(this.vadTimer);
+      this.vadTimer = null;
+    }
+    void this.audioContext?.close?.();
+    this.audioContext = null;
+    this.analyser = null;
+    this.vadData = null;
+    this.vadReady = false;
+    this.voiceSamples = 0;
+  }
+
   async stop(): Promise<void> {
+    this.teardownVad();
+
     if (this.chunkTimer !== null) {
       clearInterval(this.chunkTimer);
       this.chunkTimer = null;

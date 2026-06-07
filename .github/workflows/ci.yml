@@ -18,7 +18,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # node >= 21 so the node:test runner expands the src/**/*.test.ts and
+          # lib/**/*.test.ts globs (node 20 takes them literally and finds none).
+          node-version: "22"
       - run: npm ci
       - name: Build (shared -> backend -> web)
         run: npm run build
