@@ -1,0 +1,86 @@
+{
+  "version": "v1",
+  "generator": "scripts/generate-cer-fixtures.ts",
+  "frames": [
+    {
+      "id": "cer-shutdown-label-fail-v1",
+      "defectClass": "shutdown_label",
+      "compliant": false,
+      "path": "eval/frames/switchboard-no-shutdown-label.jpg",
+      "usedByScenarios": [
+        "cer-no-shutdown-label"
+      ]
+    },
+    {
+      "id": "cer-shutdown-label-pass-v1",
+      "defectClass": "shutdown_label",
+      "compliant": true,
+      "path": "eval/frames/switchboard-shutdown-label-v1.jpg",
+      "usedByScenarios": []
+    },
+    {
+      "id": "cer-missing-switch-label-fail-v1",
+      "defectClass": "missing_switch_label",
+      "compliant": false,
+      "path": "eval/frames/missing-signage.jpg",
+      "usedByScenarios": [
+        "cer-missing-signage"
+      ]
+    },
+    {
+      "id": "cer-missing-switch-label-pass-v1",
+      "defectClass": "missing_switch_label",
+      "compliant": true,
+      "path": "eval/frames/switch-label-v1.jpg",
+      "usedByScenarios": []
+    },
+    {
+      "id": "cer-dc-isolator-fail-v1",
+      "defectClass": "dc_isolator",
+      "compliant": false,
+      "path": "eval/frames/isolator-unlabelled.jpg",
+      "usedByScenarios": [
+        "cer-isolator-unlabelled"
+      ]
+    },
+    {
+      "id": "cer-dc-isolator-pass-v1",
+      "defectClass": "dc_isolator",
+      "compliant": true,
+      "path": "eval/frames/dc-isolator-labelled-v1.jpg",
+      "usedByScenarios": []
+    },
+    {
+      "id": "cer-dc-conduit-fail-v1",
+      "defectClass": "dc_conduit",
+      "compliant": false,
+      "path": "eval/frames/dc-not-in-conduit.jpg",
+      "usedByScenarios": [
+        "cer-dc-not-in-conduit"
+      ]
+    },
+    {
+      "id": "cer-dc-conduit-pass-v1",
+      "defectClass": "dc_conduit",
+      "compliant": true,
+      "path": "eval/frames/dc-in-conduit-v1.jpg",
+      "usedByScenarios": []
+    },
+    {
+      "id": "cer-serial-plate-fail-v1",
+      "defectClass": "serial_plate",
+      "compliant": false,
+      "path": "eval/frames/serial-plate.jpg",
+      "usedByScenarios": [
+        "cer-serial-capture"
+      ]
+    },
+    {
+      "id": "cer-serial-plate-pass-v1",
+      "defectClass": "serial_plate",
+      "compliant": true,
+      "path": "eval/frames/serial-plate-clear-v1.jpg",
+      "usedByScenarios": []
+    }
+  ]
+}
