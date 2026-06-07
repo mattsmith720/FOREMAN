@@ -42,6 +42,11 @@ skills-lock.json
 native/ios/**/Local.xcconfig
 native/ios/**/RealGlasses.xcconfig
 
+# playwright artifacts (web, landing, CI)
+test-results/
+playwright-report/
+blob-report/
+
 # os / editor
 .DS_Store
 .vercel
