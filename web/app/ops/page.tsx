@@ -22,10 +22,15 @@ interface OpsTotals {
   est_cost_usd: number;
 }
 
-interface OpsLatency {
+interface OpsLatencySlice {
   sampleCount: number;
   p50Ms: number;
   p95Ms: number;
+}
+
+interface OpsLatency {
+  analyse: OpsLatencySlice;
+  cueE2e: OpsLatencySlice;
 }
 
 interface OpsVideo {
@@ -169,8 +174,11 @@ export default function OpsPage() {
         {totals
           ? `Est. spend $${totals.est_cost_usd.toFixed(2)} · ${totals.frames} frames · ${totals.transcripts} voice chunks`
           : "Spend —"}
-        {latency && latency.sampleCount > 0
-          ? ` · analyse latency p50 ${latency.p50Ms}ms / p95 ${latency.p95Ms}ms (last ${latency.sampleCount} frames)`
+        {latency?.analyse?.sampleCount
+          ? ` · analyse p50 ${latency.analyse.p50Ms}ms / p95 ${latency.analyse.p95Ms}ms`
+          : ""}
+        {latency?.cueE2e?.sampleCount
+          ? ` · cue→ear p50 ${latency.cueE2e.p50Ms}ms / p95 ${latency.cueE2e.p95Ms}ms`
           : ""}
       </p>
       <a

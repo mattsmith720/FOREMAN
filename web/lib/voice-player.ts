@@ -63,7 +63,10 @@ export function stopVoicePlayback(): void {
   disposeCurrentAudio();
 }
 
-export function playAudioBlob(blob: Blob): Promise<void> {
+export function playAudioBlob(
+  blob: Blob,
+  options?: { onAudible?: () => void },
+): Promise<void> {
   const generation = ++playbackGeneration;
   disposeCurrentAudio();
 
@@ -72,6 +75,7 @@ export function playAudioBlob(blob: Blob): Promise<void> {
     currentUrl = url;
     const audio = new Audio(url);
     currentAudio = audio;
+    let audibleFired = false;
 
     const finish = () => {
       speaking = false;
@@ -86,6 +90,12 @@ export function playAudioBlob(blob: Blob): Promise<void> {
 
     audio.onended = finish;
     audio.onerror = finish;
+    audio.onplaying = () => {
+      if (!audibleFired) {
+        audibleFired = true;
+        options?.onAudible?.();
+      }
+    };
 
     speaking = true;
     void audio.play().catch((err) => {

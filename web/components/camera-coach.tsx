@@ -47,7 +47,9 @@ import {
   JobPhasePicker,
 } from "./job-phase-picker";
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
+import { reportCueE2eMs } from "../lib/cue-metrics";
 import { pickSpokenCue } from "../lib/pick-spoken-cue";
+import { estimateSessionCostUsd } from "../lib/session-cost";
 import {
   CONSENT_VERSION,
   loadWorkerProfile,
@@ -77,6 +79,8 @@ const STATUS_LABELS: Record<CoachStatus, string> = {
 const EMPTY_HEALTH: CaptureHealthStats = {
   frameKb: null,
   analyseMs: null,
+  cueE2eMs: null,
+  estCostUsd: null,
   persistQueued: false,
   micMime: null,
   chunkKb: null,
@@ -113,6 +117,7 @@ export function CameraCoach() {
   const transcribingRef = useRef(false);
   const audioQueueRef = useRef<Blob[]>([]);
   const sessionIdRef = useRef<string | null>(null);
+  const framesCapturedRef = useRef(0);
   const transcriptRef = useRef<string[]>([]);
   const lastHeroRef = useRef<string>("");
   const consentAtRef = useRef<string | null>(null);
@@ -396,7 +401,8 @@ export function CameraCoach() {
 
       analysingRef.current = true;
       setStatus("analysing");
-      setFrameCount((count) => count + 1);
+      framesCapturedRef.current += 1;
+      setFrameCount(framesCapturedRef.current);
 
       const frameKb = Math.round((image.length * 3) / 4 / 1024);
       const startedAt = performance.now();
@@ -449,7 +455,30 @@ export function CameraCoach() {
         const cue = pickSpokenCue(result.coaching, jobPhaseRef.current);
         if (cue && cue.text !== lastHeroRef.current) {
           lastHeroRef.current = cue.text;
-          void speakCoachLine(cue.text, cue.severity);
+          void speakCoachLine(cue.text, cue.severity, {
+            onAudible: () => {
+              const cueE2eMs = Math.round(performance.now() - startedAt);
+              reportCueE2eMs(cueE2eMs);
+              if (debugMode) {
+                setHealthStats((current) => ({
+                  ...current,
+                  cueE2eMs,
+                  estCostUsd: estimateSessionCostUsd(
+                    framesCapturedRef.current,
+                    transcriptRef.current.length,
+                  ),
+                }));
+              }
+            },
+          });
+        } else if (debugMode) {
+          setHealthStats((current) => ({
+            ...current,
+            estCostUsd: estimateSessionCostUsd(
+              framesCapturedRef.current,
+              transcriptRef.current.length,
+            ),
+          }));
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Analysis failed";
@@ -565,6 +594,7 @@ export function CameraCoach() {
     setActivity([]);
     setIsPaused(false);
     audioQueueRef.current = [];
+    framesCapturedRef.current = 0;
     setFrameCount(0);
     setLastAnalyseMs(null);
     setActiveCalloutIndex(0);

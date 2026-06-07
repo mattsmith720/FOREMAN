@@ -1,19 +1,28 @@
 /**
- * Lightweight in-memory latency metrics for the /analyse model call. Ephemeral
- * (resets on process restart) — a live readout for /ops, not durable analytics.
- * No PII, no storage, no migration.
+ * Lightweight in-memory latency metrics. Ephemeral (resets on process restart) —
+ * a live readout for /ops, not durable analytics. No PII, no storage, no migration.
  */
 const MAX_SAMPLES = 200;
 const analyseMsSamples: number[] = [];
+const cueE2eMsSamples: number[] = [];
 
-export function recordAnalyseMs(ms: number): void {
+function pushSample(bucket: number[], ms: number): void {
   if (!Number.isFinite(ms) || ms < 0) {
     return;
   }
-  analyseMsSamples.push(ms);
-  if (analyseMsSamples.length > MAX_SAMPLES) {
-    analyseMsSamples.shift();
+  bucket.push(ms);
+  if (bucket.length > MAX_SAMPLES) {
+    bucket.shift();
   }
+}
+
+export function recordAnalyseMs(ms: number): void {
+  pushSample(analyseMsSamples, ms);
+}
+
+/** Frame captured → coaching cue audible (client-reported E2E). */
+export function recordCueE2eMs(ms: number): void {
+  pushSample(cueE2eMsSamples, ms);
 }
 
 function percentile(sorted: number[], p: number): number {
@@ -27,17 +36,29 @@ function percentile(sorted: number[], p: number): number {
   return sorted[idx];
 }
 
-export interface LatencyMetrics {
+export interface LatencySlice {
   sampleCount: number;
   p50Ms: number;
   p95Ms: number;
 }
 
-export function getLatencyMetrics(): LatencyMetrics {
-  const sorted = [...analyseMsSamples].sort((a, b) => a - b);
+function sliceMetrics(samples: number[]): LatencySlice {
+  const sorted = [...samples].sort((a, b) => a - b);
   return {
     sampleCount: sorted.length,
     p50Ms: Math.round(percentile(sorted, 50)),
     p95Ms: Math.round(percentile(sorted, 95)),
+  };
+}
+
+export interface LatencyMetrics {
+  analyse: LatencySlice;
+  cueE2e: LatencySlice;
+}
+
+export function getLatencyMetrics(): LatencyMetrics {
+  return {
+    analyse: sliceMetrics(analyseMsSamples),
+    cueE2e: sliceMetrics(cueE2eMsSamples),
   };
 }

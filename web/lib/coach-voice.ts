@@ -61,7 +61,11 @@ export function isCoachVoiceAvailable(): boolean {
 }
 
 /** ElevenLabs Australian male TTS for coaching cues. */
-export async function speakCoachLine(text: string, severity?: string): Promise<void> {
+export async function speakCoachLine(
+  text: string,
+  severity?: string,
+  options?: { onAudible?: () => void },
+): Promise<void> {
   const isCritical = severity === "critical";
   const category = severity ?? "info";
   const cooldownMs = COOLDOWN_MS[category] ?? DEFAULT_COOLDOWN_MS;
@@ -103,7 +107,7 @@ export async function speakCoachLine(text: string, severity?: string): Promise<v
     }
 
     lastSpokeAtByCategory.set(category, Date.now());
-    await playAudioBlob(blob);
+    await playAudioBlob(blob, { onAudible: options?.onAudible });
   } catch {
     // Non-fatal — coaching still visible on screen
   }
