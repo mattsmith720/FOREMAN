@@ -86,8 +86,9 @@ it auto-retries — no separate Retry button.
 **Install phase — compliance evidence pack:** Foreman voice-guides six CER shots in
 sequence (setup selfie, meter box, switchboard label, inverter serial plate, battery
 labels, testing selfie). Each good capture is geotagged and timestamped into the
-frame JPEG. On **End job**, a `foreman-evidence-*.json` manifest downloads
-automatically when any shots were captured.
+frame JPEG. On **End job**, a `foreman-evidence-*.zip` downloads automatically
+(stamped JPEGs + `manifest.json`); if the ZIP fails, a JSON manifest fallback
+downloads instead.
 
 **Talk through the job.** Speak naturally, e.g.
 

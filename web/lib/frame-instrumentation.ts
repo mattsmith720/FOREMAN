@@ -43,10 +43,6 @@ export function frameInstrumentation(
 
   const onCueAttempt = () => reportSpokenCueAttemptMs(input.startedAt);
 
-  if (input.spokenCueAttempt) {
-    onCueAttempt();
-  }
-
   return {
     healthPatch,
     onCueAttempt,

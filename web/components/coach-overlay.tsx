@@ -356,6 +356,7 @@ export function CoachOverlay({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [manualCueIndex, setManualCueIndex] = useState(0);
 
+  const spokenHero = pickSpokenCue(coaching, jobPhase);
   const defaultHero = pickHeroCue(
     coaching,
     callouts,
@@ -367,8 +368,18 @@ export function CoachOverlay({
     [coaching, callouts],
   );
 
-  const hero =
-    allCues.length > 0
+  const hero = spokenHero
+    ? {
+        text: spokenHero.text,
+        severity: spokenHero.severity,
+        label:
+          spokenHero.severity === "critical"
+            ? "Safety"
+            : spokenHero.severity === "warning"
+              ? "Quality"
+              : "Foreman",
+      }
+    : allCues.length > 0
       ? allCues[manualCueIndex % allCues.length]
       : defaultHero;
 

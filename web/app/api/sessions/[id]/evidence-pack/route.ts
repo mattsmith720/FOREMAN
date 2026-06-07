@@ -1,4 +1,7 @@
-import { createProxyErrorResponse, proxyToBackend } from "../../../../../lib/proxy-backend";
+import {
+  createProxyErrorResponse,
+  proxyBinaryToBackend,
+} from "../../../../../lib/proxy-backend";
 
 export const maxDuration = 60;
 
@@ -7,7 +10,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    return await proxyToBackend(`/sessions/${params.id}/evidence-pack`, request, {
+    return await proxyBinaryToBackend(`/sessions/${params.id}/evidence-pack`, request, {
       timeoutMs: 55_000,
     });
   } catch (error) {

@@ -38,7 +38,7 @@ One screen — consent, phase, and start in a single tap:
 - Optional: tap **Details** for the full sheet — **Seeing**, **Heard**, **Advice**, **Marks**.
 - Optional: tap **Pause job** → badge turns amber **PAUSED** → **Resume job** to continue.
 
-**Install bonus:** pick **Install** and Foreman voice-prompts six compliance shots (meter box, switchboard, serial plate, etc.). On **End job** a `foreman-evidence-*.json` manifest downloads if any shots were captured.
+**Install bonus:** pick **Install** and Foreman voice-prompts six compliance shots (meter box, switchboard, serial plate, etc.). On **End job** a `foreman-evidence-*.zip` downloads (JPEGs + manifest); JSON fallback if ZIP fails.
 
 ### 3. Audio (15s)
 

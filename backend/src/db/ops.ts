@@ -84,25 +84,42 @@ export async function getSessionExportRecords(
   sessionId: string,
 ): Promise<Array<Record<string, unknown>>> {
   const supabase = getSupabase();
-  const [framesRes, labelsRes, transcriptsRes] = await Promise.all([
-    supabase
-      .from("frames")
-      .select("id, ts, storage_ref, analysis")
-      .eq("session_id", sessionId)
-      .order("ts", { ascending: true }),
-    supabase.from("labels").select("key, value").eq("session_id", sessionId),
-    supabase
-      .from("transcript_segments")
-      .select("ts, text, speaker")
-      .eq("session_id", sessionId)
-      .order("ts", { ascending: true }),
-  ]);
+  const framesRes = await supabase
+    .from("frames")
+    .select("id, ts, storage_ref, analysis")
+    .eq("session_id", sessionId)
+    .order("ts", { ascending: true });
 
   if (framesRes.error) {
     throw new Error(framesRes.error.message);
   }
 
-  const labels = labelsRes.data ?? [];
+  const labelsPrimary = await supabase
+    .from("labels")
+    .select("key, value, label_source, frame_id, confirmed_at")
+    .eq("session_id", sessionId);
+  let labels = labelsPrimary.data ?? [];
+  if (
+    labelsPrimary.error &&
+    (labelsPrimary.error.message ?? "").includes("label_source")
+  ) {
+    const labelsFallback = await supabase
+      .from("labels")
+      .select("key, value")
+      .eq("session_id", sessionId);
+    if (labelsFallback.error) {
+      throw new Error(labelsFallback.error.message);
+    }
+    labels = labelsFallback.data ?? [];
+  } else if (labelsPrimary.error) {
+    throw new Error(labelsPrimary.error.message);
+  }
+
+  const transcriptsRes = await supabase
+    .from("transcript_segments")
+    .select("ts, text, speaker")
+    .eq("session_id", sessionId)
+    .order("ts", { ascending: true });
   const transcripts = transcriptsRes.data ?? [];
 
   return (framesRes.data ?? []).map((frame) => ({

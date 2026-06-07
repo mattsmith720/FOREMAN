@@ -47,7 +47,7 @@ export async function saveSessionNotes(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ notes }),
-    retry: { retries: 0 },
+    retry: { retries: 1, allowUnsafe: true },
   });
   await parseApiResponse<{ session: unknown }>(response);
 }

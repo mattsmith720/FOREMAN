@@ -1,73 +1,48 @@
 # FOREMAN Swarm Board
 
-**Orchestrator worktree:** `foreman-swarm-24e6d6ec`  
-**Integration branch:** `swarm/integration`  
-**Baseline:** `970f25e` (S0–S2 already on main)  
-**Capability:** Cursor `/worktree` — up to 8 parallel lane agents per wave
+**Orchestrator:** integrator-only `main` pushes  
+**Production:** https://foreman-phi.vercel.app · API https://foreman-api-y31r.onrender.com  
+**Current main:** post–trust-audit fixes (see `docs/swarm/TRUST_AUDIT.md`)
 
-## Wave 0 — Seam cut (integrator)
+## Phase 0 — Trust audit (COMPLETE)
 
-| Status | Branch | SHA | Gate |
-|--------|--------|-----|------|
-| merged → main | `swarm/integration` | `8ed82c8` | green (build/lint/backend 60/web 40/smoke PASS) |
+| Agent | Status | Verdict |
+|-------|--------|---------|
+| AU1 clean-room gate | done | VERIFIED post-fix (was FALSE: flaky web test + double metric) |
+| AU2 S0–S1 DoD | done | S0 PARTIAL · S1 VERIFIED |
+| AU3 S2 evidence pack | done | ZIP VERIFIED · PDF/serial/4-selfies FALSE |
+| AU4 S3–S4 eval/export | done | eval PARTIAL (6/11) · export fixed |
+| AU5 diff archaeology | done | P0 double-metric fixed |
+| AU6 security | done | ZIP proxy fixed · see TRUST_AUDIT.md |
+| AU7 prod truth | done | VERIFIED |
+| AU8 claims table | done | `docs/swarm/TRUST_AUDIT.md` |
 
-Extracted modules (disjoint lane ownership):
-- `web/lib/frame-instrumentation.ts` → **L1**
-- `web/lib/verdict-cue-delivery.ts` + `web/lib/pick-spoken-cue.ts` → **L2**
-- `web/lib/compliance-evidence-handler.ts` + capture stack → **L3**
-- `web/lib/compliance-pack.ts` (assembly/export) → **L4**
-- `backend/eval/**` + `backend/scripts/eval-coaching.ts` → **L5** (new files only)
-- `web/lib/phone-frame-source.ts` + sampling policy → **L6**
-- `web/lib/review.ts` + `web/components/post-job-review.tsx` + ops dataset stats → **L7**
-- `web/lib/retry.ts` + network paths → **L8**
-- `native/ios/**` → **L9** (build-unverified)
-- `web/app/globals.css` + docs → **L10**
+### Audit fix lanes (merged)
 
-**Integrator-only (CONTRACT REQUEST required):**
-`shared/src/coaching.ts`, `package.json`, `package-lock.json`, `.github/**`, `render.yaml`, `web/app/api/**`, `backend/src/index.ts`, `backend/src/auth.ts`, `backend/src/routes/analyse.ts` (schema wire), `web/components/camera-coach.tsx` (thin shell only)
+| Fix | Files |
+|-----|-------|
+| Single cue-metric POST | `frame-instrumentation.ts`, `camera-coach.tsx` |
+| Hero = spokenCue | `coach-overlay.tsx` |
+| Binary ZIP proxy | `evidence-pack/route.ts` |
+| Ops export provenance | `backend/src/db/ops.ts` |
+| Doc ZIP truth | `PILOT_HANDOFF.md`, `PHONE_DEMO.md`, `YOUR_ACTIONS.md` |
+| Review notes retry | `web/lib/review.ts` |
 
-## Lane ownership map (WRITE)
+**Gate:** build · web lint · backend 73 · web 65 · smoke PASS
 
-| Lane | Sprint | Writable paths |
-|------|--------|----------------|
-| L1 instrument | S0 Δ | `backend/src/metrics.ts`, `backend/src/routes/metrics.ts`, `backend/src/routes/ops.ts`, `web/lib/cue-metrics.ts`, `web/lib/session-cost.ts`, `web/lib/frame-instrumentation.ts`, `web/components/capture-health.tsx`, `web/app/ops/page.tsx` |
-| L2 defect-coach | S1 Δ | `backend/src/prompts/analysis-phases.ts`, `backend/src/prompts/analysis.ts`, `backend/fixtures/cer-*.json`, `backend/fixtures/coaching-solar-install.json`, `web/lib/pick-spoken-cue.ts`, `web/lib/verdict-cue-delivery.ts`, `backend/src/prompts/cer-fixtures.test.ts` |
-| L3 capture | S2a | `web/lib/phone-frame-source.ts`, `web/lib/frame-sharpness.ts`, `web/lib/interaction-mode.ts`, `web/lib/compress-frame.ts`, `web/lib/stamp-frame.ts`, `web/lib/geolocation.ts`, `web/lib/compliance-evidence-handler.ts` |
-| L4 pack | S2b | `web/lib/compliance-pack.ts`, `backend/src/db/persist-frame.ts`, `backend/src/routes/sessions.ts` (pack endpoint CR), `web/lib/evidence-pack.ts` (new) |
-| L5 eval | S3 | `backend/eval/**`, `backend/scripts/eval-coaching.ts`, `.github/workflows/eval-coaching.yml` (new) |
-| L6 efficiency | S3 | `web/lib/scene-change.ts` (new), `web/lib/session-spend-cap.ts` (new), `web/lib/phone-frame-source.ts` (sampling hooks only — **conflicts L3: serialise L6 after L3 merges**) |
-| L7 data | S4 | `web/components/post-job-review.tsx`, `web/lib/review.ts`, `backend/src/routes/labels.ts`, `backend/src/db/ops.ts`, `web/app/ops/page.tsx` (dataset stats section) |
-| L8 reliability | S5 | `web/lib/retry.ts`, `web/lib/phone-audio-source.ts`, `web/lib/analyse.ts`, `web/lib/api-fetch.ts`, `backend/src/api-error.ts` |
-| L9 native-sync | S5 | `native/ios/**` |
-| L10 polish | S5 | `web/app/globals.css`, `PILOT_HANDOFF.md`, `PHONE_DEMO.md`, `YOUR_ACTIONS.md`, `web/**/*.test.ts` (a11y) |
+## Phase 1 — Four programs (NEXT)
 
-## Recon swarm (Phase A)
+| Program | Lanes | Status |
+|---------|-------|--------|
+| **A — Prove it** | A1 fixtures · A2 Playwright E2E · A3 pack validator · A4 vision eval · A5 bench | queued |
+| **B — Pilot-grade** | B1 offline-first · B2 crew model · B3 Blake dashboard · B4 PDF pack · B5 perf budget | queued |
+| **C — Sell it** | C1 demo mode · C2 landing · C3 ROI calc · C4 pitch kit | queued |
+| **D — Operate it** | D1 observability · D2 /ops maturity · D3 security sweep · D4 backup routine | queued |
 
-| Agent | Status | Notes |
-|-------|--------|-------|
-| R1–R10 | complete | See `docs/swarm/recon-summary.md` |
+## Prior swarm (L1–L10) — merged `37d5950`
 
-## Build lanes (Phase B)
-
-| Lane | Status | Branch |
-|------|--------|--------|
-| L1 instrument | merged | `swarm/l1-instrument` |
-| L2 defect-coach | merged | `swarm/l2-defect-coach` |
-| L3 compliance | merged | `swarm/l3-compliance` |
-| L4 evidence-pack | merged | `swarm/l4-evidence-pack` |
-| L5 eval | merged | `swarm/l5-eval` |
-| L6 efficiency | merged | `swarm/l6-efficiency` |
-| L7 review | merged | `swarm/l7-review` |
-| L8 reliability | merged | `swarm/l8-reliability` |
-| L9 ios | merged | `swarm/l9-ios` |
-| L10 polish | merged | `swarm/l10-polish` |
-
-## Integration train (Phase C)
-
-| Status | Branch | Notes |
-|--------|--------|-------|
-| integrating | `swarm/integrate-all` | L1→L10 merged + integrator CONTRACT |
+All lanes merged. Test counts: **backend 73**, **web 65**.
 
 ## Operator-gated (never lane work)
 
-Supabase migrations 2+3 · OPS_PASSWORD · GitHub SUPABASE_* · Local.xcconfig · iPhone UAT · spend caps · legal review · GUNNR STC format
+Supabase migrations 2+3 · OPS_PASSWORD · GitHub SUPABASE_* · Local.xcconfig · iPhone UAT · hard spend caps · legal review · GUNNR STC format · Sentry/external accounts

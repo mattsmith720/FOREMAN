@@ -171,7 +171,7 @@ BASE_URL=https://foreman-api-y31r.onrender.com FOREMAN_API_KEY=$FOREMAN_API_KEY 
 - Optional: **Cue voice on/off** and **Talk live** / **End talk** when voice routes are configured
 - **End job** → **Job complete** summary with frame/transcript counts
 - **Was the coaching right?** post-job review — **👍 Right** / **Fix** on top cues, optional job notes
-- On **Install**: voice-guided compliance shots; `foreman-evidence-*.json` downloads on end if any shots captured
+- On **Install**: voice-guided compliance shots; `foreman-evidence-*.zip` downloads on end (JSON fallback if ZIP fails)
 
 **Confirm data in Supabase (optional):**  
 [Table Editor](https://supabase.com/dashboard/project/uvlgbsiwyvtsjlqzozas/editor) → `sessions`, `frames`, `transcript_segments` should have rows.

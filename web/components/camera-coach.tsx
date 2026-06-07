@@ -608,15 +608,14 @@ export function CameraCoach() {
         const { done, total } = complianceProgress(
           complianceStateRef.current.captured,
         );
+        let packLine = `Evidence pack ${done} of ${total} shots saved.`;
         try {
           await downloadEvidencePack(sessionId);
         } catch {
           downloadEvidenceManifest(sessionId, complianceStateRef.current.records);
+          packLine = `Evidence manifest ${done} of ${total} shots saved.`;
         }
-        void speakCoachLine(
-          `Evidence pack ${done} of ${total} shots saved.`,
-          "info",
-        );
+        void speakCoachLine(packLine, "info");
       }
     } catch {
       // Never dead-end the worker: the job data is already saved server-side.
