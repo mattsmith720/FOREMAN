@@ -9,7 +9,7 @@
 
 | Status | Branch | SHA | Gate |
 |--------|--------|-----|------|
-| building | `swarm/integration` | pending | pending |
+| merged → main | `swarm/integration` | `8ed82c8` | green (build/lint/backend 60/web 40/smoke PASS) |
 
 Extracted modules (disjoint lane ownership):
 - `web/lib/frame-instrumentation.ts` → **L1**
