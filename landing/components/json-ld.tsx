@@ -1,19 +1,5 @@
+import { FAQ_ITEMS } from "@/lib/faq-content";
 import { site } from "@/lib/site";
-
-const FAQ_ITEMS = [
-  {
-    q: "What is Foreman?",
-    a: "Phone app for maintenance crews: record jobs, coach on site, build onboarding modules.",
-  },
-  {
-    q: "Do I need smart glasses?",
-    a: "No. Phone-first today.",
-  },
-  {
-    q: "How do we start?",
-    a: "Book a demo.",
-  },
-] as const;
 
 export const SEO_DESCRIPTION = site.description;
 

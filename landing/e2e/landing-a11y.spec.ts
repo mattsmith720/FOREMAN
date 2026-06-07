@@ -5,7 +5,7 @@ test.describe("landing accessibility", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(
       page.getByRole("heading", {
-        name: /every job your best techs do becomes the training/i,
+        name: /coaching and training from maintenance jobs/i,
       }),
     ).toBeVisible({ timeout: 30_000 });
   });
@@ -26,7 +26,7 @@ test.describe("landing accessibility", () => {
   test("heading order: exactly one h1", async ({ page }) => {
     const h1 = page.locator("h1");
     await expect(h1).toHaveCount(1);
-    await expect(h1).toHaveText(/every job your best techs do becomes the training/i);
+    await expect(h1).toHaveText(/coaching and training from maintenance jobs/i);
 
     const headings = await page.locator("h1, h2, h3, h4, h5, h6").evaluateAll((els) =>
       els.map((el) => Number(el.tagName.slice(1))),

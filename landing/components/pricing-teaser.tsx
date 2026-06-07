@@ -6,18 +6,19 @@ export function PricingTeaser() {
     <section className="lp-pricing-teaser" aria-labelledby="pricing-teaser-title">
       <div className="lp-wrap lp-pricing-teaser-inner">
         <div>
-          <h2 id="pricing-teaser-title" className="lp-section-label">
-            pricing
-          </h2>
-          <p className="lp-section-headline">Per-seat. No platform tax.</p>
+          <p id="pricing-teaser-title" className="lp-section-label">
+            Pricing
+          </p>
+          <p className="lp-section-headline">Seat fee plus usage rates</p>
           <p className="lp-pricing-teaser-copy">
-            Pilot from $99/tech · Field at $149/tech · fleet breaks at 10+ seats.
-            Usage metering published — no opaque AI credits.
+            From $99 per active tech per month. Jobs, transcription, modules, and storage
+            have included allowances; overage rates are on the pricing page. Meta glasses
+            lease from $29 per tech per month.
           </p>
         </div>
         <div className="lp-pricing-teaser-actions">
           <Link href="/pricing" className="lp-btn lp-btn--secondary">
-            full_pricing()
+            View full pricing
           </Link>
           <BookDemo />
         </div>

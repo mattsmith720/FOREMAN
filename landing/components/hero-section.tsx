@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { BookDemo } from "@/components/book-demo";
 import { DEMO_URL } from "@/lib/config";
+import { site } from "@/lib/site";
 
-const SIGNALS = [
-  { label: "capture", value: "phone + mic" },
-  { label: "infer", value: "vision + speech" },
-  { label: "output", value: "training module" },
+const STEPS = [
+  { label: "Capture", value: "Phone or glasses on site" },
+  { label: "Coach", value: "Live safety and technique cues" },
+  { label: "Train", value: "Onboarding from real visits" },
 ] as const;
 
 export function HeroSection() {
@@ -14,20 +15,20 @@ export function HeroSection() {
       <div className="lp-wrap">
         <p className="lp-hero-v2-kicker">
           <span className="lp-hero-v2-dot" aria-hidden="true" />
-          field_intelligence :: maintenance_crews
+          {site.tagline}
         </p>
-        <h1>Job footage in. Trained crews out.</h1>
+        <h1>Coaching and training from maintenance jobs</h1>
         <p className="lp-hero-v2-lede">
-          Foreman runs on the phone during real visits — captures the job, coaches technique
-          live, and ships onboarding modules built from your own footage.
+          Foreman runs on the phone during a visit. It records the job, gives live coaching
+          cues, and produces an end-of-job summary and training module from that session.
         </p>
 
-        <div className="lp-hero-v2-signals" aria-label="Pipeline">
-          {SIGNALS.map((s, i) => (
-            <div key={s.label} className="lp-hero-v2-signal">
-              <span className="lp-hero-v2-signal-key">{s.label}</span>
-              <span className="lp-hero-v2-signal-val">{s.value}</span>
-              {i < SIGNALS.length - 1 && (
+        <div className="lp-hero-v2-signals" aria-label="How it works">
+          {STEPS.map((step, i) => (
+            <div key={step.label} className="lp-hero-v2-signal">
+              <span className="lp-hero-v2-signal-key">{step.label}</span>
+              <span className="lp-hero-v2-signal-val">{step.value}</span>
+              {i < STEPS.length - 1 && (
                 <span className="lp-hero-v2-signal-arrow" aria-hidden="true">
                   →
                 </span>
@@ -39,21 +40,22 @@ export function HeroSection() {
         <div className="lp-cta-row" id="book">
           <BookDemo />
           <a href={DEMO_URL} className="lp-btn lp-btn--secondary">
-            view_demo()
+            Try the demo
           </a>
           <Link href="/pricing" className="lp-btn lp-btn--secondary">
-            pricing
+            View pricing
           </Link>
         </div>
 
-        <pre className="lp-hero-v2-terminal" aria-label="Example coaching output">
-          <code>
-            {`> foreman.coach()\n`}
-            {`  status: live\n`}
-            {`  cue: "rinse lower row before moving ladder"\n`}
-            {`  module: queued_on_job_end`}
-          </code>
-        </pre>
+        <aside className="lp-hero-v2-coach" aria-label="Example coaching cue">
+          <p className="lp-hero-v2-coach-label">Live coaching</p>
+          <p className="lp-hero-v2-coach-cue">
+            &ldquo;Rinse the lower row before you move the ladder.&rdquo;
+          </p>
+          <p className="lp-hero-v2-coach-meta">
+            Spoken on site · training module queued when the job ends
+          </p>
+        </aside>
       </div>
     </header>
   );

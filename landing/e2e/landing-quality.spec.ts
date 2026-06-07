@@ -10,10 +10,9 @@ const VIEWPORTS = [
 const MOBILE_390 = { width: 390, height: 844 } as const;
 
 const NAV_LINKS = [
-  { label: "Problem", href: "#pain", section: "#pain" },
-  { label: "Flow", href: "#how-it-works", section: "#how-it-works" },
-  { label: "Product", href: "#solution", section: "#solution" },
-  { label: "Services", href: "#services", section: "#services" },
+  { label: "How it works", href: "#pipeline", section: "#pipeline" },
+  { label: "Features", href: "#capabilities", section: "#capabilities" },
+  { label: "Pricing", href: "/pricing", section: null },
   { label: "FAQ", href: "#faq", section: "#faq" },
 ] as const;
 
@@ -25,7 +24,7 @@ async function assertNoHorizontalScroll(page: Page) {
 }
 
 function heroCtaRow(page: Page) {
-  return page.locator("header.lp-hero .lp-cta-row");
+  return page.locator("header.lp-hero-v2 .lp-cta-row");
 }
 
 function bookDemoCta(page: Page, root = heroCtaRow(page)) {
@@ -47,19 +46,17 @@ for (const vp of VIEWPORTS) {
       await page.goto("/");
       await expect(
         page.getByRole("heading", {
-          name: /every job your best techs do becomes the training/i,
+          name: /coaching and training from maintenance jobs/i,
         }),
       ).toBeVisible();
       await expect(
-        page.getByRole("heading", {
-          name: /scaling a maintenance crew shouldn't mean scaling your training load/i,
-        }),
+        page.getByRole("heading", { name: /what happens on each job/i }),
       ).toBeVisible();
       await expect(
-        page.getByRole("heading", { name: /training layer for your maintenance business/i }),
+        page.getByRole("heading", { name: /what foreman does on site/i }),
       ).toBeVisible();
       await expect(
-        page.getByRole("heading", { name: /frequently asked questions/i }),
+        page.getByRole("heading", { name: /common questions/i }),
       ).toBeVisible();
 
       await assertNoHorizontalScroll(page);
@@ -79,7 +76,7 @@ for (const vp of VIEWPORTS) {
 test.describe("landing navigation", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("primary nav links target in-page sections", async ({ page }) => {
+  test("primary nav links target sections", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
 
@@ -91,18 +88,12 @@ test.describe("landing navigation", () => {
     }
 
     for (const link of NAV_LINKS) {
-      await nav.getByRole("link", { name: link.label }).click();
-      await expect(page.locator(link.section)).toBeInViewport();
+      if (link.section) {
+        await nav.getByRole("link", { name: link.label }).click();
+        await expect(page.locator(link.section)).toBeInViewport();
+        await page.goto("/");
+      }
     }
-  });
-
-  test("pilot strip links to book section", async ({ page }) => {
-    await page.goto("/");
-    const strip = page.locator(".lp-pilot-strip");
-    await expect(strip.getByRole("link", { name: /book a demo/i })).toHaveAttribute(
-      "href",
-      "#book",
-    );
   });
 });
 
@@ -112,9 +103,8 @@ test.describe("landing hero", () => {
     const ctaRow = heroCtaRow(page);
 
     await expect(bookDemoCta(page, ctaRow)).toBeVisible();
-    await expect(
-      ctaRow.getByRole("link", { name: /see a maintenance visit/i }),
-    ).toBeVisible();
+    await expect(ctaRow.getByRole("link", { name: /try the demo/i })).toBeVisible();
+    await expect(ctaRow.getByRole("link", { name: /view pricing/i })).toBeVisible();
     await expect(page.locator("#book")).toBeAttached();
   });
 });
@@ -128,17 +118,30 @@ test.describe("landing FAQ", () => {
     const second = faq.getByRole("button", { name: "Do I need smart glasses?" });
 
     await expect(first).toHaveAttribute("aria-expanded", "true");
-    await expect(faq.getByText(/AI layer for solar maintenance crews/)).toBeVisible();
+    await expect(faq.getByText(/runs on the phone during a maintenance job/i)).toBeVisible();
 
     await second.scrollIntoViewIfNeeded();
     await second.click();
-    await expect(faq.getByText(/phone-first today/)).toBeVisible();
+    await expect(faq.getByText(/no for pilot/i)).toBeVisible();
     await expect(second).toHaveAttribute("aria-expanded", "true");
     await expect(first).toHaveAttribute("aria-expanded", "false");
 
     await second.click();
-    await expect(faq.getByText(/phone-first today/)).toBeHidden();
+    await expect(faq.getByText(/no for pilot/i)).toBeHidden();
     await expect(second).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
+test.describe("landing pricing", () => {
+  test("pricing page loads with calculator and hybrid model", async ({ page }) => {
+    await page.goto("/pricing");
+    await expect(
+      page.getByRole("heading", { name: /seat fee and usage rates/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /per-seat platform fee \+ metered usage/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/estimate your monthly bill/i)).toBeVisible();
   });
 });
 
@@ -169,9 +172,7 @@ test.describe("landing @ mobile 390px", () => {
     const ctaRow = heroCtaRow(page);
 
     await expect(bookDemoCta(page, ctaRow)).toBeVisible();
-    await expect(
-      ctaRow.getByRole("link", { name: /see a maintenance visit/i }),
-    ).toBeVisible();
+    await expect(ctaRow.getByRole("link", { name: /try the demo/i })).toBeVisible();
   });
 });
 

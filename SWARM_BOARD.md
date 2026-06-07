@@ -10,7 +10,8 @@
 | Mega A–D | **CLOSED** |
 | Factory E–H | **QUEUED** (recon at `docs/swarm/FACTORY_RECON.md`) |
 | **Landing strike (LP1–LP6)** | **DEPLOYED** — `docs/landing/LP6_REPORT.md` |
-| **Landing LP30 swarm** | **IN FLIGHT** — 30 parallel agents · `docs/landing/swarm/LP30_MANIFEST.md` |
+| **Landing LP31** | **CLOSED** — FAQ + mobile nav + hybrid pricing + truth audit · `docs/landing/TRUTH_AUDIT.md` |
+| **Landing LP30 swarm** | **SUPERSEDED** — install-era · `docs/landing/swarm/LP30_MANIFEST.md` |
 | **Visual V0** | **CLOSED** — `docs/visual/DR1`–`DR5` |
 | **Visual VF1** | **MERGED pending** — tokens + UI primitives on `visual/vf1-foundation` |
 | **Visual VF2** | **PARTIAL** — boot + welcome geometry specs; matrix in CI |

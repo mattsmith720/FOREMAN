@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { BookDemo } from "./book-demo";
-
-const LINKS = [
-  { href: "#pipeline", label: "Pipeline" },
-  { href: "#capabilities", label: "Capabilities" },
-  { href: "/pricing", label: "Pricing" },
-] as const;
+import { MobileNav } from "./mobile-nav";
+import { NAV_LINKS } from "@/lib/nav";
 
 export function SiteNav() {
   return (
@@ -15,13 +11,16 @@ export function SiteNav() {
           Fore<span className="lp-logo-mark">man</span>
         </Link>
         <div className="lp-nav-links" aria-label="Sections">
-          {LINKS.map((link) => (
+          {NAV_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="lp-nav-link">
               {link.label}
             </Link>
           ))}
         </div>
-        <BookDemo label="book_demo()" className="lp-nav-cta" />
+        <div className="lp-nav-actions">
+          <BookDemo className="lp-nav-cta" />
+          <MobileNav />
+        </div>
       </div>
     </nav>
   );

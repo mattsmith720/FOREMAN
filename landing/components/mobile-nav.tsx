@@ -1,16 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { BookDemo } from "./book-demo";
 import { DEMO_URL } from "@/lib/config";
-
-const LINKS = [
-  { href: "#pain", label: "Problem" },
-  { href: "#how-it-works", label: "Flow" },
-  { href: "#solution", label: "Product" },
-  { href: "#services", label: "Services" },
-  { href: "#faq", label: "FAQ" },
-] as const;
+import { NAV_LINKS } from "@/lib/nav";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -68,17 +62,17 @@ export function MobileNav() {
       >
         <nav aria-label="Mobile">
           <ul className="lp-mobile-nav-links">
-            {LINKS.map((link) => (
+            {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <a href={link.href} onClick={close}>
+                <Link href={link.href} onClick={close}>
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
           <div className="lp-mobile-nav-actions">
             <a href={DEMO_URL} className="lp-mobile-nav-demo" onClick={close}>
-              Watch demo
+              Try the demo
             </a>
             <div onClick={close}>
               <BookDemo label="Book a demo" className="lp-mobile-nav-cta" />

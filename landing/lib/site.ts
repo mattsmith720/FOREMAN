@@ -2,9 +2,9 @@ import { APP_URL, DEMO_URL, SITE_URL } from "./config";
 
 export const site = {
   name: "Foreman",
-  tagline: "field_intelligence :: maintenance_crews",
+  tagline: "AI coaching for solar maintenance crews",
   description:
-    "Phone-native field intelligence for maintenance crews. Capture, coach, export, onboard.",
+    "Foreman records maintenance jobs on the phone, provides live coaching, and generates end-of-job summaries and training modules.",
   url: SITE_URL,
   demoUrl: DEMO_URL,
   appUrl: APP_URL,

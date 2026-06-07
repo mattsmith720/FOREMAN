@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SiteFooter } from "@/components/site-footer";
+import { LandingFooter } from "@/components/landing-footer";
 import { SiteNav } from "@/components/site-nav";
 import { site } from "@/lib/site";
 
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        <SiteFooter />
+        <LandingFooter />
       </main>
     </>
   );

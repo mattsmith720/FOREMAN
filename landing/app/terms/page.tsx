@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { SiteFooter } from "@/components/site-footer";
+import { LandingFooter } from "@/components/landing-footer";
 import { SiteNav } from "@/components/site-nav";
 import { site } from "@/lib/site";
 
 export const metadata = {
   title: "Terms",
   description:
-    "Pilot terms of service for Foreman. Field intelligence for Australian solar maintenance crews.",
+    "Pilot terms of service for Foreman. AI coaching for Australian solar maintenance crews.",
 };
 
 const SECTIONS = [
@@ -90,7 +90,7 @@ export default function TermsPage() {
           </div>
         </section>
 
-        <SiteFooter />
+        <LandingFooter />
       </main>
     </>
   );

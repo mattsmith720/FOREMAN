@@ -1,23 +1,23 @@
 const STAGES = [
   {
-    id: "01",
-    name: "ingest",
-    detail: "Consent → start job → frames + audio stream to private store",
+    id: "1",
+    name: "Record the visit",
+    detail: "Consent, start the job, and stream frames plus audio to your private store.",
   },
   {
-    id: "02",
-    name: "analyse",
-    detail: "Vision model flags technique gaps · speech → transcript",
+    id: "2",
+    name: "Coach on site",
+    detail: "Foreman flags technique gaps and turns speech into a searchable transcript.",
   },
   {
-    id: "03",
-    name: "accumulate",
-    detail: "Labels, coaching events, and session data export for your models",
+    id: "3",
+    name: "Build your dataset",
+    detail: "Labels, coaching events, and session exports for your own model training.",
   },
   {
-    id: "04",
-    name: "onboard",
-    detail: "Auto-generated steps, safety notes, quiz, briefing script",
+    id: "4",
+    name: "Onboard new hires",
+    detail: "Auto-generated steps, safety notes, quiz, and briefing script from real jobs.",
   },
 ] as const;
 
@@ -25,10 +25,10 @@ export function PipelineSection() {
   return (
     <section className="lp-pipeline" id="pipeline" aria-labelledby="pipeline-title">
       <div className="lp-wrap">
-        <h2 id="pipeline-title" className="lp-section-label">
-          data_pipeline
+        <p className="lp-section-label">How it works</p>
+        <h2 id="pipeline-title" className="lp-section-headline">
+          What happens on each job
         </h2>
-        <p className="lp-section-headline">Every visit compounds your dataset</p>
         <ol className="lp-pipeline-list">
           {STAGES.map((stage) => (
             <li key={stage.id} className="lp-pipeline-item">

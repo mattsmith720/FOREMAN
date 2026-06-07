@@ -1,23 +1,19 @@
 const CAPS = [
   {
-    key: "live_coach",
     title: "Live coach",
-    body: "One actionable cue per frame — safety and technique while the ladder is still up.",
+    body: "Spoken cues on safety and technique during the job, one at a time.",
   },
   {
-    key: "private_store",
-    title: "Private store",
-    body: "Frames, audio, transcripts, and labels in your tenant. Export JSONL for fine-tunes.",
+    title: "Private job library",
+    body: "Frames, audio, transcripts, and labels stay in your account. Export when you need to.",
   },
   {
-    key: "job_types",
-    title: "Maintenance profiles",
+    title: "Maintenance job types",
     body: "Panel clean, pigeon proofing, thermal scan, exterior and commercial cleans.",
   },
   {
-    key: "modules",
     title: "Training modules",
-    body: "End-of-job onboarding packages from real visits — not generic slide decks.",
+    body: "Steps, safety notes, and a briefing script generated from the visit recording.",
   },
 ] as const;
 
@@ -29,14 +25,13 @@ export function CapabilitiesSection() {
       aria-labelledby="caps-title"
     >
       <div className="lp-wrap">
-        <h2 id="caps-title" className="lp-section-label">
-          capabilities
+        <p className="lp-section-label">Features</p>
+        <h2 id="caps-title" className="lp-section-headline">
+          What Foreman does on site
         </h2>
-        <p className="lp-section-headline">Built for field ops, not slide decks</p>
         <ul className="lp-caps-grid">
           {CAPS.map((cap) => (
-            <li key={cap.key} className="lp-cap-card">
-              <p className="lp-cap-key">{cap.key}</p>
+            <li key={cap.title} className="lp-cap-card">
               <h3>{cap.title}</h3>
               <p>{cap.body}</p>
             </li>

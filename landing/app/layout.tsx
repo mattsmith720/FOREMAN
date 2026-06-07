@@ -22,7 +22,7 @@ const sans = IBM_Plex_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Foreman | field intelligence for maintenance crews",
+    default: "Foreman | AI coaching for solar maintenance crews",
     template: "%s · Foreman",
   },
   description: SEO_DESCRIPTION,
@@ -34,13 +34,13 @@ export const metadata: Metadata = {
     locale: "en_AU",
     url: site.url,
     siteName: site.name,
-    title: "Foreman | field intelligence for maintenance crews",
+    title: "Foreman | AI coaching for solar maintenance crews",
     description: SEO_DESCRIPTION,
     images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Foreman" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Foreman | field intelligence for maintenance crews",
+    title: "Foreman | AI coaching for solar maintenance crews",
     description: SEO_DESCRIPTION,
     images: ["/og.svg"],
   },

@@ -34,7 +34,7 @@
   --radius-pill: 999px;
   --shadow-soft: 0 24px 64px rgb(0 0 0 / 0.45);
   --shadow-card: 0 0 0 1px var(--border), 0 12px 40px rgb(0 0 0 / 0.35);
-  --font-display: var(--font-mono-var), "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: var(--font-body-var), "IBM Plex Sans", system-ui, sans-serif;
   --font-body: var(--font-body-var), "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: var(--font-mono-var), "IBM Plex Mono", ui-monospace, monospace;
   --max-width: 72rem;
@@ -1341,7 +1341,7 @@ a {
 
 @media (max-width: 767px) {
   .lp-nav-links,
-  .lp-nav-actions {
+  .lp-nav-cta {
     display: none !important;
   }
 }
@@ -1562,11 +1562,10 @@ a {
   align-items: center;
   gap: 0.5rem;
   margin: 0 0 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--accent-dim);
 }
 
@@ -1622,8 +1621,8 @@ a {
   border-radius: var(--radius-lg);
   background: var(--bg-card);
   border: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
 }
 
 .lp-hero-v2-signal {
@@ -1645,31 +1644,48 @@ a {
   color: var(--ink-faint);
 }
 
-.lp-hero-v2-terminal {
+.lp-hero-v2-coach {
   margin: 1.75rem 0 0;
-  padding: 1rem 1.15rem;
+  padding: 1.15rem 1.25rem;
   border-radius: var(--radius-lg);
-  background: #05080c;
+  background: var(--bg-card);
   border: 1px solid var(--border-strong);
-  overflow-x: auto;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.55;
-  color: var(--accent-dim);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  border-left: 3px solid var(--accent);
+  max-width: 36rem;
 }
 
-.lp-hero-v2-terminal code {
-  white-space: pre;
+.lp-hero-v2-coach-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+}
+
+.lp-hero-v2-coach-cue {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text-on-dark);
+}
+
+.lp-hero-v2-coach-meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
 .lp-section-label {
   margin: 0 0 0.35rem;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--accent-dim);
 }
 
@@ -1720,10 +1736,9 @@ a {
 
 .lp-pipeline-item h3 {
   margin: 0 0 0.25rem;
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
   font-weight: 600;
-  text-transform: lowercase;
 }
 
 .lp-pipeline-item p {
@@ -1762,16 +1777,6 @@ a {
 
 .lp-cap-card:hover {
   border-color: rgb(34 211 238 / 0.35);
-}
-
-.lp-cap-key {
-  margin: 0 0 0.4rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--accent-dim);
 }
 
 .lp-cap-card h3 {
@@ -1822,11 +1827,11 @@ a {
 
 .lp-final-v2-inner h2 {
   margin: 0 0 0.5rem;
-  font-family: var(--font-mono);
-  font-size: clamp(1.1rem, 3vw, 1.35rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.5vw, 2rem);
   font-weight: 600;
-  text-transform: lowercase;
-  color: var(--accent-dim);
+  letter-spacing: -0.02em;
+  color: var(--text-on-dark);
 }
 
 .lp-final-v2-inner p {
@@ -1854,11 +1859,9 @@ a {
 }
 
 .lp-footer-v2 nav a {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
   text-decoration: none;
-  text-transform: lowercase;
 }
 
 .lp-footer-v2 nav a:hover {
@@ -1868,8 +1871,7 @@ a {
 .lp-footer-v2-meta {
   margin: 0;
   width: 100%;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   color: var(--ink-faint);
 }
 
@@ -1887,12 +1889,10 @@ a {
 }
 
 .lp-nav-link {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
-  text-transform: lowercase;
 }
 
 .lp-nav-link:hover {
@@ -2193,6 +2193,81 @@ a {
   grid-column: 1 / -1;
   background: var(--accent-soft) !important;
   border: 1px solid rgb(34 211 238 / 0.35);
+}
+
+.lp-pricing-calc-tco {
+  grid-column: 1 / -1;
+}
+
+.lp-pricing-calc-footnote {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.lp-pricing-bundles {
+  margin-top: 1.5rem;
+}
+
+.lp-pricing-hybrid-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .lp-pricing-hybrid-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lp-pricing-hybrid-col {
+  padding: 1.25rem;
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+}
+
+.lp-pricing-hybrid-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.lp-pricing-hybrid-list p {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.lp-pricing-calc-fieldset {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0 0;
+  border: 0;
+}
+
+.lp-pricing-calc-fieldset legend {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  margin-bottom: 0.5rem;
+}
+
+.lp-pricing-calc-usage {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  display: grid;
+  gap: 0.35rem;
 }
 
 .lp-pricing-addons {
