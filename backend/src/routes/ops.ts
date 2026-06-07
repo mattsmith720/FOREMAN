@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { toClientError } from "../api-error.js";
+import { getAnalyseCostUsd, getTranscribeCostUsd } from "../config.js";
+import { getLatencyMetrics } from "../metrics.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
 import {
   getSessionExportRecords,
@@ -50,18 +52,41 @@ export async function registerOpsRoutes(app: FastifyInstance): Promise<void> {
     }
     try {
       const rows = await listRecentSessions(20);
-      const sessions = rows.map((session) => ({
-        id: session.id,
-        started_at: session.started_at,
-        ended_at: session.ended_at,
-        worker: session.worker,
-        job_type: session.job_type,
-        consent_at: session.consent_at ?? null,
-        frame_count: session.frame_count,
-        summary_snippet: session.summary ? session.summary.slice(0, 140) : null,
-        stuck: needsSummaryRetry(session),
-      }));
-      return reply.send({ sessions });
+      const analyseCost = getAnalyseCostUsd();
+      const transcribeCost = getTranscribeCostUsd();
+      const sessions = rows.map((session) => {
+        const estCost =
+          session.frame_count * analyseCost +
+          session.transcript_count * transcribeCost;
+        return {
+          id: session.id,
+          started_at: session.started_at,
+          ended_at: session.ended_at,
+          worker: session.worker,
+          job_type: session.job_type,
+          consent_at: session.consent_at ?? null,
+          frame_count: session.frame_count,
+          transcript_count: session.transcript_count,
+          est_cost_usd: Math.round(estCost * 1000) / 1000,
+          summary_snippet: session.summary ? session.summary.slice(0, 140) : null,
+          stuck: needsSummaryRetry(session),
+        };
+      });
+      const totals = sessions.reduce(
+        (acc, s) => ({
+          frames: acc.frames + s.frame_count,
+          transcripts: acc.transcripts + s.transcript_count,
+          est_cost_usd: acc.est_cost_usd + s.est_cost_usd,
+        }),
+        { frames: 0, transcripts: 0, est_cost_usd: 0 },
+      );
+      totals.est_cost_usd = Math.round(totals.est_cost_usd * 100) / 100;
+      return reply.send({
+        sessions,
+        totals,
+        latency: getLatencyMetrics(),
+        costModel: { analyse_usd: analyseCost, transcribe_usd: transcribeCost },
+      });
     } catch (err) {
       request.log.error(err);
       const { statusCode, message } = toClientError(

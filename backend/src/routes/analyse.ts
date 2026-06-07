@@ -8,6 +8,7 @@ import { persistFrame } from "../db/persist-frame.js";
 import { assertActiveSession } from "../db/sessions.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
 import { getRecentSessionTranscript } from "../db/transcript.js";
+import { recordAnalyseMs } from "../metrics.js";
 import type { SessionContext } from "../prompts/analysis.js";
 import { requireSessionToken } from "../require-session-token.js";
 import { validateImageBytes } from "../validate-media.js";
@@ -168,6 +169,7 @@ export async function registerAnalyseRoutes(
         }
 
         let coaching: CoachingResponse;
+        const analyseStartedAt = Date.now();
         try {
           coaching = await dependencies.analyseImage({
             base64,
@@ -182,6 +184,10 @@ export async function registerAnalyseRoutes(
           );
           return reply.status(statusCode).send({ error: message });
         }
+        // Server-side model latency (the dominant slice of frame->cue); fed to
+        // the /ops live latency readout and returned for the client's E2E timing.
+        const analyseMs = Date.now() - analyseStartedAt;
+        recordAnalyseMs(analyseMs);
 
         if (parsed.data.sessionId) {
           const sessionId = parsed.data.sessionId;
@@ -201,7 +207,7 @@ export async function registerAnalyseRoutes(
             });
         }
 
-        return reply.send({ coaching });
+        return reply.send({ coaching, analyseMs });
       } catch (err) {
         request.log.error(err);
         const { statusCode, message } = toClientError(err, "Analysis failed");

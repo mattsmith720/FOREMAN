@@ -10,8 +10,22 @@ interface OpsSession {
   job_type: string | null;
   consent_at: string | null;
   frame_count: number;
+  transcript_count?: number;
+  est_cost_usd?: number;
   summary_snippet: string | null;
   stuck: boolean;
+}
+
+interface OpsTotals {
+  frames: number;
+  transcripts: number;
+  est_cost_usd: number;
+}
+
+interface OpsLatency {
+  sampleCount: number;
+  p50Ms: number;
+  p95Ms: number;
 }
 
 interface OpsVideo {
@@ -31,6 +45,8 @@ export default function OpsPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [sessions, setSessions] = useState<OpsSession[]>([]);
+  const [totals, setTotals] = useState<OpsTotals | null>(null);
+  const [latency, setLatency] = useState<OpsLatency | null>(null);
   const [videos, setVideos] = useState<OpsVideo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,11 +71,15 @@ export default function OpsPage() {
       }
       const sessionsBody = (await sessionsRes.json()) as {
         sessions: OpsSession[];
+        totals?: OpsTotals;
+        latency?: OpsLatency;
       };
       const ingestBody = ingestRes.ok
         ? ((await ingestRes.json()) as { videos: OpsVideo[] })
         : { videos: [] };
       setSessions(sessionsBody.sessions ?? []);
+      setTotals(sessionsBody.totals ?? null);
+      setLatency(sessionsBody.latency ?? null);
       setVideos(ingestBody.videos ?? []);
       setAuthed(true);
       window.sessionStorage.setItem(PW_KEY, pw);
@@ -145,6 +165,14 @@ export default function OpsPage() {
       {error && <p className="ops-error">{error}</p>}
 
       <h2>Recent jobs ({sessions.length})</h2>
+      <p className="ops-metrics">
+        {totals
+          ? `Est. spend $${totals.est_cost_usd.toFixed(2)} · ${totals.frames} frames · ${totals.transcripts} voice chunks`
+          : "Spend —"}
+        {latency && latency.sampleCount > 0
+          ? ` · analyse latency p50 ${latency.p50Ms}ms / p95 ${latency.p95Ms}ms (last ${latency.sampleCount} frames)`
+          : ""}
+      </p>
       <a
         className="ops-link"
         href={SUPABASE_SESSIONS_URL}
@@ -159,6 +187,8 @@ export default function OpsPage() {
             <th>Worker</th>
             <th>Phase</th>
             <th>Frames</th>
+            <th>Chunks</th>
+            <th>Est $</th>
             <th>Consent</th>
             <th>Summary</th>
             <th />
@@ -170,6 +200,8 @@ export default function OpsPage() {
               <td>{session.worker ?? "—"}</td>
               <td>{session.job_type ?? "—"}</td>
               <td>{session.frame_count}</td>
+              <td>{session.transcript_count ?? 0}</td>
+              <td>${(session.est_cost_usd ?? 0).toFixed(3)}</td>
               <td>{session.consent_at ? "✓" : "—"}</td>
               <td className="ops-summary">
                 {session.stuck

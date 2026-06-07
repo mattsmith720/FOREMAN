@@ -9,6 +9,7 @@ export interface OpsSessionRow {
   summary: string | null;
   consent_at?: string | null;
   frame_count: number;
+  transcript_count: number;
 }
 
 /** Last N sessions with a cheap per-session frame count, newest first. */
@@ -39,13 +40,20 @@ export async function listRecentSessions(limit = 20): Promise<OpsSessionRow[]> {
 
   return Promise.all(
     (rows ?? []).map(async (session) => {
-      const frames = await supabase
-        .from("frames")
-        .select("id", { count: "exact", head: true })
-        .eq("session_id", session.id);
+      const [frames, transcripts] = await Promise.all([
+        supabase
+          .from("frames")
+          .select("id", { count: "exact", head: true })
+          .eq("session_id", session.id),
+        supabase
+          .from("transcript_segments")
+          .select("id", { count: "exact", head: true })
+          .eq("session_id", session.id),
+      ]);
       return {
-        ...(session as Omit<OpsSessionRow, "frame_count">),
+        ...(session as Omit<OpsSessionRow, "frame_count" | "transcript_count">),
         frame_count: frames.count ?? 0,
+        transcript_count: transcripts.count ?? 0,
       };
     }),
   );

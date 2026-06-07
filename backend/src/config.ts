@@ -83,6 +83,29 @@ export function getAnalyseFrameByteCap(): number {
   return parsed;
 }
 
+// Rough per-call cost estimates for the /ops $-per-session readout. Defaults are
+// ballpark for claude-sonnet-4-6 vision (~$0.015/frame) and Whisper (~$0.0004 per
+// ~4s chunk); override per-env as pricing/usage shifts. Estimates only.
+const DEFAULT_ANALYSE_COST_USD = 0.015;
+const DEFAULT_TRANSCRIBE_COST_USD = 0.0004;
+
+function numericEnv(value: string | undefined, fallback: number): number {
+  const raw = cleanEnv(value);
+  if (!raw) {
+    return fallback;
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+export function getAnalyseCostUsd(): number {
+  return numericEnv(process.env.ANALYSE_COST_USD, DEFAULT_ANALYSE_COST_USD);
+}
+
+export function getTranscribeCostUsd(): number {
+  return numericEnv(process.env.TRANSCRIBE_COST_USD, DEFAULT_TRANSCRIBE_COST_USD);
+}
+
 export function isAllowedImageType(mediaType: string): boolean {
   return ALLOWED_IMAGE_TYPES.has(mediaType);
 }
