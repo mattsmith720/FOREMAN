@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { toClientError } from "../api-error.js";
@@ -34,6 +35,29 @@ const driveWebhookSchema = z.object({
   downloadUrl: z.string().url().optional(),
 });
 
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  try {
+    return crypto.timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+  } catch {
+    return false;
+  }
+}
+
+const ALLOWED_DRIVE_HOSTS =
+  /(^|\.)(googleapis\.com|drive\.google\.com|googleusercontent\.com)$/i;
+
+function isAllowedDriveUrl(raw: string): boolean {
+  try {
+    const url = new URL(raw);
+    return url.protocol === "https:" && ALLOWED_DRIVE_HOSTS.test(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function ingestWebhookAuthorized(request: {
   headers: Record<string, unknown>;
 }): boolean {
@@ -44,7 +68,7 @@ function ingestWebhookAuthorized(request: {
 
   const provided = request.headers[WEBHOOK_HEADER];
   const secret = Array.isArray(provided) ? provided[0] : provided;
-  return secret === expected;
+  return typeof secret === "string" && safeEqual(secret, expected);
 }
 
 function storageRefForUpload(fileName: string): string {
@@ -182,6 +206,12 @@ export async function registerIngestRoutes(app: FastifyInstance): Promise<void> 
       });
 
       if (parsed.data.downloadUrl) {
+        // SSRF guard: only fetch from known Google Drive hosts over https.
+        if (!isAllowedDriveUrl(parsed.data.downloadUrl)) {
+          return reply.status(400).send({
+            error: "downloadUrl host is not an allowed Google Drive host",
+          });
+        }
         const { getSupabase } = await import("../db/supabase.js");
         const supabase = getSupabase();
         const response = await fetch(parsed.data.downloadUrl);

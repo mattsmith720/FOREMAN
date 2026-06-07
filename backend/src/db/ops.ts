@@ -14,17 +14,31 @@ export interface OpsSessionRow {
 /** Last N sessions with a cheap per-session frame count, newest first. */
 export async function listRecentSessions(limit = 20): Promise<OpsSessionRow[]> {
   const supabase = getSupabase();
-  const { data, error } = await supabase
+  const base = "id, started_at, ended_at, worker, job_type, summary";
+  const primary = await supabase
     .from("sessions")
-    .select("id, started_at, ended_at, worker, job_type, summary, consent_at")
+    .select(`${base}, consent_at`)
     .order("started_at", { ascending: false })
     .limit(limit);
+  let rows = primary.data as Array<Record<string, any>> | null;
+  let error = primary.error;
+  // consent_at arrives with training-iteration-a.sql — degrade gracefully so
+  // /ops works before that migration is applied.
+  if (error && (error.message ?? "").includes("consent_at")) {
+    const fallback = await supabase
+      .from("sessions")
+      .select(base)
+      .order("started_at", { ascending: false })
+      .limit(limit);
+    rows = fallback.data as Array<Record<string, any>> | null;
+    error = fallback.error;
+  }
   if (error) {
     throw new Error(error.message);
   }
 
   return Promise.all(
-    (data ?? []).map(async (session) => {
+    (rows ?? []).map(async (session) => {
       const frames = await supabase
         .from("frames")
         .select("id", { count: "exact", head: true })

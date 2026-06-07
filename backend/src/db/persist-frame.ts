@@ -58,8 +58,11 @@ export async function persistFrame(
   if (
     frameInsert.error &&
     (frameInsert.error.code === "PGRST204" ||
-      frameInsert.error.message.includes("transcript_window"))
+      (frameInsert.error.message ?? "").includes("transcript_window"))
   ) {
+    console.warn(
+      "frames.transcript_window column missing — apply training-iteration-a.sql; persisting frame without transcript alignment signal",
+    );
     frameInsert = await supabase.from("frames").insert(baseRow);
   }
 

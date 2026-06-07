@@ -177,6 +177,20 @@ export function CameraCoach() {
     }
   }, [hasConsented, prewarmBackend]);
 
+  // Auto-recover from a cold-start "slow" state without making the worker tap
+  // Retry — poll health until Render is awake, then flip to ready.
+  useEffect(() => {
+    if (backendStatus !== "slow") {
+      return;
+    }
+    const id = setInterval(() => {
+      void checkApiHealth()
+        .then(() => setBackendStatus("ready"))
+        .catch(() => undefined);
+    }, 7000);
+    return () => clearInterval(id);
+  }, [backendStatus]);
+
   useEffect(() => {
     jobPhaseRef.current = jobPhase;
   }, [jobPhase]);
@@ -501,6 +515,8 @@ export function CameraCoach() {
     setActiveCalloutIndex(0);
     setHealthStats(EMPTY_HEALTH);
     lastHeroRef.current = "";
+    // Drop any stale token from a prior job before issuing a fresh one.
+    clearSessionToken();
 
     try {
       await checkApiHealth();
@@ -587,6 +603,7 @@ export function CameraCoach() {
       if (sessionId) {
         void stopSession(sessionId).catch(() => undefined);
       }
+      clearSessionToken();
     };
   }, []);
 

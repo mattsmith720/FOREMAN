@@ -55,7 +55,10 @@ export class PhoneFrameSource implements FrameSource {
     await this.video.play();
 
     setTimeout(() => this.captureFrame(), FIRST_FRAME_DELAY_MS);
-    this.intervalId = setInterval(() => this.captureFrame(), SAMPLE_INTERVAL_MS);
+    // Watchdog tick via captureNow() so the steady interval honors
+    // MIN_CAPTURE_GAP_MS and doesn't race the post-analyse captureNow() into a
+    // double capture on a fast link.
+    this.intervalId = setInterval(() => this.captureNow(), SAMPLE_INTERVAL_MS);
   }
 
   async stop(): Promise<void> {

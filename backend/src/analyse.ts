@@ -89,10 +89,24 @@ function capCallouts(
   if (callouts.length <= cap) {
     return coaching;
   }
-  // Keep the most severe callouts so the cap drops noise, not safety.
-  const rank: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+  // Keep the most severe callouts so the cap drops noise, not safety; on a
+  // severity tie, prefer safety/damage/quality over upsell/pitch/etc.
+  const sevRank: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+  const catRank: Record<string, number> = {
+    safety: 0,
+    damage: 1,
+    quality: 2,
+    cleanliness: 3,
+    time: 4,
+    pitch: 5,
+    upsell: 6,
+  };
   const trimmed = [...callouts]
-    .sort((a, b) => (rank[a.severity] ?? 3) - (rank[b.severity] ?? 3))
+    .sort(
+      (a, b) =>
+        (sevRank[a.severity] ?? 3) - (sevRank[b.severity] ?? 3) ||
+        (catRank[a.category] ?? 9) - (catRank[b.category] ?? 9),
+    )
     .slice(0, cap);
   return { ...coaching, visualCallouts: trimmed };
 }
@@ -105,6 +119,7 @@ export async function analyseImage(
   const model = getModel();
   const userPrompt = buildAnalysisUserPrompt(input.context);
   let lastError: unknown;
+  let fallbackCoaching: CoachingResponse | undefined;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -138,12 +153,18 @@ export async function analyseImage(
       if (!parsed.usedFallback || attempt === MAX_RETRIES) {
         return capCallouts(parsed.coaching, input.context?.jobType);
       }
+      // Retain a usable fallback so a later thrown attempt doesn't lose it.
+      fallbackCoaching = parsed.coaching;
     } catch (err) {
       lastError = err;
       if (attempt === MAX_RETRIES) {
         break;
       }
     }
+  }
+
+  if (fallbackCoaching) {
+    return capCallouts(fallbackCoaching, input.context?.jobType);
   }
 
   throw lastError instanceof Error

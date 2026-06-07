@@ -1,4 +1,8 @@
-import type { CoachingCategory, CoachingResponse } from "@foreman/shared";
+import type {
+  CoachingCategory,
+  CoachingResponse,
+  VisualCallout,
+} from "@foreman/shared";
 
 export interface CoachingEventInsert {
   session_id: string;
@@ -20,6 +24,23 @@ function isSafetyMessage(message: string): boolean {
   );
 }
 
+function calloutToCategory(
+  category: VisualCallout["category"],
+): CoachingCategory {
+  switch (category) {
+    case "safety":
+      return "safety";
+    case "pitch":
+    case "upsell":
+      return "pitch";
+    case "time":
+      return "time";
+    default:
+      // quality, cleanliness, damage
+      return "quality";
+  }
+}
+
 export function coachingToEvents(
   sessionId: string,
   coaching: CoachingResponse,
@@ -27,46 +48,46 @@ export function coachingToEvents(
 ): CoachingEventInsert[] {
   const iso = ts.toISOString();
   const events: CoachingEventInsert[] = [];
+  const seen = new Set<string>();
+
+  const push = (
+    category: CoachingCategory,
+    message: string,
+    severity: "info" | "warning" | "critical",
+  ) => {
+    if (seen.has(message)) {
+      return;
+    }
+    seen.add(message);
+    events.push({ session_id: sessionId, ts: iso, category, message, severity });
+  };
 
   for (const flag of coaching.installQualityFlags) {
-    events.push({
-      session_id: sessionId,
-      ts: iso,
-      category: isSafetyMessage(flag.message) ? "safety" : "quality",
-      message: flag.message,
-      severity: flag.severity,
-    });
+    push(
+      isSafetyMessage(flag.message) ? "safety" : "quality",
+      flag.message,
+      flag.severity,
+    );
   }
 
   for (const item of coaching.salesPitchFeedback) {
-    events.push({
-      session_id: sessionId,
-      ts: iso,
-      category: "pitch",
-      message: item.message,
-      severity: item.severity,
-    });
+    push("pitch", item.message, item.severity);
+  }
+
+  // Visual callouts carry the model's own category (including 'safety'/'damage'),
+  // so persist them as events too — otherwise on-frame safety calls never reach
+  // coaching_events or the post-job review. De-duped against flags by message.
+  for (const callout of coaching.visualCallouts ?? []) {
+    push(calloutToCategory(callout.category), callout.message, callout.severity);
   }
 
   if (coaching.timeOnTaskNote) {
-    events.push({
-      session_id: sessionId,
-      ts: iso,
-      category: "time",
-      message: coaching.timeOnTaskNote,
-      severity: "info",
-    });
+    push("time", coaching.timeOnTaskNote, "info");
   }
 
-  for (const step of coaching.nextSteps) {
-    events.push({
-      session_id: sessionId,
-      ts: iso,
-      category: "quality",
-      message: step,
-      severity: "info",
-    });
-  }
+  // nextSteps are intentionally NOT events: they persist as labels
+  // (coachingToLabels) and the prompt requires one every frame, so emitting them
+  // as info events would flood coaching_events with noise.
 
   return events;
 }
