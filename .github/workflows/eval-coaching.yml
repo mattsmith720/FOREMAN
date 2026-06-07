@@ -1,0 +1,34 @@
+name: eval-coaching
+
+# Offline coaching-quality eval — scores committed goldens against rubrics
+# (no API key, deterministic). Non-blocking report with JSON artifact upload.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coaching-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Coaching eval (offline)
+        run: npm run eval-coaching --workspace backend -- --offline --json > eval-report.json
+        continue-on-error: true
+      - name: Human summary
+        if: always()
+        run: npm run eval-coaching --workspace backend -- --offline
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coaching-eval-report
+          path: eval-report.json
+          retention-days: 30
