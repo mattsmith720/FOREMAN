@@ -71,7 +71,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Foreman needs camera access to stream from Meta glasses or the mock device feed.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Foreman may use the microphone for pitch coaching in later iterations.</string>
+	<string>Foreman uses the microphone to coach your sales pitch and keep a record of the job.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-peripheral</string>

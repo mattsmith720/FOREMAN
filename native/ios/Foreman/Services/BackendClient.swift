@@ -112,6 +112,31 @@ final class BackendClient {
         return try decoder.decode(AnalyseResponse.self, from: data).coaching
     }
 
+    /// Transcribe an audio chunk (m4a/aac) for a session. Matches the web
+    /// client + backend contract: a base64 data-URL in JSON, not multipart.
+    func transcribe(
+        audio: Data,
+        mimeType: String = "audio/mp4",
+        sessionId: String,
+        speaker: String = "worker"
+    ) async throws -> String {
+        let dataUrl = "data:\(mimeType);base64,\(audio.base64EncodedString())"
+        var request = try makeRequest(path: "/transcribe", method: "POST")
+        let body: [String: Any] = [
+            "audio": dataUrl,
+            "sessionId": sessionId,
+            "speaker": speaker,
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+
+        struct TranscribeResponse: Decodable { let text: String? }
+        let decoded = try? decoder.decode(TranscribeResponse.self, from: data)
+        return decoded?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
     func stopSession(sessionId: String) async throws -> (SessionRow, SessionCounts) {
         let request = try makeRequest(
             path: "/sessions/\(sessionId)/stop",

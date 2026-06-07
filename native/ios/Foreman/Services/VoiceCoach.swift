@@ -12,9 +12,13 @@ final class VoiceCoach {
     var enabled = true
 
     private init() {
+        // .playAndRecord so coaching TTS and mic capture (pitch transcription)
+        // share one session without fighting over the category. Routes to the
+        // speaker; the session is only activated when we actually speak/record.
         try? AVAudioSession.sharedInstance().setCategory(
-            .playback,
-            options: [.duckOthers, .mixWithOthers]
+            .playAndRecord,
+            mode: .spokenAudio,
+            options: [.duckOthers, .defaultToSpeaker, .allowBluetooth]
         )
     }
 

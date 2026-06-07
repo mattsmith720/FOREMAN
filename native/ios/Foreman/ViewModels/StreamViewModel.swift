@@ -24,6 +24,9 @@ final class StreamViewModel: ObservableObject {
     var worker: String?
     var consentAt: String?
     private var lastSpokenCue = ""
+    private let mic = MicCaptureService()
+    private var transcript: [String] = []
+    private var isTranscribing = false
 
     func startJob() async {
         errorMessage = nil
@@ -38,7 +41,16 @@ final class StreamViewModel: ObservableObject {
                 consentAt: consentAt
             )
             sessionId = session.id
+            transcript = []
             try await startStream()
+            mic.onChunk = { [weak self] data in
+                Task { @MainActor in self?.transcribeChunk(data) }
+            }
+            do {
+                try mic.start()
+            } catch {
+                // Vision coaching still works without the mic.
+            }
             VoiceCoach.shared.speak(
                 "Foreman is recording and coaching now. I'll call out anything important.",
                 force: true
@@ -51,8 +63,10 @@ final class StreamViewModel: ObservableObject {
 
     func stopJob() async -> (SessionRow, SessionCounts)? {
         await stopStream()
+        mic.stop()
         VoiceCoach.shared.speak("Recording off.", force: true)
         lastSpokenCue = ""
+        transcript = []
 
         guard let sessionId else { return nil }
 
@@ -137,7 +151,8 @@ final class StreamViewModel: ObservableObject {
             let result = try await backend.analyseFrame(
                 image: image,
                 sessionId: sessionId,
-                jobType: jobType
+                jobType: jobType,
+                recentTranscript: Array(transcript.suffix(6))
             )
             coaching = result
             speakCue(result)
@@ -165,6 +180,33 @@ final class StreamViewModel: ObservableObject {
         if let line, line != lastSpokenCue {
             lastSpokenCue = line
             VoiceCoach.shared.speak(line)
+        }
+    }
+
+    /// Transcribe a mic chunk and append it to the rolling transcript that
+    /// feeds the next analyse call (so vision coaching gets pitch context).
+    /// Serialized via isTranscribing — drop if a transcribe is already in flight.
+    private func transcribeChunk(_ data: Data) {
+        guard let sessionId, !isTranscribing else { return }
+        isTranscribing = true
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                let text = try await self.backend.transcribe(
+                    audio: data,
+                    sessionId: sessionId,
+                    speaker: self.worker ?? "worker"
+                )
+                if !text.isEmpty {
+                    self.transcript.append(text)
+                    if self.transcript.count > 12 {
+                        self.transcript.removeFirst(self.transcript.count - 12)
+                    }
+                }
+            } catch {
+                // Non-fatal: vision coaching continues without this chunk.
+            }
+            self.isTranscribing = false
         }
     }
 }

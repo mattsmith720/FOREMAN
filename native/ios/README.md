@@ -235,8 +235,14 @@ native/ios/Foreman/
   `x-session-token` captured at session start, so it works against the production backend.
 - **Hands-free auto-start** — once consent is given and the glasses connect, `ContentView`
   auto-starts the job; no taps during a job.
-- **Not yet ported (parity gap):** glasses-mic capture → `/transcribe` (pitch coaching is
-  vision-only on glasses for now) and on-screen visual callouts (audio-only path).
+- **Pitch transcription** — `MicCaptureService` records the mic in ~4s m4a chunks and
+  `BackendClient.transcribe` posts each to `/transcribe`; transcripts feed the next analyse
+  call's `recentTranscript`, so vision + pitch coaching share context. `VoiceCoach` uses a
+  `.playAndRecord` session so TTS and capture coexist. Uses the **phone mic** today — on real
+  glasses, swap the capture for the DAT microphone stream (the pipeline downstream is unchanged;
+  see the Meta MCP `search_dat_docs` for the current mic API).
+- **Not yet ported (parity gap):** on-screen visual callouts (the glasses path is audio-only)
+  and the DAT glasses-mic stream (the phone mic stands in until that's wired).
 
 > Xcode build + on-device run is a **Mac-only manual step** (no Xcode in CI) — see the
 > "xcodegen not available in CI" note above.
