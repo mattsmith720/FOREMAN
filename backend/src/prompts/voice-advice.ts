@@ -9,7 +9,7 @@ export function buildVoiceAdviceUserPrompt(input: {
   recentTranscript?: string[];
 }): string {
   const lines = [
-    `Job type: ${input.jobType ?? "panel_clean"}`,
+    `Job type: ${input.jobType ?? "auto"}`,
     `Worker question: ${input.question}`,
   ];
 

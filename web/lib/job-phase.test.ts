@@ -9,11 +9,12 @@ import {
   JOB_PHASES,
 } from "./job-phase.js";
 
-test("DEFAULT_JOB_PHASE is panel clean for maintenance pilot", () => {
-  assert.equal(DEFAULT_JOB_PHASE, "panel_clean");
+test("DEFAULT_JOB_PHASE is auto-detect for field app", () => {
+  assert.equal(DEFAULT_JOB_PHASE, "auto");
 });
 
 test("jobPhaseLabel returns human label", () => {
+  assert.equal(jobPhaseLabel("auto"), "On site");
   assert.equal(jobPhaseLabel("panel_clean"), "Panel clean");
   assert.equal(jobPhaseLabel("pigeon_proofing"), "Pigeon proofing");
   assert.equal(jobPhaseLabel("customer_pitch"), "Pitch");

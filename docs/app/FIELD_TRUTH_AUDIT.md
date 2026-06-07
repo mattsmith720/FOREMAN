@@ -11,11 +11,12 @@ Field app (`/`), ops (`/ops`), training (`/training`). Out of scope: landing, de
 
 | Claim | Truth |
 |-------|-------|
-| Maintenance job picker (5 phases) | ✅ `JobPhasePicker` shows panel clean, pigeon proofing, thermal scan, exterior clean, commercial |
+| Manual job type picker | ❌ Removed — one Start job tap; `job_type: auto` on session |
+| Auto-detect job category | ✅ Backend `auto` analysis phase identifies task from camera |
 | Consent on first visit | ✅ "I understand — start job" records consent once per device |
 | Return visit | ✅ Button reads "Start job" |
 | Optional worker name | ✅ Boot input, persisted via `worker-profile.ts` |
-| Install/survey/pitch phases | ❌ Not exposed in maintenance picker (code retained for other crews) |
+| Explicit phase picker (ingest) | ✅ `/ingest` still supports manual job type for uploads |
 
 ## Live session
 

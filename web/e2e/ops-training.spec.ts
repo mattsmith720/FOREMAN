@@ -16,7 +16,7 @@ test("ops lists sessions and links to training", async ({ page }) => {
             started_at: "2026-06-06T10:00:00.000Z",
             ended_at: "2026-06-06T10:05:00.000Z",
             worker: "Test Tech",
-            job_type: "panel_clean",
+            job_type: "auto",
             consent_at: "2026-06-06T10:00:00.000Z",
             frame_count: 2,
             transcript_count: 1,

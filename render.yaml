@@ -35,7 +35,7 @@ services:
       - key: SESSION_TOKEN_SECRET
         sync: false
       - key: CORS_ORIGINS
-        value: https://foreman-phi.vercel.app
+        value: https://foreman-phi.vercel.app,https://foreman.unicityai.com.au,https://go.unicityai.com.au
       - key: INGEST_WEBHOOK_SECRET
         sync: false
       - key: OPS_PASSWORD

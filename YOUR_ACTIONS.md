@@ -6,7 +6,7 @@
 
 Everything below is **your** side only. The repo, Vercel UI, Supabase database, security hardening, and deploy pipeline are already built and pushed.
 
-**Production:** [https://foreman-phi.vercel.app](https://foreman-phi.vercel.app) · API [https://foreman-api-y31r.onrender.com](https://foreman-api-y31r.onrender.com)
+**Production:** [https://foreman.unicityai.com.au](https://foreman.unicityai.com.au) (also [foreman-phi.vercel.app](https://foreman-phi.vercel.app)) · Marketing [https://go.unicityai.com.au](https://go.unicityai.com.au) · API [https://foreman-api-y31r.onrender.com](https://foreman-api-y31r.onrender.com)
 
 ---
 
@@ -236,12 +236,30 @@ Each camera frame and audio chunk calls paid APIs. See [DEPLOY.md](DEPLOY.md) §
 
 ---
 
+## Cloudflare + custom domain (unicityai.com.au)
+
+Vercel custom domains are registered. **You** finish DNS in Cloudflare:
+
+1. [Cloudflare API token](https://dash.cloudflare.com/profile/api-tokens) → **Edit zone DNS** for `unicityai.com.au`
+2. `export CLOUDFLARE_API_TOKEN='…' && ./scripts/cloudflare-dns-setup.sh`
+3. `./scripts/cloudflare-verify.sh` → app + landing should return 200
+4. Render → **foreman-api** → add to `CORS_ORIGINS`:  
+   `https://foreman.unicityai.com.au,https://go.unicityai.com.au` (keep existing origins)
+5. iPhone: open **https://foreman.unicityai.com.au**
+
+Full guide: [docs/CLOUDFLARE_SETUP.md](docs/CLOUDFLARE_SETUP.md)
+
+---
+
 ## Links cheat sheet
 
 | Resource | URL |
 |----------|-----|
-| **Your app (open on iPhone)** | https://foreman-phi.vercel.app |
+| **Your app (open on iPhone)** | https://foreman.unicityai.com.au |
+| **Marketing** | https://go.unicityai.com.au |
+| **Vercel fallback** | https://foreman-phi.vercel.app |
 | **Production API** | https://foreman-api-y31r.onrender.com |
+| **Cloudflare DNS** | https://dash.cloudflare.com → unicityai.com.au |
 | GitHub | https://github.com/mattsmith720/FOREMAN |
 | Deploy API (Render) | https://render.com/deploy?repo=https://github.com/mattsmith720/FOREMAN |
 | Vercel env vars | https://vercel.com/openland17s-projects/foreman/settings/environment-variables |

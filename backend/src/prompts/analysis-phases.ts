@@ -1,4 +1,5 @@
 export type AnalysisPhase =
+  | "auto"
   | "panel_clean"
   | "pigeon_proofing"
   | "thermal_scan"
@@ -19,6 +20,8 @@ Then workmanship and documentation:
 Use installQualityFlags for safety and workmanship issues. salesPitchFeedback only when a customer conversation is visible — suggest stronger explanation of value (power gain, warranty, plan benefits). Omit evidenceShot unless a clear maintenance documentation frame is visible (inverter display, thermal hotspot, before/after panel condition). spokenCue: one action line, max ~12 words, Australian English. speak:false on most frames.`;
 
 const PHASE_GUIDANCE: Record<AnalysisPhase, string> = {
+  auto: `${MAINTENANCE_GUIDANCE}
+Task focus: AUTO-DETECT — from this frame, identify what field work is happening (panel cleaning, pigeon proofing, thermal scan, exterior clean, commercial array service, site survey, or install). Put the detected task in observations[0]. Coach for that task using the relevant priorities above. If unclear, say what to point the camera at next.`,
   panel_clean: `${MAINTENANCE_GUIDANCE}
 Task focus: PANEL CLEAN — pre-rinse, scrub technique, edge and lower-row coverage, Debris-Block or coating if applicable, final rinse, and power-gain documentation. Flag missed sections, streaking, or unsafe reach.`,
   pigeon_proofing: `${MAINTENANCE_GUIDANCE}
@@ -77,6 +80,7 @@ export function phaseGuidance(jobType?: string): string | null {
 /** Maintenance + install = quieter on-screen (2); survey/pitch = 3. */
 export function maxCalloutsForPhase(jobType?: string): number {
   if (
+    jobType === "auto" ||
     jobType === "solar_install" ||
     isMaintenanceAnalysisPhase(jobType)
   ) {

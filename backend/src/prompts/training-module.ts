@@ -65,7 +65,7 @@ export function buildTrainingModuleUserPrompt(data: {
   const lines = [
     "Generate a training module JSON from this completed maintenance job session.",
     `Worker: ${data.worker ?? "senior tech"}`,
-    `Job type: ${data.jobType ?? "panel_clean"}`,
+    `Job type: ${data.jobType ?? "auto"}`,
     "Use installQualityFlags and coaching events as source material for steps, safety notes, and common mistakes.",
     "",
     "Return exactly this JSON shape:",

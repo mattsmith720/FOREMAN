@@ -38,14 +38,7 @@ import {
 } from "./capture-health";
 import { endLiveCoach } from "../lib/coach-live";
 import { syncLiveVisionContext } from "../lib/live-vision-sync";
-import {
-  DEFAULT_JOB_PHASE,
-  JobPhasePicker,
-} from "./job-phase-picker";
-import {
-  MAINTENANCE_JOB_PHASES,
-  type JobPhaseId,
-} from "../lib/job-phase";
+import { AUTO_JOB_PHASE, type JobPhaseId } from "../lib/job-phase";
 import {
   applyComplianceEvidence,
   buildInstallCaptureMeta,
@@ -181,8 +174,7 @@ export function CameraCoach() {
   const [backendStatus, setBackendStatus] = useState<BackendStatus>("unknown");
   const [workerName, setWorkerName] = useState("");
   const [offlineUi, setOfflineUi] = useState<OfflineUiState | null>(null);
-  const [jobPhase, setJobPhase] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
-  const jobPhaseRef = useRef<JobPhaseId>(DEFAULT_JOB_PHASE);
+  const jobPhaseRef = useRef<JobPhaseId>(AUTO_JOB_PHASE);
   const workerNameRef = useRef<string>("");
   const pushActivity = useCallback(
     (kind: ActivityItem["kind"], message: string) => {
@@ -205,12 +197,6 @@ export function CameraCoach() {
     const profile = loadWorkerProfile();
     if (profile.workerName) {
       setWorkerName(profile.workerName);
-    }
-    if (
-      profile.lastPhase &&
-      MAINTENANCE_JOB_PHASES.some((p) => p.id === profile.lastPhase)
-    ) {
-      setJobPhase(profile.lastPhase as JobPhaseId);
     }
     if (profile.consentAt && profile.consentVersion === CONSENT_VERSION) {
       consentAtRef.current = profile.consentAt;
@@ -264,11 +250,6 @@ export function CameraCoach() {
     }, 7000);
     return () => clearInterval(id);
   }, [backendStatus]);
-
-  useEffect(() => {
-    jobPhaseRef.current = jobPhase;
-    saveWorkerProfile({ lastPhase: jobPhase });
-  }, [jobPhase]);
 
   useEffect(() => {
     workerNameRef.current = workerName;
@@ -722,7 +703,7 @@ export function CameraCoach() {
       const session = await startSession({
         worker: workerNameRef.current.trim() || undefined,
         jobType: jobPhaseRef.current,
-        notes: `Phone session — ${jobPhaseRef.current}`,
+        notes: "Phone session — auto-detect job type",
         consentAt: consentAtRef.current ?? undefined,
       });
       sessionIdRef.current = session.id;
@@ -829,7 +810,6 @@ export function CameraCoach() {
       saveWorkerProfile({ consentAt: at, consentVersion: CONSENT_VERSION });
     }
     saveWorkerProfile({
-      lastPhase: jobPhaseRef.current,
       workerName: workerNameRef.current.trim(),
     });
     await startJob();
@@ -902,7 +882,6 @@ export function CameraCoach() {
                 maxLength={80}
               />
             </label>
-            <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
             <button
               type="button"
               className="button button-primary boot-start"
@@ -940,7 +919,7 @@ export function CameraCoach() {
             isListening={micActive}
             isWatching={isActive && !isPaused}
             isAnalysing={!isPaused && status === "analysing"}
-            jobPhase={jobPhase}
+            jobPhase={AUTO_JOB_PHASE}
             latestTranscript={latestTranscript}
             frameCount={frameCount}
             lastAnalyseMs={lastAnalyseMs}

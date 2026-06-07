@@ -4,7 +4,7 @@ This is the **single source of truth** for running the Foreman maintenance pilot
 For deeper detail see [TECHNICAL_OVERVIEW.md](TECHNICAL_OVERVIEW.md); for setup see
 [YOUR_ACTIONS.md](YOUR_ACTIONS.md); for security see [SECURITY.md](SECURITY.md).
 
-- **Web (open this on the phone):** https://foreman-phi.vercel.app
+- **Web (open this on the phone):** https://foreman.unicityai.com.au (fallback: https://foreman-phi.vercel.app)
 - **API:** https://foreman-api-y31r.onrender.com
 - **Supabase project:** `uvlgbsiwyvtsjlqzozas`
 
@@ -54,15 +54,14 @@ One screen, one tap to go live:
    > Camera and mic record this job for coaching and training. Only start if everyone on site is OK with that.
 
 2. **Optional:** enter your name (remembered on this device).
-3. **Pick the job type** — five maintenance options: Panel clean, Pigeon proofing, Thermal scan, Exterior clean, Commercial.
-4. **Start.** Tap **I understand — start job** (first visit) or **Start job** (return visit). Allow **camera** and **microphone** when Safari prompts.
+3. **Start.** Tap **I understand — start job** (first visit) or **Start job** (return visit). Allow **camera** and **microphone** when Safari prompts. Foreman detects the job type from what the camera sees — no manual category pick.
 
 While the backend wakes you may see **Waking Foreman…** — it auto-retries.
 
 ### During the job
 
 - Red **REC** badge (top-left) while live.
-- **Hero coaching card** updates every few seconds with the top cue (maintenance-specific idle hints before the first analyse).
+- **Hero coaching card** updates every few seconds with the top cue (auto-detects panel clean, proofing, thermal scan, etc. from the scene).
 - **End job** in the footer — ends capture and generates the job summary.
 
 There is no pause button in the field UI; end the job if you need to stop.

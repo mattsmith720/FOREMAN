@@ -16,6 +16,9 @@ Rules:
 - Be direct and useful for a crew lead reviewing the job or building training material.`;
 
 function phaseFocus(jobType: string | null): string {
+  if (jobType === "auto") {
+    return "Identify what maintenance or field work was performed from observations and coaching. Name the task types detected, then cover technique, safety, documentation, and training-worthy moments.";
+  }
   if (jobType === "customer_pitch") {
     return "Focus the summary on the sales conversation: what landed, what missed, and 1-2 stronger lines.";
   }
@@ -63,7 +66,7 @@ export function buildSummaryUserPrompt(data: {
   const lines = [
     "Write an end-of-job summary from this session data.",
     `Worker: ${data.worker ?? "unknown"}`,
-    `Job type: ${data.jobType ?? "panel_clean"}`,
+    `Job type: ${data.jobType ?? "auto"}`,
     phaseFocus(data.jobType),
   ];
 

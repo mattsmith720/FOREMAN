@@ -1,3 +1,6 @@
+/** Field app default — model detects task type from the camera feed. */
+export type AutoJobPhaseId = "auto";
+
 export type MaintenanceJobPhaseId =
   | "panel_clean"
   | "pigeon_proofing"
@@ -10,7 +13,12 @@ export type InstallJobPhaseId =
   | "solar_install"
   | "customer_pitch";
 
-export type JobPhaseId = MaintenanceJobPhaseId | InstallJobPhaseId;
+export type JobPhaseId =
+  | AutoJobPhaseId
+  | MaintenanceJobPhaseId
+  | InstallJobPhaseId;
+
+export const AUTO_JOB_PHASE: AutoJobPhaseId = "auto";
 
 export interface JobPhaseOption {
   id: JobPhaseId;
@@ -79,7 +87,7 @@ export const JOB_PHASES: JobPhaseOption[] = [
   ...INSTALL_JOB_PHASES,
 ];
 
-export const DEFAULT_JOB_PHASE: JobPhaseId = "panel_clean";
+export const DEFAULT_JOB_PHASE: JobPhaseId = AUTO_JOB_PHASE;
 
 const MAINTENANCE_PHASE_IDS = new Set<string>(
   MAINTENANCE_JOB_PHASES.map((p) => p.id),
@@ -90,14 +98,26 @@ export function isMaintenancePhase(id?: string): boolean {
 }
 
 export function jobPhaseLabel(id: JobPhaseId): string {
+  if (id === AUTO_JOB_PHASE) {
+    return "On site";
+  }
   return JOB_PHASES.find((phase) => phase.id === id)?.label ?? "Job";
 }
 
-/** Idle hero copy for maintenance phases before the first analyse returns. */
-export function maintenanceIdleHint(phaseId: JobPhaseId): string | null {
-  const phase = JOB_PHASES.find((p) => p.id === phaseId);
-  if (phase?.group !== "maintenance") {
-    return null;
+/** Idle hero copy before the first analyse returns. */
+export function fieldIdleHint(phaseId: JobPhaseId): string {
+  if (phaseId === AUTO_JOB_PHASE) {
+    return "Point the camera at the work area — Foreman detects the job.";
   }
-  return `${phase.hint}. Point the camera at the work area.`;
+  const phase = JOB_PHASES.find((p) => p.id === phaseId);
+  if (phase?.group === "maintenance") {
+    return `${phase.hint}. Point the camera at the work area.`;
+  }
+  if (phaseId === "customer_pitch") {
+    return "Point the camera at the customer conversation.";
+  }
+  if (phaseId === "site_survey") {
+    return "Walk the site — Foreman will coach from what it sees.";
+  }
+  return "Point the camera at the job.";
 }

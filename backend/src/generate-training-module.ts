@@ -95,7 +95,7 @@ export async function generateTrainingModule(
 
   return {
     ...parsed.data,
-    jobType: parsed.data.jobType || session.job_type || "panel_clean",
+    jobType: parsed.data.jobType || session.job_type || "auto",
     worker: parsed.data.worker ?? session.worker,
   };
 }
@@ -117,7 +117,7 @@ export function sessionTrainingStats(session: {
     }
   }
   return {
-    jobType: session.job_type ?? "panel_clean",
+    jobType: session.job_type ?? "auto",
     frameCount: session.frames.length,
     coachingFlagCount,
   };

@@ -22,7 +22,7 @@ export const MOCK_STOP_RESPONSE = {
     started_at: "2026-06-06T10:00:00.000Z",
     ended_at: "2026-06-06T10:05:00.000Z",
     worker: "Test Tech",
-    job_type: "panel_clean",
+    job_type: "auto",
     notes: null,
     summary:
       "Panel clean looks thorough. Lower row rinsed before ladder move.",
@@ -37,7 +37,7 @@ export const MOCK_STOP_RESPONSE = {
 
 export const MOCK_TRAINING_MODULE = {
   title: "Panel clean — rinse sequence",
-  jobType: "panel_clean",
+  jobType: "auto",
   worker: "Test Tech",
   summary: "How to rinse lower rows safely before repositioning.",
   learningObjectives: ["Rinse before ladder moves"],
@@ -86,7 +86,7 @@ export async function installFieldAppMocks(page: Page): Promise<void> {
           started_at: new Date().toISOString(),
           ended_at: null,
           worker: "Test Tech",
-          job_type: "panel_clean",
+          job_type: "auto",
           notes: null,
           summary: null,
         },

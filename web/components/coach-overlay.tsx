@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CoachingResponse, VisualCallout } from "@foreman/shared";
 import type { ActivityItem } from "../lib/activity-feed";
 import type { JobPhaseId } from "../lib/job-phase";
-import { jobPhaseLabel, maintenanceIdleHint } from "../lib/job-phase";
+import { fieldIdleHint, jobPhaseLabel } from "../lib/job-phase";
 import { pickSpokenCue } from "../lib/pick-spoken-cue";
 import { CoachActivityFeed } from "./coach-activity-feed";
 import { CoachDetailPanel } from "./coach-detail-panel";
@@ -61,17 +61,11 @@ function pickHeroCue(
   }
 
   if (!coaching) {
-    const maintenance = maintenanceIdleHint(jobPhase);
-    if (maintenance) {
-      return { text: maintenance, severity: "info", label: "Foreman" };
-    }
-    const idle =
-      jobPhase === "customer_pitch"
-        ? "Point the camera at the customer conversation."
-        : jobPhase === "site_survey"
-          ? "Walk the site — Foreman will coach from what it sees."
-          : "Point the camera at the job.";
-    return { text: idle, severity: "info", label: "Foreman" };
+    return {
+      text: fieldIdleHint(jobPhase),
+      severity: "info",
+      label: "Foreman",
+    };
   }
 
   const critical = coaching.installQualityFlags.find(

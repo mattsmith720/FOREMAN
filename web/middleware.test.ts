@@ -99,6 +99,21 @@ describe("web middleware origin gate", () => {
     assert.equal(res.status, 403);
   });
 
+  it("allows /api/* calls from a custom domain when Origin matches ALLOWED_APP_ORIGINS", () => {
+    process.env.ALLOWED_APP_ORIGINS =
+      "https://foreman-phi.vercel.app,https://foreman.unicityai.com.au";
+    const res = middleware(
+      new NextRequest(new URL("/api/analyse", "https://foreman.unicityai.com.au"), {
+        headers: {
+          host: "foreman.unicityai.com.au",
+          origin: "https://foreman.unicityai.com.au",
+        },
+      }),
+    );
+    assert.equal(res.status, 200);
+    process.env.ALLOWED_APP_ORIGINS = ALLOWED_ORIGIN;
+  });
+
   it("allows /api/* calls from a same-project preview at *.vercel.app", () => {
     const res = middleware(
       makeRequest("/api/analyse", {

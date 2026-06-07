@@ -1,10 +1,13 @@
 import type { JobPhaseId } from "./job-phase";
-import { isMaintenancePhase } from "./job-phase";
+import { AUTO_JOB_PHASE, isMaintenancePhase } from "./job-phase";
 
 export type InteractionMode = "scan" | "watch";
 
-/** Maintenance + install + survey = point-and-verdict (phone in hand). Pitch stays adaptive. */
+/** Auto-detect and pitch = continuous watch. Other phases = point-and-verdict. */
 export function interactionModeForPhase(jobPhase: JobPhaseId): InteractionMode {
+  if (jobPhase === AUTO_JOB_PHASE || jobPhase === "customer_pitch") {
+    return "watch";
+  }
   if (
     jobPhase === "solar_install" ||
     jobPhase === "site_survey" ||
