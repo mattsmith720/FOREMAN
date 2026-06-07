@@ -142,7 +142,7 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
                     <button
                       type="button"
                       className="button button-secondary review-btn"
-                      disabled={state === "saving" || correctionDraft.trim().length === 0}
+                      disabled={correctionDraft.trim().length === 0}
                       onClick={() => void submitCorrection(index, item)}
                     >
                       Confirm correction
@@ -150,7 +150,6 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
                     <button
                       type="button"
                       className="button button-secondary review-btn"
-                      disabled={state === "saving"}
                       onClick={cancelCorrection}
                     >
                       Cancel

@@ -28,7 +28,7 @@ export function backendStatusMessage(status: BackendStatus): string | null {
     case "waking":
       return "Waking Foreman…";
     case "slow":
-      return "Still waking — a server cold start can take 30–60s. Tap Retry.";
+      return "Still waking — a server cold start can take 30–60s.";
     case "ready":
     case "unknown":
     default:

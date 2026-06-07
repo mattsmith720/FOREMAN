@@ -58,11 +58,21 @@ import {
   downloadEvidenceManifest,
   nextComplianceShot,
 } from "../lib/compliance-pack";
+import { downloadEvidencePack } from "../lib/evidence-pack";
 import { frameInstrumentation } from "../lib/frame-instrumentation";
 import { planVerdictCue } from "../lib/verdict-cue-delivery";
-import { captureGeoFix, type GeoFix } from "../lib/geolocation";
+import {
+  awaitGeoForEvidence,
+  captureGeoFix,
+  geoDeniedVoiceLine,
+  type GeoFix,
+} from "../lib/geolocation";
 import { interactionModeForPhase } from "../lib/interaction-mode";
-import { estimateSessionCostUsd } from "../lib/session-cost";
+import {
+  ensureCostModelSynced,
+  estimateSessionCostUsd,
+} from "../lib/session-cost";
+import { SessionSpendCap } from "../lib/session-spend-cap";
 import {
   CONSENT_VERSION,
   loadWorkerProfile,
@@ -138,6 +148,8 @@ export function CameraCoach() {
   const complianceStateRef = useRef<ComplianceSessionState>(
     createComplianceSessionState(),
   );
+  const spendCapRef = useRef<SessionSpendCap | null>(null);
+  const complianceAccelerateRef = useRef(false);
 
   const [status, setStatus] = useState<CoachStatus>("idle");
   const [isPaused, setIsPaused] = useState(false);
@@ -316,6 +328,7 @@ export function CameraCoach() {
         if (result.persisted) {
           pushActivity("saved", "Transcript stored");
         }
+        spendCapRef.current?.recordTranscribe();
       }
     },
     [coaching, debugMode, pushActivity],
@@ -466,23 +479,6 @@ export function CameraCoach() {
           recentTranscript: transcriptRef.current,
         });
 
-        const postAnalyseInstrumentation = frameInstrumentation({
-          debugMode,
-          frameKb,
-          analyseMs,
-          startedAt,
-          framesCaptured: framesCapturedRef.current,
-          transcriptChunkCount: transcriptRef.current.length,
-        });
-
-        if (debugMode) {
-          setHealthStats((current) => ({
-            ...current,
-            ...postAnalyseInstrumentation.healthPatch,
-          }));
-          pushActivity("saved", "Frame queued for job log");
-        }
-
         const complianceOutcome = applyComplianceEvidence(
           result.coaching,
           jobPhaseRef.current,
@@ -494,29 +490,47 @@ export function CameraCoach() {
         for (const line of complianceOutcome.voiceLines) {
           void speakCoachLine(line.text, line.severity);
         }
+        if (complianceOutcome.facingMode) {
+          void frameSourceRef.current?.setFacingMode(complianceOutcome.facingMode);
+        }
 
         const verdict = planVerdictCue(
           result.coaching,
           jobPhaseRef.current,
           lastHeroRef.current,
         );
+        const postAnalyseInstrumentation = frameInstrumentation({
+          debugMode,
+          frameKb,
+          analyseMs,
+          startedAt,
+          framesCaptured: framesCapturedRef.current,
+          transcriptChunkCount: transcriptRef.current.length,
+          spokenCueAttempt: verdict !== null,
+        });
+
+        if (debugMode) {
+          setHealthStats((current) => ({
+            ...current,
+            ...postAnalyseInstrumentation.healthPatch,
+          }));
+          pushActivity("saved", "Frame queued for job log");
+        }
+
         if (verdict) {
           lastHeroRef.current = verdict.cue.text;
-          void speakCoachLine(verdict.cue.text, verdict.cue.severity, {
-            onAudible: () => {
-              const cueE2eMs = postAnalyseInstrumentation.onCueAudible?.() ?? 0;
-              if (debugMode && cueE2eMs > 0) {
-                setHealthStats((current) => ({
-                  ...current,
-                  cueE2eMs,
-                  estCostUsd: estimateSessionCostUsd(
-                    framesCapturedRef.current,
-                    transcriptRef.current.length,
-                  ),
-                }));
-              }
-            },
-          });
+          const cueE2eMs = postAnalyseInstrumentation.onCueAttempt();
+          if (debugMode && cueE2eMs > 0) {
+            setHealthStats((current) => ({
+              ...current,
+              cueE2eMs,
+              estCostUsd: estimateSessionCostUsd(
+                framesCapturedRef.current,
+                transcriptRef.current.length,
+              ),
+            }));
+          }
+          void speakCoachLine(verdict.cue.text, verdict.cue.severity);
         } else if (debugMode) {
           setHealthStats((current) => ({
             ...current,
@@ -526,6 +540,8 @@ export function CameraCoach() {
             ),
           }));
         }
+
+        complianceAccelerateRef.current = complianceOutcome.accelerateCapture;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Analysis failed";
         setWarningMessage(message);
@@ -537,7 +553,10 @@ export function CameraCoach() {
         if (pending) {
           void handleFrame(pending);
         } else {
-          frameSourceRef.current?.captureNow();
+          frameSourceRef.current?.captureNow({
+            accelerate: complianceAccelerateRef.current,
+          });
+          complianceAccelerateRef.current = false;
         }
       }
     },
@@ -586,10 +605,14 @@ export function CameraCoach() {
         jobPhaseRef.current === "solar_install" &&
         complianceStateRef.current.records.length > 0
       ) {
-        downloadEvidenceManifest(sessionId, complianceStateRef.current.records);
         const { done, total } = complianceProgress(
           complianceStateRef.current.captured,
         );
+        try {
+          await downloadEvidencePack(sessionId);
+        } catch {
+          downloadEvidenceManifest(sessionId, complianceStateRef.current.records);
+        }
         void speakCoachLine(
           `Evidence pack ${done} of ${total} shots saved.`,
           "info",
@@ -654,7 +677,9 @@ export function CameraCoach() {
     setIsPaused(false);
     audioQueueRef.current = [];
     complianceStateRef.current = createComplianceSessionState();
+    spendCapRef.current = new SessionSpendCap();
     geoRef.current = null;
+    void ensureCostModelSynced();
     void captureGeoFix().then((fix) => {
       geoRef.current = fix;
     });
@@ -691,6 +716,13 @@ export function CameraCoach() {
                 lng: geoRef.current?.lng ?? null,
               })
             : undefined,
+        spendCap: spendCapRef.current ?? undefined,
+        onSpendCapWarning: () => {
+          void speakCoachLine(
+            "Session spend is getting high — wrap up when you can.",
+            "warning",
+          );
+        },
       });
       source.onFrame((frame) => {
         void handleFrame(frame.data);
@@ -759,6 +791,12 @@ export function CameraCoach() {
   // profile, then start. During the job itself the worker never taps.
   const beginJob = useCallback(async () => {
     unlockCoachVoice();
+    const geo = await awaitGeoForEvidence();
+    geoRef.current = geo;
+    if (!geo) {
+      const denied = geoDeniedVoiceLine();
+      void speakCoachLine(denied.text, denied.severity);
+    }
     if (!hasConsentedRef.current) {
       const at = new Date().toISOString();
       consentAtRef.current = at;

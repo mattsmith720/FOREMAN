@@ -5,6 +5,7 @@ import { getAnalyseCostUsd, getTranscribeCostUsd } from "../config.js";
 import { getLatencyMetrics } from "../metrics.js";
 import { isSupabaseConfigured } from "../db/supabase.js";
 import {
+  getDatasetStats,
   getSessionExportRecords,
   listRecentSessions,
   listSiteVideoQueue,
@@ -81,9 +82,11 @@ export async function registerOpsRoutes(app: FastifyInstance): Promise<void> {
         { frames: 0, transcripts: 0, est_cost_usd: 0 },
       );
       totals.est_cost_usd = Math.round(totals.est_cost_usd * 100) / 100;
+      const dataset = await getDatasetStats();
       return reply.send({
         sessions,
         totals,
+        dataset,
         latency: getLatencyMetrics(),
         costModel: { analyse_usd: analyseCost, transcribe_usd: transcribeCost },
       });

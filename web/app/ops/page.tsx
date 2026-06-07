@@ -38,6 +38,12 @@ interface OpsCostModel {
   transcribe_usd: number;
 }
 
+interface OpsDataset {
+  sessions: number;
+  labels: number;
+  frames: number;
+}
+
 interface OpsVideo {
   id: string;
   status?: string;
@@ -58,6 +64,7 @@ export default function OpsPage() {
   const [totals, setTotals] = useState<OpsTotals | null>(null);
   const [latency, setLatency] = useState<OpsLatency | null>(null);
   const [costModel, setCostModel] = useState<OpsCostModel | null>(null);
+  const [dataset, setDataset] = useState<OpsDataset | null>(null);
   const [videos, setVideos] = useState<OpsVideo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -85,6 +92,7 @@ export default function OpsPage() {
         totals?: OpsTotals;
         latency?: OpsLatency;
         costModel?: OpsCostModel;
+        dataset?: OpsDataset;
       };
       const ingestBody = ingestRes.ok
         ? ((await ingestRes.json()) as { videos: OpsVideo[] })
@@ -93,6 +101,7 @@ export default function OpsPage() {
       setTotals(sessionsBody.totals ?? null);
       setLatency(sessionsBody.latency ?? null);
       setCostModel(sessionsBody.costModel ?? null);
+      setDataset(sessionsBody.dataset ?? null);
       setVideos(ingestBody.videos ?? []);
       setAuthed(true);
       window.sessionStorage.setItem(PW_KEY, pw);
@@ -176,6 +185,13 @@ export default function OpsPage() {
         </button>
       </header>
       {error && <p className="ops-error">{error}</p>}
+
+      <h2>Dataset moat</h2>
+      <p className="ops-metrics">
+        {dataset
+          ? `${dataset.sessions} sessions · ${dataset.frames} frames · ${dataset.labels} labels`
+          : "Dataset counts —"}
+      </p>
 
       <h2>Recent jobs ({sessions.length})</h2>
       <p className="ops-metrics">

@@ -19,6 +19,7 @@ import { registerTranscribeRoutes } from "./routes/transcribe.js";
 import { registerVoiceRoutes } from "./routes/voice.js";
 import { registerIngestRoutes } from "./routes/ingest.js";
 import { registerMetricsRoutes } from "./routes/metrics.js";
+import { registerEvidencePackRoutes } from "./routes/evidence-pack.js";
 import { registerOpsRoutes } from "./routes/ops.js";
 import { registerReadyRoute } from "./routes/ready.js";
 
@@ -177,6 +178,7 @@ await registerReadyRoute(app);
 
 await registerAnalyseRoutes(app);
 await registerSessionRoutes(app);
+await registerEvidencePackRoutes(app);
 await registerTranscribeRoutes(app);
 await registerLabelRoutes(app);
 await registerVoiceRoutes(app);

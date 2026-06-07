@@ -2,16 +2,15 @@ import { createProxyErrorResponse, proxyToBackend } from "../../../../../lib/pro
 
 export const maxDuration = 60;
 
-export async function POST(
+export async function GET(
   request: Request,
   { params }: { params: { id: string } },
 ) {
   try {
-    return await proxyToBackend(`/sessions/${params.id}/stop`, request, {
+    return await proxyToBackend(`/sessions/${params.id}/evidence-pack`, request, {
       timeoutMs: 55_000,
-      maxBodyBytes: 50_000,
     });
   } catch (error) {
-    return createProxyErrorResponse(error, "Failed to proxy session stop request");
+    return createProxyErrorResponse(error, "Failed to proxy evidence pack request");
   }
 }

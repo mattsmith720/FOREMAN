@@ -7,8 +7,8 @@ import {
 import {
   facingModeForEvidenceType,
   facingModeForShot,
-  type ComplianceShotId,
 } from "./compliance-evidence-handler";
+import type { ComplianceShotId } from "./compliance-pack";
 import {
   estimateFrameSharpness,
   SCAN_SHARPNESS_MIN,

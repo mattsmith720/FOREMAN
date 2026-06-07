@@ -43,19 +43,30 @@ Extracted modules (disjoint lane ownership):
 
 ## Recon swarm (Phase A)
 
-| Agent | Status | Branch |
-|-------|--------|--------|
-| R1–R10 | queued | `swarm/recon-*` (read-only) |
+| Agent | Status | Notes |
+|-------|--------|-------|
+| R1–R10 | complete | See `docs/swarm/recon-summary.md` |
 
 ## Build lanes (Phase B)
 
-| Lane | Status | Branch | SHA | Gate |
-|------|--------|--------|-----|------|
-| L1–L10 | queued | `swarm/<lane>` | — | — |
+| Lane | Status | Branch |
+|------|--------|--------|
+| L1 instrument | merged | `swarm/l1-instrument` |
+| L2 defect-coach | merged | `swarm/l2-defect-coach` |
+| L3 compliance | merged | `swarm/l3-compliance` |
+| L4 evidence-pack | merged | `swarm/l4-evidence-pack` |
+| L5 eval | merged | `swarm/l5-eval` |
+| L6 efficiency | merged | `swarm/l6-efficiency` |
+| L7 review | merged | `swarm/l7-review` |
+| L8 reliability | merged | `swarm/l8-reliability` |
+| L9 ios | merged | `swarm/l9-ios` |
+| L10 polish | merged | `swarm/l10-polish` |
 
 ## Integration train (Phase C)
 
-Merge order: L1 → L2 → L3 → L4 → L5 → L6 → L7 → L8 → L9 → L10
+| Status | Branch | Notes |
+|--------|--------|-------|
+| integrating | `swarm/integrate-all` | L1→L10 merged + integrator CONTRACT |
 
 ## Operator-gated (never lane work)
 

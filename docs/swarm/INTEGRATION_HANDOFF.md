@@ -11,7 +11,7 @@ Merged lanes L1–L10 on `swarm/integrate-all`. Integrator CONTRACT items applie
 - [x] `web/app/api/sessions/[id]/evidence-pack/route.ts` — ZIP proxy
 - [x] `backend/src/routes/ops.ts` — `dataset` stats from `getDatasetStats`
 - [x] `web/app/api/metrics/cost-model/route.ts` — cost model proxy
-- [ ] `camera-coach.tsx` — L1 attempt metrics, L3 facing/geo, L4 ZIP download, L6 spend cap (partial — see lane HANDOFFs)
+- [x] `camera-coach.tsx` — attempt metrics, geo await, facing flip, ZIP download, spend cap
 
 ## Lane summaries
 

@@ -5,6 +5,7 @@ import type { CoachingResponse, VisualCallout } from "@foreman/shared";
 import type { ActivityItem } from "../lib/activity-feed";
 import type { JobPhaseId } from "../lib/job-phase";
 import { jobPhaseLabel } from "../lib/job-phase";
+import { pickSpokenCue } from "../lib/pick-spoken-cue";
 import { CoachActivityFeed } from "./coach-activity-feed";
 import { CoachDetailPanel } from "./coach-detail-panel";
 
@@ -37,6 +38,17 @@ function pickHeroCue(
   severity: "info" | "warning" | "critical";
   label: string;
 } {
+  const spoken = pickSpokenCue(coaching, jobPhase);
+  if (spoken) {
+    const label =
+      spoken.severity === "critical"
+        ? "Safety"
+        : spoken.severity === "warning"
+          ? "Quality"
+          : "Foreman";
+    return { text: spoken.text, severity: spoken.severity, label };
+  }
+
   const active = callouts[activeCalloutIndex];
   if (active) {
     return {
