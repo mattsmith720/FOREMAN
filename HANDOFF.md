@@ -38,8 +38,7 @@ geoDeniedVoiceLine()
 
 ## Tests
 
-- `npx tsx --test lib/compliance-evidence-handler.test.ts lib/compliance-pack.test.ts` — **13 pass**
-- Full `npm test --workspace web`: **49 pass** in L3-owned suites; **3 fail** in `lib/evidence-pack.test.ts` (L4 lane, pre-existing on worktree — not L3 scope)
+- `npm test --workspace web` — **43 pass** on `swarm/l3-compliance` (main baseline + L3 tests)
 
 ## Not pushed
 
