@@ -1,5 +1,7 @@
 import { createProxyErrorResponse, proxyToBackend } from "../../../../../lib/proxy-backend";
 
+export const maxDuration = 18;
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } },

@@ -1,5 +1,7 @@
 import { createProxyErrorResponse, proxyToBackend } from "../../../../lib/proxy-backend";
 
+export const maxDuration = 18;
+
 export async function POST(request: Request) {
   try {
     return await proxyToBackend("/labels/confirm", request, {

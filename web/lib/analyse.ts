@@ -52,9 +52,10 @@ export async function analyseFrame(
         recentTranscript: options?.recentTranscript,
       }),
       signal: controller.signal,
-      retry: options?.sessionId
-        ? { retries: 0 }
-        : { retries: 1, allowUnsafe: true },
+      // One bounded retry on a transient 5xx so a brief backend blip doesn't
+      // silently drop a frame; capped at 1 and bounded by ANALYSE_TIMEOUT_MS so
+      // the capture loop stays responsive on weak links.
+      retry: { retries: 1, allowUnsafe: true },
     });
 
     const body = await parseApiResponse<AnalyseSuccess | AnalyseError>(response);
