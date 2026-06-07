@@ -1,5 +1,7 @@
 # Deploy Foreman — test from your phone on any network
 
+> **Production is already live** (Vercel web + Render API, June 2026). The sections below document the deploy mechanics for reference or re-deployment. For the live pilot, see **[PILOT_HANDOFF.md](PILOT_HANDOFF.md)**.
+
 Local `npm run dev:phone` only works when your iPhone and Mac share the same Wi‑Fi.
 For **any network** (cellular, different Wi‑Fi, job site), deploy:
 

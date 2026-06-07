@@ -1,5 +1,7 @@
 # What you need to do — Foreman phone testing
 
+> **Pilot walkthrough:** the canonical on-phone guide is **[PILOT_HANDOFF.md](PILOT_HANDOFF.md)**. This file is the operator setup / infrastructure checklist (env vars, deploy, keys).
+
 **Last updated:** 2026-06-06
 
 Everything below is **your** side only. The repo, Vercel UI, Supabase database, security hardening, and deploy pipeline are already built and pushed.
