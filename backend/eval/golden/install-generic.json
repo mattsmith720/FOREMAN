@@ -1,0 +1,65 @@
+{
+  "observations": [
+    "Ground-mounted utility-scale or large commercial solar array visible across multiple rows",
+    "Panels appear to be fixed-tilt, single-axis or fixed ground mount on steel post frames",
+    "Array is installed in an open rural paddock setting with grass understorey",
+    "No workers visible in frame — likely a completed or partially completed array being reviewed",
+    "Sky shows cumulus cloud buildup — potential weather change to monitor"
+  ],
+  "installQualityFlags": [
+    {
+      "message": "Grass and vegetation directly under and around array is long — fire risk in dry conditions and potential shading issue as growth continues. Schedule vegetation management.",
+      "severity": "warning"
+    },
+    {
+      "message": "No visible cable management or DC conduit runs from this angle — verify underslung DC cables are secured in UV-rated conduit and not resting on ground or vegetation.",
+      "severity": "warning"
+    },
+    {
+      "message": "Panel surfaces appear clean and undamaged from this distance but confirm no micro-cracks or soiling on rear rows not visible in frame.",
+      "severity": "info"
+    },
+    {
+      "message": "Row spacing appears reasonable for this tilt angle but verify inter-row shading distances meet design spec for this latitude — cloud cover today may mask shading issues during commissioning checks.",
+      "severity": "info"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "No active worker visible in frame. If this is a post-install walk-around inspection, allow 15–20 minutes per row to check clamp torque, cable routing, and earthing continuity on a ground mount of this size.",
+  "nextSteps": [
+    "Walk each row and verify all DC cables are clipped into cable management trays or conduit, not trailing on the grass — UV degradation and rodent damage risk is high in paddock environments.",
+    "Check vegetation height under the array and arrange a mow or herbicide treatment before handover to prevent fire hazard and shading losses.",
+    "Confirm all panel clamps are torqued to manufacturer spec (typically 20–25 Nm) and record in the commissioning checklist before sign-off."
+  ],
+  "visualCallouts": [
+    {
+      "id": "veg-undergrowth",
+      "label": "Long grass risk",
+      "message": "Grass under the array is too long — fire risk and rodent habitat. Flag for vegetation management before handover.",
+      "category": "safety",
+      "severity": "warning",
+      "x": 0.35,
+      "y": 0.82,
+      "w": 0.28,
+      "h": 0.12,
+      "shape": "box"
+    },
+    {
+      "id": "cable-check",
+      "label": "Check cable runs",
+      "message": "DC cable routing under this row is not visible — get underneath and confirm conduit is clipped and sealed.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.5,
+      "y": 0.65,
+      "w": 0.2,
+      "h": 0.1,
+      "shape": "pointer"
+    }
+  ],
+  "spokenCue": {
+    "say": "Check DC cables under each row are conduit-clipped and off the ground.",
+    "severity": "warning",
+    "speak": true
+  }
+}

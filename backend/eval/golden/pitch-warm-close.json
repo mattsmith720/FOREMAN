@@ -1,0 +1,72 @@
+{
+  "observations": [
+    "Ground-mounted commercial or large-scale solar array visible — multiple rows of panels on steel racking across an open paddock.",
+    "Worker appears to be conducting a customer pitch, likely using this site as a reference installation to demonstrate system scale and quality.",
+    "Sky is partly cloudy — useful talking point for dispelling the 'needs full sun' myth with the customer.",
+    "No workers visible on site in this frame; pitch conversation is the active task."
+  ],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [
+    {
+      "message": "Good opener referencing the actual bill amount — that personalises it. However, '$400 a quarter' without immediately converting it to a daily or annual cost loses impact. Say 'That's $1,600 a year leaving your pocket' to make the pain feel real.",
+      "severity": "warning"
+    },
+    {
+      "message": "Five-year payback is strong but was stated without proof or a range. Customers may not believe a bare claim. Anchor it: 'Most of our customers see payback in four to six years — here's a reference install just like yours running three years now.' Use this ground-mount site as the proof point.",
+      "severity": "warning"
+    },
+    {
+      "message": "Ending with 'what questions can I answer?' is passive and hands control to the customer to stall. Replace the close with a soft commitment: 'Can I book a quick measure-and-quote for Tuesday — no obligation, takes 20 minutes?' A specific day converts far better than an open question.",
+      "severity": "critical"
+    },
+    {
+      "message": "Warranty details were mentioned but not framed as a benefit. Try: 'The panels carry a 25-year performance warranty — that's outlasting two car loans.' Make the warranty feel tangible, not just paperwork to hand over.",
+      "severity": "info"
+    },
+    {
+      "message": "No feed-in tariff or grid export savings were mentioned. Add: 'Any power you don't use gets sold back to the grid — that chips in on top of the $1,600 saving.' This often surprises customers and re-energises the conversation.",
+      "severity": "warning"
+    },
+    {
+      "message": "Stronger suggested line to replace the closing question: 'Based on your $1,600 annual spend, you'd break even around year five and earn free power for the next 20 after that — want me to lock in a Tuesday site visit so you can see the exact numbers for your roof?'",
+      "severity": "info"
+    }
+  ],
+  "timeOnTaskNote": "Pitch phase — if this is a door knock, aim to move from discovery to soft close within 8 to 12 minutes. Leaving warranty docs without a booked next step means an 80% chance of no follow-through. Push for a specific appointment before ending the conversation.",
+  "nextSteps": [
+    "Anchor the close to a specific date and time — ask 'Tuesday or Wednesday work better for you?' rather than leaving it open-ended.",
+    "Reference this ground-mount array or a comparable local residential install as social proof to build trust in the payback claim.",
+    "Add feed-in tariff and government rebate (STC) details to the conversation to increase perceived value and reduce the stated payback period."
+  ],
+  "visualCallouts": [
+    {
+      "id": "array-proof-point",
+      "label": "Use as proof point",
+      "message": "Point to this array and say — this is what five years of free power looks like. Show the customer the scale.",
+      "category": "pitch",
+      "severity": "info",
+      "x": 0.5,
+      "y": 0.6,
+      "w": 0.5,
+      "h": 0.3,
+      "shape": "box"
+    },
+    {
+      "id": "upsell-scale",
+      "label": "Upsell: battery storage",
+      "message": "Large array like this is a perfect segue — ask if they want to store their own power overnight with a battery. Strong upsell opportunity.",
+      "category": "upsell",
+      "severity": "info",
+      "x": 0.18,
+      "y": 0.55,
+      "w": 0.18,
+      "h": 0.18,
+      "shape": "circle"
+    }
+  ],
+  "spokenCue": {
+    "say": "Book a specific day before you leave — vague close loses the sale.",
+    "severity": "warning",
+    "speak": true
+  }
+}

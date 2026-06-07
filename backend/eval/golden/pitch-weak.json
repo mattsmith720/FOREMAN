@@ -1,0 +1,68 @@
+{
+  "observations": [
+    "Ground-mounted commercial or rural solar array visible — multiple rows of panels on metal racking across an open paddock.",
+    "Worker appears to be pitching to a customer, likely using this or a similar site as a reference installation.",
+    "No installer currently on tools — this is a customer pitch or site walk scenario.",
+    "Sky is partly cloudy — good conditions to discuss real-world generation variability with the customer."
+  ],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [
+    {
+      "message": "Opening line 'Uh hi, yeah we're doing solar in the area' is weak — the filler 'uh' and vague framing kills first impressions. Lead with your name, your company, and a specific local credibility hook. Try: 'G'day, I'm [Name] from [Company]. We just finished a system two streets over and I wanted to let your neighbours know while we're here.'",
+      "severity": "critical"
+    },
+    {
+      "message": "'It's pretty good, you'd save some money I reckon' is too vague and lacks confidence. Customers need a specific, believable number to act. Try: 'A typical home like yours in this area saves around $1,800 to $2,400 a year on power bills — most of our customers are in profit within 4 to 5 years.'",
+      "severity": "critical"
+    },
+    {
+      "message": "Closing with 'Do you want to maybe think about it?' is the weakest possible close — it invites a 'no' and hands control to the customer. Replace with an assumptive or choice close. Try: 'I can book a free site assessment for Tuesday or Thursday this week — which suits you better?'",
+      "severity": "critical"
+    },
+    {
+      "message": "No mention of warranty, battery storage, feed-in tariffs, or government rebates (STC/STCs). These are powerful trust and urgency builders in the Australian market. Weave them in: 'Our panels carry a 25-year performance warranty and you're still eligible for government rebates right now — that won't last forever.'",
+      "severity": "warning"
+    },
+    {
+      "message": "Rapport was not established before jumping to the pitch. Start with a genuine observation or question: 'Have you had a look at what your power bills have been doing lately?' — this gets the customer talking and frames your solution as a response to their pain, not a cold sell.",
+      "severity": "warning"
+    }
+  ],
+  "timeOnTaskNote": "Pitch appears to have moved too quickly past the rapport-building phase and stalled at a soft close. A well-structured door-knock pitch should run 3 to 5 minutes — spend the first 60 seconds on rapport and the customer's current bill pain before quoting savings.",
+  "nextSteps": [
+    "Reopen the conversation with a bill-pain question: 'Have your power bills gone up much in the last 12 months?' — get the customer engaged before talking savings.",
+    "Anchor the value with a specific payback figure relevant to their property size and typical usage, referencing the local reference site if visible.",
+    "Close with a choice of two appointment times, not an open-ended 'think about it' — book the site assessment before you leave the door."
+  ],
+  "visualCallouts": [
+    {
+      "id": "array-reference",
+      "label": "Reference site upsell",
+      "message": "Point to this array — use it as social proof. Tell the customer: this is what a completed system looks like, and your neighbours are already saving.",
+      "category": "upsell",
+      "severity": "info",
+      "x": 0.5,
+      "y": 0.55,
+      "w": 0.55,
+      "h": 0.35,
+      "shape": "box"
+    },
+    {
+      "id": "sky-condition",
+      "label": "Generation story",
+      "message": "Partly cloudy sky — use this to address the objection 'does it work on cloudy days?' Modern panels still produce 25 to 40 percent on overcast days.",
+      "category": "pitch",
+      "severity": "info",
+      "x": 0.6,
+      "y": 0.15,
+      "w": 0.35,
+      "h": 0.25,
+      "shape": "pointer"
+    }
+  ],
+  "spokenCue": {
+    "say": "Reopen with a bill question before you pitch savings.",
+    "severity": "critical",
+    "speak": true
+  }
+}

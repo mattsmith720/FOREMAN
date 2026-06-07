@@ -1,0 +1,64 @@
+{
+  "observations": [
+    "Ground-mounted commercial/utility-scale solar array visible — multiple rows of large panel strings on fixed-tilt racking structures across an open paddock.",
+    "Array appears to be a multi-row ground mount installation, likely in a rural or semi-rural Australian setting.",
+    "No workers, PPE, tools, or active install activity are visible in this frame — site appears unoccupied or worker is off-frame.",
+    "Sky shows significant cumulus cloud build-up — weather conditions should be monitored for wind and lightning risk."
+  ],
+  "installQualityFlags": [
+    {
+      "message": "No workers visible — cannot assess fall protection, PPE, or active workmanship. Ensure all personnel working on or around the racking are wearing high-vis and appropriate PPE per site safe work method statement.",
+      "severity": "info"
+    },
+    {
+      "message": "Heavy cumulus cloud build-up visible overhead. Monitor Bureau of Meteorology for storm, high wind, or lightning warnings. Ground-mount sites are highly exposed — suspend work and move personnel to shelter if thunderstorm approaches within 10 km.",
+      "severity": "warning"
+    },
+    {
+      "message": "Panel rows in mid-field appear to have minor angular variation visible at distance — walk each row and verify all panels are clamped flush to rails with no tilt or lift at corners before string commissioning.",
+      "severity": "info"
+    },
+    {
+      "message": "DC cable routing beneath racking is not visible from this angle — verify all inter-string cables are clipped to racking with UV-rated ties at no more than 300 mm intervals and are not resting on bare ground.",
+      "severity": "warning"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "No active worker visible in frame. If the team is on a break or off-site, re-assess schedule against remaining row count. Ground-mount arrays of this scale typically require tight sequencing between mechanical install, cable routing, and string testing to hit end-of-day targets.",
+  "nextSteps": [
+    "Walk the full length of each panel row and physically check that every mid-clamp and end-clamp is torqued to the manufacturer specification — use a calibrated torque wrench and mark each bolt with a torque marker pen.",
+    "Inspect all DC cable runs beneath the racking — cables must be secured to racking members, not lying on soil, to prevent UV degradation and vermin damage.",
+    "Check BOM weather radar now — if storm cells are developing within 30 km, secure any loose tools or materials and brief the team on shelter and stop-work protocol."
+  ],
+  "visualCallouts": [
+    {
+      "id": "cloud-wx-risk",
+      "label": "Storm cloud risk",
+      "message": "Heavy cloud building overhead — check BOM radar for lightning and stop work if storm is within 10 kilometres.",
+      "category": "safety",
+      "severity": "warning",
+      "x": 0.55,
+      "y": 0.15,
+      "w": 0.3,
+      "h": 0.2,
+      "shape": "box"
+    },
+    {
+      "id": "cable-routing-below",
+      "label": "Inspect cable routing",
+      "message": "Check DC cables under the racking are clipped off the ground and secured with UV-rated ties every 300 millimetres.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.3,
+      "y": 0.78,
+      "w": 0.2,
+      "h": 0.1,
+      "shape": "pointer"
+    }
+  ],
+  "spokenCue": {
+    "say": "Check BOM radar now — storm clouds are building overhead.",
+    "severity": "warning",
+    "speak": true
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "observations": [
+    "Ground-mounted commercial/utility-scale solar array visible — multiple rows of large panels on fixed-tilt steel racking across open paddock.",
+    "This appears to be an existing or reference site rather than a residential rooftop survey — likely used for benchmarking or client education purposes.",
+    "Panel orientation appears north-facing (consistent with Southern Hemisphere best practice) at an estimated fixed tilt of 20–30 degrees.",
+    "Sky shows significant cumulus cloud cover — partial shading conditions present at time of survey capture.",
+    "No workers, PPE, tools, or customer interactions visible in frame."
+  ],
+  "installQualityFlags": [
+    {
+      "message": "Vegetation (grass/weeds) beneath and around array rows appears unmanaged — long grass can cause shading on lower cell rows and create fire risk in dry conditions. Confirm site maintenance plan is in scope.",
+      "severity": "warning"
+    },
+    {
+      "message": "Row spacing cannot be confirmed from this angle — verify inter-row distance meets minimum winter solstice shadow clearance for this latitude to avoid inter-row shading losses.",
+      "severity": "warning"
+    },
+    {
+      "message": "Ground condition appears soft/grassed — confirm soil bearing capacity and footing depth are adequate for racking ground screws or ballast footings, especially given visible clay-like rural soil.",
+      "severity": "info"
+    }
+  ],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Site survey phase — no active installation underway. Capture of existing array layout is appropriate for benchmarking. Ensure survey checklist covers shading analysis, grid connection point, metering, and access tracks before leaving site.",
+  "nextSteps": [
+    "Walk the perimeter of each array row and record inter-row spacing, tilt angle, and orientation with a compass or solar pathfinder app — document for shading loss modelling.",
+    "Check and photograph the cable trench or conduit runs back to the inverter/switchboard location, confirming DC cable protection and any exposed conduit integrity.",
+    "Note vegetation height and density beneath arrays and flag a site maintenance requirement in the survey report — include in client scope-of-works or exclusion clause."
+  ],
+  "visualCallouts": [
+    {
+      "id": "veg-shading",
+      "label": "Long grass risk",
+      "message": "Grass under the front row is tall — flag for maintenance to prevent lower-cell shading and fire risk.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.35,
+      "y": 0.82,
+      "w": 0.28,
+      "h": 0.12,
+      "shape": "box"
+    },
+    {
+      "id": "row-spacing",
+      "label": "Check row spacing",
+      "message": "Confirm inter-row gap eliminates winter shading — measure from rear of front row to base of next row.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.62,
+      "y": 0.65,
+      "w": 0.18,
+      "h": 0.12,
+      "shape": "pointer"
+    },
+    {
+      "id": "cloud-shading",
+      "label": "Shading conditions",
+      "message": "Heavy cloud present — note time and cloud cover in your survey log for irradiance context.",
+      "category": "time",
+      "severity": "info",
+      "x": 0.55,
+      "y": 0.18,
+      "w": 0.3,
+      "h": 0.2,
+      "shape": "box"
+    }
+  ],
+  "spokenCue": {
+    "say": "Measure inter-row spacing and log that long grass for maintenance.",
+    "severity": "warning",
+    "speak": true
+  }
+}

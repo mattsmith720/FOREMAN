@@ -1,0 +1,75 @@
+{
+  "observations": [
+    "Ground-mounted commercial or large residential solar array visible — multiple rows of panels installed on open grassland.",
+    "Customer pitch phase: worker is using a door-knock or on-site conversation; transcript captured two key statements.",
+    "No worker visible in frame — likely showing the customer a reference install site or project photo as part of the pitch."
+  ],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [
+    {
+      "message": "CRITIQUE — 'Everyone on this street is getting it' is a high-pressure fear-of-missing-out tactic. Under Australian Consumer Law this can be considered misleading if not accurate, and it erodes trust fast. Customers Google you after you leave.",
+      "severity": "critical"
+    },
+    {
+      "message": "CRITIQUE — 'Don't worry about the details, just sign here today' is a red flag for any customer. It signals the worker is hiding something and will likely kill the sale or trigger a cooling-off cancellation. Never rush a signature by dismissing concerns.",
+      "severity": "critical"
+    },
+    {
+      "message": "STRONGER LINE — Replace the FOMO line with: 'A few of your neighbours have already locked in their systems and are seeing bills drop by around 70%. I can show you exactly what that would look like for your home.'",
+      "severity": "info"
+    },
+    {
+      "message": "STRONGER LINE — Replace 'don't worry about details' with: 'Let me walk you through the key points — the system size, payback period, and what the warranty covers — so you feel completely comfortable before we proceed.'",
+      "severity": "info"
+    },
+    {
+      "message": "RAPPORT TIP — Lead with a personalised savings figure. Ask for a recent power bill first, calculate their payback on the spot (aim for under 5 years), then anchor the conversation on ROI, not urgency.",
+      "severity": "info"
+    },
+    {
+      "message": "CLOSE TIP — Use a soft close: 'If everything stacks up for you today, is there anything stopping us from getting the install date locked in?' This invites objections rather than steamrolling them.",
+      "severity": "info"
+    },
+    {
+      "message": "WARRANTY TIP — Proactively mention the panel product warranty (typically 25 years) and workmanship warranty. Customers who understand the warranty are far less likely to cancel during the cooling-off period.",
+      "severity": "warning"
+    }
+  ],
+  "timeOnTaskNote": "Pitch phase — if the worker is showing this array as a reference site, that is good visual proof. Ensure the proof-point conversation does not exceed 2–3 minutes before pivoting back to the customer's specific savings and next steps.",
+  "nextSteps": [
+    "Ask the customer for their latest electricity bill and calculate their estimated payback period on the spot — anchor the pitch in their real numbers.",
+    "Walk through the three key facts every customer needs before signing: system size and output, payback period, and what the warranties cover.",
+    "Use a soft trial close: 'Does the payback period make sense for you?' — surface objections early rather than pushing for a rushed signature."
+  ],
+  "visualCallouts": [
+    {
+      "id": "array-upsell",
+      "label": "Show this array",
+      "message": "Point to this array and say: this is the scale we can achieve — your rooftop system will generate similar clean energy and slash your bill.",
+      "category": "pitch",
+      "severity": "info",
+      "x": 0.5,
+      "y": 0.55,
+      "w": 0.45,
+      "h": 0.35,
+      "shape": "box"
+    },
+    {
+      "id": "upsell-battery",
+      "label": "Upsell: battery storage",
+      "message": "A ground or roof array this size pairs perfectly with a battery — mention battery storage to capture excess generation and quote accordingly.",
+      "category": "upsell",
+      "severity": "info",
+      "x": 0.75,
+      "y": 0.5,
+      "w": 0.18,
+      "h": 0.18,
+      "shape": "pointer"
+    }
+  ],
+  "spokenCue": {
+    "say": "Drop the pressure tactics — ask for their bill and run the numbers.",
+    "severity": "critical",
+    "speak": true
+  }
+}

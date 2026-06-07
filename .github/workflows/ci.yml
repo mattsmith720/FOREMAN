@@ -30,3 +30,9 @@ jobs:
         run: npm test --workspace backend
       - name: Web tests
         run: npm test --workspace web
+      - name: Coaching eval (non-blocking report)
+        # Offline: scores the committed golden /analyse outputs against the
+        # coaching rubrics (no API key, deterministic). Report-only — never
+        # blocks the build. Re-capture goldens locally with --update-golden.
+        run: npm run eval-coaching --workspace backend -- --offline
+        continue-on-error: true

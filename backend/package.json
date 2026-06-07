@@ -14,7 +14,8 @@
     "export-training": "tsx scripts/export-training-data.ts",
     "process-videos": "tsx scripts/process-pending-videos.ts",
     "split-training": "tsx scripts/split-training-data.ts",
-    "eval-baseline": "tsx scripts/eval-baseline.ts"
+    "eval-baseline": "tsx scripts/eval-baseline.ts",
+    "eval-coaching": "tsx scripts/eval-coaching.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.101.0",
