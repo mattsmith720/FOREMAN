@@ -115,3 +115,41 @@ export async function getSessionExportRecords(
     session_transcripts: transcripts,
   }));
 }
+
+export interface DatasetStats {
+  sessions: number;
+  labels: number;
+  frames: number;
+}
+
+/**
+ * Site-wide dataset counts for the /ops dashboard moat readout.
+ *
+ * CONTRACT (integrator: `backend/src/routes/ops.ts`):
+ * - Import `getDatasetStats` from `../db/ops.js`.
+ * - Call when `isSupabaseConfigured()` is true (same gate as other /ops routes).
+ * - Merge into `GET /ops/sessions` as `dataset: { sessions, labels, frames }`, or
+ *   expose a dedicated `GET /ops/dataset` returning the same shape.
+ * - On Supabase error this throws — catch in the route and map via `toClientError`.
+ * - Uses base tables only (`sessions`, `labels`, `frames`); no migration-specific columns.
+ */
+export async function getDatasetStats(): Promise<DatasetStats> {
+  const supabase = getSupabase();
+  const [sessionsRes, labelsRes, framesRes] = await Promise.all([
+    supabase.from("sessions").select("id", { count: "exact", head: true }),
+    supabase.from("labels").select("id", { count: "exact", head: true }),
+    supabase.from("frames").select("id", { count: "exact", head: true }),
+  ]);
+
+  const firstError =
+    sessionsRes.error ?? labelsRes.error ?? framesRes.error ?? null;
+  if (firstError) {
+    throw new Error(firstError.message);
+  }
+
+  return {
+    sessions: sessionsRes.count ?? 0,
+    labels: labelsRes.count ?? 0,
+    frames: framesRes.count ?? 0,
+  };
+}

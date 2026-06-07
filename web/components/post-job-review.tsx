@@ -18,6 +18,8 @@ type ItemState = "open" | "saving" | "confirmed" | "corrected";
 export function PostJobReview({ sessionId }: { sessionId: string }) {
   const [items, setItems] = useState<ReviewItem[] | null>(null);
   const [states, setStates] = useState<Record<number, ItemState>>({});
+  const [correctingIndex, setCorrectingIndex] = useState<number | null>(null);
+  const [correctionDraft, setCorrectionDraft] = useState("");
   const [notes, setNotes] = useState("");
   const [notesState, setNotesState] = useState<"idle" | "saving" | "saved">(
     "idle",
@@ -50,6 +52,7 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
     setStates((current) => ({ ...current, [index]: state }));
 
   const confirm = async (index: number, item: ReviewItem) => {
+    setCorrectingIndex(null);
     setState(index, "saving");
     try {
       await confirmLabel({
@@ -63,12 +66,19 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
     }
   };
 
-  const correct = async (index: number, item: ReviewItem) => {
-    const fixed = window.prompt(
-      "What should the coaching have said?",
-      item.message,
-    );
-    if (!fixed || !fixed.trim()) {
+  const startCorrection = (index: number, item: ReviewItem) => {
+    setCorrectingIndex(index);
+    setCorrectionDraft(item.message);
+  };
+
+  const cancelCorrection = () => {
+    setCorrectingIndex(null);
+    setCorrectionDraft("");
+  };
+
+  const submitCorrection = async (index: number, item: ReviewItem) => {
+    const fixed = correctionDraft.trim();
+    if (!fixed) {
       return;
     }
     setState(index, "saving");
@@ -77,8 +87,10 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
         sessionId,
         key: item.category,
         value: item.message,
-        correctedValue: fixed.trim(),
+        correctedValue: fixed,
       });
+      setCorrectingIndex(null);
+      setCorrectionDraft("");
       setState(index, "corrected");
     } catch {
       setState(index, "open");
@@ -92,10 +104,21 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
       <ul className="review-list">
         {items.map((item, index) => {
           const state = states[index] ?? "open";
+          const isCorrecting = correctingIndex === index && state === "open";
           return (
             <li
               key={`${item.category}-${index}`}
               className={`review-item sev-${item.severity}`}
+              style={
+                isCorrecting
+                  ? {
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "stretch",
+                      gap: "0.5rem",
+                    }
+                  : undefined
+              }
             >
               <span className="review-cat">{item.category}</span>
               <span className="review-msg">{item.message}</span>
@@ -103,6 +126,37 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
                 <span className="review-done">✓ Confirmed</span>
               ) : state === "corrected" ? (
                 <span className="review-done">✓ Corrected</span>
+              ) : isCorrecting ? (
+                <div className="review-notes" style={{ marginTop: 0 }}>
+                  <label htmlFor={`correct-${index}`}>
+                    What should the coaching have said?
+                  </label>
+                  <textarea
+                    id={`correct-${index}`}
+                    className="review-notes-input"
+                    value={correctionDraft}
+                    onChange={(event) => setCorrectionDraft(event.target.value)}
+                    rows={2}
+                  />
+                  <span className="review-actions">
+                    <button
+                      type="button"
+                      className="button button-secondary review-btn"
+                      disabled={state === "saving" || correctionDraft.trim().length === 0}
+                      onClick={() => void submitCorrection(index, item)}
+                    >
+                      Confirm correction
+                    </button>
+                    <button
+                      type="button"
+                      className="button button-secondary review-btn"
+                      disabled={state === "saving"}
+                      onClick={cancelCorrection}
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                </div>
               ) : (
                 <span className="review-actions">
                   <button
@@ -117,7 +171,7 @@ export function PostJobReview({ sessionId }: { sessionId: string }) {
                     type="button"
                     className="button button-secondary review-btn"
                     disabled={state === "saving"}
-                    onClick={() => void correct(index, item)}
+                    onClick={() => startCorrection(index, item)}
                   >
                     Fix
                   </button>
