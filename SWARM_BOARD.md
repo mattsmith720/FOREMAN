@@ -15,6 +15,7 @@
 | **Visual V0** | **CLOSED** — `docs/visual/DR1`–`DR5` |
 | **Visual VF1** | **MERGED pending** — tokens + UI primitives on `visual/vf1-foundation` |
 | **Visual VF2** | **PARTIAL** — boot + welcome geometry specs; matrix in CI |
+| **App A1** | **CLOSED** — field + ops + training refinement · `docs/app/FIELD_TRUTH_AUDIT.md` |
 | **Visual VS1–VS8** | **QUEUED** |
 
 ## VF1 contract (integrator-owned)

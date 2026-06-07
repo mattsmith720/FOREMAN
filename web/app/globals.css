@@ -291,9 +291,11 @@ body {
 }
 
 .job-phase-picker--simple .job-phase-option {
-  flex: 1 1 calc(50% - 0.25rem);
-  min-width: 7rem;
-  padding: 0.65rem 0.5rem;
+  flex: 1 1 calc(33.33% - 0.3rem);
+  min-width: 6.25rem;
+  max-width: calc(50% - 0.25rem);
+  min-height: 3rem;
+  padding: 0.75rem 0.5rem;
   text-align: center;
   font-size: 0.82rem;
   font-weight: 600;
@@ -962,6 +964,52 @@ button.coach-card:active {
 
 .summary-empty {
   color: var(--muted);
+}
+
+.summary-stats-line {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.summary-training-link {
+  text-decoration: none;
+  text-align: center;
+}
+
+.summary-training-error {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #fca5a5;
+}
+
+.boot-worker-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 100%;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.boot-screen .worker-name-input {
+  min-height: 3rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.ops-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .stored-counts {

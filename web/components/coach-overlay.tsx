@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CoachingResponse, VisualCallout } from "@foreman/shared";
 import type { ActivityItem } from "../lib/activity-feed";
 import type { JobPhaseId } from "../lib/job-phase";
-import { jobPhaseLabel } from "../lib/job-phase";
+import { jobPhaseLabel, maintenanceIdleHint } from "../lib/job-phase";
 import { pickSpokenCue } from "../lib/pick-spoken-cue";
 import { CoachActivityFeed } from "./coach-activity-feed";
 import { CoachDetailPanel } from "./coach-detail-panel";
@@ -61,6 +61,10 @@ function pickHeroCue(
   }
 
   if (!coaching) {
+    const maintenance = maintenanceIdleHint(jobPhase);
+    if (maintenance) {
+      return { text: maintenance, severity: "info", label: "Foreman" };
+    }
     const idle =
       jobPhase === "customer_pitch"
         ? "Point the camera at the customer conversation."

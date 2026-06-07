@@ -305,7 +305,13 @@ export default function OpsPage() {
                   ? "⚠ summary stuck"
                   : (session.summary_snippet ?? "—")}
               </td>
-              <td>
+              <td className="ops-row-actions">
+                <a
+                  className="button button-secondary"
+                  href={`/training?session=${session.id}`}
+                >
+                  Training
+                </a>
                 <button
                   type="button"
                   className="button button-secondary"

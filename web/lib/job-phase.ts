@@ -92,3 +92,12 @@ export function isMaintenancePhase(id?: string): boolean {
 export function jobPhaseLabel(id: JobPhaseId): string {
   return JOB_PHASES.find((phase) => phase.id === id)?.label ?? "Job";
 }
+
+/** Idle hero copy for maintenance phases before the first analyse returns. */
+export function maintenanceIdleHint(phaseId: JobPhaseId): string | null {
+  const phase = JOB_PHASES.find((p) => p.id === phaseId);
+  if (phase?.group !== "maintenance") {
+    return null;
+  }
+  return `${phase.hint}. Point the camera at the work area.`;
+}

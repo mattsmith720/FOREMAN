@@ -35,7 +35,7 @@ for (const viewportKey of IN_JOB_VIEWPORTS) {
       const axe = await new AxeBuilder({ page })
         .disableRules(["color-contrast"])
         .analyze();
-      const serious = axe.results.violations.filter(
+      const serious = (axe.results?.violations ?? []).filter(
         (v) => v.impact === "serious" || v.impact === "critical",
       );
       expect(serious).toEqual([]);

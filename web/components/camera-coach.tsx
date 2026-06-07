@@ -890,6 +890,18 @@ export function CameraCoach() {
                 start if everyone on site is OK with that.
               </p>
             )}
+            <label className="boot-worker-label">
+              Your name (optional)
+              <input
+                type="text"
+                className="worker-name-input"
+                value={workerName}
+                onChange={(event) => setWorkerName(event.target.value)}
+                placeholder="e.g. Alex"
+                autoComplete="name"
+                maxLength={80}
+              />
+            </label>
             <JobPhasePicker value={jobPhase} onChange={setJobPhase} />
             <button
               type="button"
