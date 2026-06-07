@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
-    "test": "tsx --test lib/**/*.test.ts middleware.test.ts components/**/*.test.ts components/**/*.test.tsx"
+    "test": "tsx --test lib/**/*.test.ts middleware.test.ts components/**/*.test.ts components/**/*.test.tsx",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@elevenlabs/client": "^1.9.0",
@@ -18,6 +19,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

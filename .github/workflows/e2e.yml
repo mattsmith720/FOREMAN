@@ -1,0 +1,29 @@
+name: e2e
+
+# Browser smoke for the phone web client (Playwright + fake media stream).
+# Scaffold: consent boot screen only — extend golden-path.spec.ts as flows land.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: E2E smoke (golden path)
+        run: npm run test:e2e --workspace web
+        env:
+          CI: "true"
