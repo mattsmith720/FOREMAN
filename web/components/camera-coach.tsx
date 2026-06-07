@@ -47,16 +47,19 @@ import {
   JobPhasePicker,
 } from "./job-phase-picker";
 import { jobPhaseLabel, type JobPhaseId } from "../lib/job-phase";
-import { reportCueE2eMs } from "../lib/cue-metrics";
-import { pickSpokenCue } from "../lib/pick-spoken-cue";
+import {
+  applyComplianceEvidence,
+  buildInstallCaptureMeta,
+  createComplianceSessionState,
+  type ComplianceSessionState,
+} from "../lib/compliance-evidence-handler";
 import {
   complianceProgress,
   downloadEvidenceManifest,
   nextComplianceShot,
-  shotForEvidenceType,
-  type ComplianceShotId,
-  type EvidenceCaptureRecord,
 } from "../lib/compliance-pack";
+import { frameInstrumentation } from "../lib/frame-instrumentation";
+import { planVerdictCue } from "../lib/verdict-cue-delivery";
 import { captureGeoFix, type GeoFix } from "../lib/geolocation";
 import { interactionModeForPhase } from "../lib/interaction-mode";
 import { estimateSessionCostUsd } from "../lib/session-cost";
@@ -132,8 +135,9 @@ export function CameraCoach() {
   const lastHeroRef = useRef<string>("");
   const consentAtRef = useRef<string | null>(null);
   const geoRef = useRef<GeoFix | null>(null);
-  const complianceCapturedRef = useRef<Set<ComplianceShotId>>(new Set());
-  const complianceRecordsRef = useRef<EvidenceCaptureRecord[]>([]);
+  const complianceStateRef = useRef<ComplianceSessionState>(
+    createComplianceSessionState(),
+  );
 
   const [status, setStatus] = useState<CoachStatus>("idle");
   const [isPaused, setIsPaused] = useState(false);
@@ -425,10 +429,6 @@ export function CameraCoach() {
       }
 
       try {
-        const complianceTarget =
-          jobPhaseRef.current === "solar_install"
-            ? nextComplianceShot(complianceCapturedRef.current)
-            : null;
         const capturedAt = new Date().toISOString();
 
         const result = await analyseFrame(image, {
@@ -437,12 +437,11 @@ export function CameraCoach() {
           recentTranscript: transcriptRef.current,
           captureMeta:
             jobPhaseRef.current === "solar_install"
-              ? {
+              ? buildInstallCaptureMeta(
+                  geoRef.current,
+                  complianceStateRef.current.captured,
                   capturedAt,
-                  lat: geoRef.current?.lat,
-                  lng: geoRef.current?.lng,
-                  complianceShotId: complianceTarget?.id,
-                }
+                )
               : undefined,
         });
 
@@ -467,57 +466,46 @@ export function CameraCoach() {
           recentTranscript: transcriptRef.current,
         });
 
+        const postAnalyseInstrumentation = frameInstrumentation({
+          debugMode,
+          frameKb,
+          analyseMs,
+          startedAt,
+          framesCaptured: framesCapturedRef.current,
+          transcriptChunkCount: transcriptRef.current.length,
+        });
+
         if (debugMode) {
           setHealthStats((current) => ({
             ...current,
-            analyseMs,
-            persistQueued: true,
+            ...postAnalyseInstrumentation.healthPatch,
           }));
-          // Persistence is fire-and-forget on the backend; the frame is queued
-          // for the job log here and confirmed by the stored counts at job end.
           pushActivity("saved", "Frame queued for job log");
         }
 
-        // Safety-first spoken cue (same selection the hero card shows). Returns
-        // null when there's nothing worth interrupting a hands-free worker for.
-        const evidence = result.coaching.evidenceShot;
-        if (
-          jobPhaseRef.current === "solar_install" &&
-          evidence?.isGoodEvidence
-        ) {
-          const shot = shotForEvidenceType(evidence.type);
-          if (shot && !complianceCapturedRef.current.has(shot.id)) {
-            complianceCapturedRef.current.add(shot.id);
-            complianceRecordsRef.current.push({
-              shotId: shot.id,
-              capturedAt,
-              lat: geoRef.current?.lat ?? null,
-              lng: geoRef.current?.lng ?? null,
-              evidenceType: evidence.type,
-            });
-            const nextShot = nextComplianceShot(complianceCapturedRef.current);
-            if (nextShot) {
-              void speakCoachLine(nextShot.prompt, "info");
-            } else {
-              void speakCoachLine("All compliance shots captured.", "info");
-            }
-          }
-        } else if (
-          jobPhaseRef.current === "solar_install" &&
-          evidence &&
-          !evidence.isGoodEvidence
-        ) {
-          void speakCoachLine("Hold steady — retake that shot.", "warning");
+        const complianceOutcome = applyComplianceEvidence(
+          result.coaching,
+          jobPhaseRef.current,
+          complianceStateRef.current,
+          geoRef.current,
+          capturedAt,
+        );
+        complianceStateRef.current = complianceOutcome.state;
+        for (const line of complianceOutcome.voiceLines) {
+          void speakCoachLine(line.text, line.severity);
         }
 
-        const cue = pickSpokenCue(result.coaching, jobPhaseRef.current);
-        if (cue && cue.text !== lastHeroRef.current) {
-          lastHeroRef.current = cue.text;
-          void speakCoachLine(cue.text, cue.severity, {
+        const verdict = planVerdictCue(
+          result.coaching,
+          jobPhaseRef.current,
+          lastHeroRef.current,
+        );
+        if (verdict) {
+          lastHeroRef.current = verdict.cue.text;
+          void speakCoachLine(verdict.cue.text, verdict.cue.severity, {
             onAudible: () => {
-              const cueE2eMs = Math.round(performance.now() - startedAt);
-              reportCueE2eMs(cueE2eMs);
-              if (debugMode) {
+              const cueE2eMs = postAnalyseInstrumentation.onCueAudible?.() ?? 0;
+              if (debugMode && cueE2eMs > 0) {
                 setHealthStats((current) => ({
                   ...current,
                   cueE2eMs,
@@ -596,10 +584,12 @@ export function CameraCoach() {
       );
       if (
         jobPhaseRef.current === "solar_install" &&
-        complianceRecordsRef.current.length > 0
+        complianceStateRef.current.records.length > 0
       ) {
-        downloadEvidenceManifest(sessionId, complianceRecordsRef.current);
-        const { done, total } = complianceProgress(complianceCapturedRef.current);
+        downloadEvidenceManifest(sessionId, complianceStateRef.current.records);
+        const { done, total } = complianceProgress(
+          complianceStateRef.current.captured,
+        );
         void speakCoachLine(
           `Evidence pack ${done} of ${total} shots saved.`,
           "info",
@@ -663,8 +653,7 @@ export function CameraCoach() {
     setActivity([]);
     setIsPaused(false);
     audioQueueRef.current = [];
-    complianceCapturedRef.current = new Set();
-    complianceRecordsRef.current = [];
+    complianceStateRef.current = createComplianceSessionState();
     geoRef.current = null;
     void captureGeoFix().then((fix) => {
       geoRef.current = fix;
@@ -747,7 +736,9 @@ export function CameraCoach() {
         "critical",
       );
       if (jobPhaseRef.current === "solar_install") {
-        const firstShot = nextComplianceShot(complianceCapturedRef.current);
+        const firstShot = nextComplianceShot(
+          complianceStateRef.current.captured,
+        );
         if (firstShot) {
           void speakCoachLine(firstShot.prompt, "info");
         }
