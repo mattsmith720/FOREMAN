@@ -2,8 +2,10 @@ export interface RetryOptions<T> {
   retries?: number;
   baseDelayMs?: number;
   signal?: AbortSignal;
-  shouldRetryResult?: (result: T) => boolean;
-  shouldRetryError?: (error: unknown) => boolean;
+  /** Absolute timestamp (ms). Skips further retries once passed. */
+  deadline?: number;
+  shouldRetryResult?: (result: T, attempt: number) => boolean;
+  shouldRetryError?: (error: unknown, attempt: number) => boolean;
 }
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
@@ -31,6 +33,10 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
+function pastDeadline(deadline: number | undefined): boolean {
+  return deadline !== undefined && Date.now() >= deadline;
+}
+
 export async function withRetry<T>(
   run: (attempt: number) => Promise<T>,
   options: RetryOptions<T> = {},
@@ -47,8 +53,11 @@ export async function withRetry<T>(
     if (resultOrError.ok) {
       if (
         attempt < retries &&
-        options.shouldRetryResult?.(resultOrError.result) === true
+        options.shouldRetryResult?.(resultOrError.result, attempt) === true
       ) {
+        if (pastDeadline(options.deadline)) {
+          return resultOrError.result;
+        }
         attempt += 1;
         await sleep(baseDelayMs * 2 ** (attempt - 1), options.signal);
         continue;
@@ -58,8 +67,11 @@ export async function withRetry<T>(
 
     if (
       attempt < retries &&
-      options.shouldRetryError?.(resultOrError.error) === true
+      options.shouldRetryError?.(resultOrError.error, attempt) === true
     ) {
+      if (pastDeadline(options.deadline)) {
+        throw resultOrError.error;
+      }
       attempt += 1;
       await sleep(baseDelayMs * 2 ** (attempt - 1), options.signal);
       continue;
