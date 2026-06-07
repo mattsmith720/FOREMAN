@@ -1,13 +1,12 @@
 import Link from "next/link";
+import { ForemanLogo } from "./foreman-logo";
 import { site } from "@/lib/site";
 
 export function LandingFooter() {
   return (
     <footer className="lp-footer-v2">
       <div className="lp-wrap lp-footer-v2-inner">
-        <Link href="/" className="lp-logo">
-          Fore<span className="lp-logo-mark">man</span>
-        </Link>
+        <ForemanLogo />
         <nav aria-label="Footer">
           <Link href="/#pipeline">How it works</Link>
           <Link href="/#capabilities">Features</Link>

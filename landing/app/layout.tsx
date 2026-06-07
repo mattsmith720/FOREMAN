@@ -36,18 +36,18 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: "Foreman | AI coaching for solar maintenance crews",
     description: SEO_DESCRIPTION,
-    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Foreman" }],
+    images: [{ url: "/og.png", width: 1024, height: 1024, alt: "Foreman" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Foreman | AI coaching for solar maintenance crews",
     description: SEO_DESCRIPTION,
-    images: ["/og.svg"],
+    images: ["/og.png"],
   },
   robots: { index: true, follow: true },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: "/logo-icon.png",
+    apple: "/logo-icon.png",
   },
 };
 

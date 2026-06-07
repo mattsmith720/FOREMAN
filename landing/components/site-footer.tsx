@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ForemanLogo } from "./foreman-logo";
 import { site } from "@/lib/site";
 
 const PRODUCT_LINKS = [
@@ -18,9 +19,7 @@ export function SiteFooter() {
     <footer className="lp-footer">
       <div className="lp-wrap lp-footer-inner lp-footer-inner--multi">
         <div className="lp-footer-brand">
-          <Link href="/" className="lp-logo lp-logo--footer">
-            Fore<span className="lp-logo-mark">man</span>
-          </Link>
+          <ForemanLogo className="lp-logo--footer" />
           <p className="lp-footer-tagline">{site.tagline}</p>
         </div>
 

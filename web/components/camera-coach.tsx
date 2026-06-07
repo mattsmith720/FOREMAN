@@ -863,7 +863,13 @@ export function CameraCoach() {
         />
         {!isActive && !endedSession && (
           <div className="camera-placeholder boot-screen consent-overlay">
-            <p className="boot-title">Foreman</p>
+            <img
+              src="/logo-icon.png"
+              alt="Foreman"
+              className="boot-logo"
+              width={72}
+              height={72}
+            />
             {!hasConsented && (
               <p className="consent-copy consent-copy--short">
                 Camera and mic record this job for coaching and training. Only

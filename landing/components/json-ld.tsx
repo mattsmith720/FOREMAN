@@ -18,7 +18,7 @@ export function JsonLd() {
     "@type": "Organization",
     name: site.name,
     url: site.url,
-    logo: `${site.url}/og.svg`,
+    logo: `${site.url}/logo-lockup.png`,
     description: SEO_DESCRIPTION,
     address: {
       "@type": "PostalAddress",
