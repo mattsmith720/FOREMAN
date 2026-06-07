@@ -9,7 +9,19 @@
   "salesPitchFeedback": [],
   "timeOnTaskNote": "DC routing compliance.",
   "nextSteps": ["Run exposed DC in listed conduit and secure every metre."],
-  "visualCallouts": [],
+  "visualCallouts": [
+    {
+      "label": "Exposed DC run",
+      "message": "Run exposed DC cable in listed conduit.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.4,
+      "y": 0.55,
+      "w": 0.35,
+      "h": 0.12,
+      "shape": "box"
+    }
+  ],
   "spokenCue": {
     "say": "Run that exposed DC in conduit now.",
     "severity": "warning",

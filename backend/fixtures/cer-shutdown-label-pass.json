@@ -1,0 +1,13 @@
+{
+  "observations": ["Main switchboard with emergency shutdown procedure label fitted."],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Shutdown signage compliant for CER assessor.",
+  "nextSteps": ["Proceed to next compliance shot."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Shot looks compliant",
+    "severity": "info",
+    "speak": false
+  }
+}

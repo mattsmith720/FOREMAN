@@ -9,7 +9,19 @@
   "salesPitchFeedback": [],
   "timeOnTaskNote": "Label compliance check at switchboard.",
   "nextSteps": ["Fit Solar Supply Main Switch label per AS/NZS 5033."],
-  "visualCallouts": [],
+  "visualCallouts": [
+    {
+      "label": "Missing switch label",
+      "message": "Fit Solar Supply Main Switch label on breaker.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.5,
+      "y": 0.4,
+      "w": 0.3,
+      "h": 0.15,
+      "shape": "box"
+    }
+  ],
   "spokenCue": {
     "say": "Add the solar supply main switch label now.",
     "severity": "warning",

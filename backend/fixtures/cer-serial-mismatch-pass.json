@@ -1,0 +1,13 @@
+{
+  "observations": ["Inverter serial plate legible and well framed."],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Registry serial evidence captured.",
+  "nextSteps": ["Proceed to next compliance shot."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Shot looks compliant",
+    "severity": "info",
+    "speak": false
+  }
+}

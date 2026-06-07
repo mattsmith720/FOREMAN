@@ -1,0 +1,13 @@
+{
+  "observations": ["Rooftop DC isolator installed and labelled at array entry."],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "Rooftop isolation compliant.",
+  "nextSteps": ["Proceed to next compliance shot."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Shot looks compliant",
+    "severity": "info",
+    "speak": false
+  }
+}

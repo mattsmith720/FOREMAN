@@ -9,9 +9,21 @@
   "salesPitchFeedback": [],
   "timeOnTaskNote": "Shutdown signage for CER assessor.",
   "nextSteps": ["Affix shutdown procedure label beside main switch."],
-  "visualCallouts": [],
+  "visualCallouts": [
+    {
+      "label": "Missing shutdown label",
+      "message": "Affix emergency shutdown procedure label beside main switch.",
+      "category": "quality",
+      "severity": "warning",
+      "x": 0.55,
+      "y": 0.45,
+      "w": 0.25,
+      "h": 0.2,
+      "shape": "box"
+    }
+  ],
   "spokenCue": {
-    "say": "Add the shutdown procedure label here.",
+    "say": "Affix the shutdown procedure label now.",
     "severity": "warning",
     "speak": true
   }

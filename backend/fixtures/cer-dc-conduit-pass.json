@@ -1,0 +1,13 @@
+{
+  "observations": ["DC cable run in UV-rated conduit along roof edge."],
+  "installQualityFlags": [],
+  "salesPitchFeedback": [],
+  "timeOnTaskNote": "DC routing compliant.",
+  "nextSteps": ["Proceed to next compliance shot."],
+  "visualCallouts": [],
+  "spokenCue": {
+    "say": "Shot looks compliant",
+    "severity": "info",
+    "speak": false
+  }
+}
