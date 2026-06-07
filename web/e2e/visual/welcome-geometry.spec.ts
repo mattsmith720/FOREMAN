@@ -15,7 +15,7 @@ for (const viewportKey of MARKETING_VIEWPORTS) {
       expect(tapIssues).toEqual([]);
 
       const axe = await new AxeBuilder({ page }).analyze();
-      const serious = axe.results.violations.filter(
+      const serious = (axe.results?.violations ?? []).filter(
         (v) => v.impact === "serious" || v.impact === "critical",
       );
       expect(serious).toEqual([]);

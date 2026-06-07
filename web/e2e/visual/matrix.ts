@@ -35,7 +35,7 @@ export const SURFACES: SurfaceRoute[] = [
   {
     id: "boot-consent",
     path: "/",
-    readySelector: 'button:has-text("start coaching")',
+    readySelector: 'button:has-text("start job")',
     viewports: IN_JOB_VIEWPORTS,
   },
   {
