@@ -23,7 +23,7 @@ A Supabase service role JWT was briefly committed in `backend/.env.example`.
 | **CORS** | Explicit `CORS_ORIGINS` required in production; wildcard rejected. | `backend/src/config.ts`, `backend/src/assert-production-security.ts`. |
 | **Input validation** | Zod on all routes; image magic-byte sniffing; audio MIME allowlist. | `backend/src/validate-media.ts`, `backend/src/validate-media.test.ts`. |
 | **Error responses** | Generic client messages; details logged server-side only. | `backend/src/api-error.ts`. |
-| **Rate limiting** | Per-IP via `X-Forwarded-For`; 120/min global; tighter on AI routes (`/analyse` 30/min, `/transcribe` 30/min, `/voice/speak` 30/min, `/voice/advice` 15/min). | `backend/src/index.ts` + `backend/src/routes/*`; integration test in `backend/src/rate-limit.test.ts` proves the (cap+1)th call returns `429` for each route. See [DEPLOY.md](DEPLOY.md) § Cost guards for operator-facing caps after SRE integration. |
+| **Rate limiting** | Per-IP via `X-Forwarded-For`; 120/min global; tighter on AI routes (`/analyse` 30/min, `/transcribe` 30/min, `/voice/speak` 30/min, `/voice/advice` 15/min). Other routes (sessions, labels, review, notes, ops) use the global 120/min cap. | `backend/src/index.ts` + `backend/src/routes/*`; integration test in `backend/src/rate-limit.test.ts` proves the (cap+1)th call returns `429` for each route. See [DEPLOY.md](DEPLOY.md) § Cost guards for operator-facing caps after SRE integration. |
 | **Security headers** | Helmet on API. | `backend/src/index.ts`. |
 | **Production boot guard** | API throws on import in production if `FOREMAN_API_KEY` or `CORS_ORIGINS` is missing or wildcard. | `backend/src/assert-production-security.ts`, `backend/src/assert-production-security.test.ts` — including a child-process boot test that asserts non-zero exit. |
 
@@ -42,6 +42,9 @@ A Supabase service role JWT was briefly committed in `backend/.env.example`.
 | `ELEVENLABS_API_KEY` | Optional — TTS + ConvAI. |
 | `ELEVENLABS_AGENT_ID` | Optional — required only for live voice coach. |
 | `SESSION_TOKEN_SECRET` | Optional — defaults to `FOREMAN_API_KEY`. |
+| `OPS_PASSWORD` | Required to use `/ops` — gates the internal dashboard; `/ops` fails closed in production without it. |
+| `INGEST_WEBHOOK_SECRET` | Optional — required only for site-video ingest webhooks. |
+| `AUDIO_PERSIST` | Optional — `true` persists raw audio (Whisper prep). Default off. |
 
 ### Vercel (`web`)
 

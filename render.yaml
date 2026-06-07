@@ -43,3 +43,7 @@ services:
         value: "60"
       - key: INGEST_ANALYSE_FRAMES
         value: "false"
+      - key: AUDIO_PERSIST
+        value: "false"
+      - key: ANTHROPIC_MAX_TOKENS
+        value: "512"

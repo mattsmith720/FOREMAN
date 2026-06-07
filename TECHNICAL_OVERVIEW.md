@@ -410,7 +410,7 @@ cd backend && npx tsx scripts/export-training-data.ts --out ./exports/dataset.js
 
 Output: JSONL with signed frame URLs, analysis JSON, labels, transcript windows, session metadata.
 
-**Critical principle:** Claude-generated pseudo-labels alone are not the moat. **Human-verified corrections** on real jobs are the asset. `POST /labels/confirm` exists; a lightweight post-job review UI is on the roadmap.
+**Critical principle:** Claude-generated pseudo-labels alone are not the moat. **Human-verified corrections** on real jobs are the asset. `POST /labels/confirm` plus a 30-second post-job review UI (confirm/correct + job notes) ship, backed by `GET /sessions/:id/review` and `POST /sessions/:id/notes`.
 
 **Full batch pipeline:**
 
@@ -491,6 +491,9 @@ npm run smoke         # E2E: session → analyse → transcribe → stop
 | `BACKEND_URL` | Vercel | Proxy target |
 | `ELEVENLABS_API_KEY` | Vercel (+ Render for ConvAI) | Voice |
 | `INGEST_WEBHOOK_SECRET` | Render | Drive sync + batch process webhook |
+| `OPS_PASSWORD` | Render | Gates the `/ops` dashboard (required in prod for `/ops`) |
+| `AUDIO_PERSIST` | Render | `true` persists raw audio for Whisper prep (default off) |
+| `ANTHROPIC_MAX_TOKENS` | Render | Coaching JSON token cap (default 512) |
 
 Never commit `.env` files. Template: `backend/.env.example`.
 
@@ -505,7 +508,7 @@ npm run dev:backend            # localhost:8080
 npm run dev:web                # localhost:3000
 npm run dev:phone              # HTTPS on LAN for iPhone testing
 npm run build                  # full monorepo build
-cd backend && npm test         # 36+ Fastify route/unit tests
+cd backend && npm test         # 44 Fastify route/unit tests
 cd web && npm test             # middleware, consent, compression tests
 ```
 
@@ -548,7 +551,7 @@ Per [CLAUDE.md](CLAUDE.md):
 | **Auth** | No per-user accounts; session token model only |
 | **Render** | Free tier sleep + no ffmpeg (video processing runs elsewhere) |
 | **Latency** | Claude round-trip ~2–8s per frame; adaptive capture prevents backlog |
-| **Labels** | Mostly Claude pseudo-labels; human review UI minimal |
+| **Labels** | Claude pseudo-labels + human confirm/correct via the shipped post-job review |
 | **Legal** | Consent overlay implemented; formal AU privacy review before customer pilot |
 | **Training** | Export works; automated fine-tune loop not yet deployed |
 

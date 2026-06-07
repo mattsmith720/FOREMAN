@@ -19,7 +19,8 @@ It describes the app exactly as it ships today. For deeper detail see
 | Web deployed (Vercel) | ✅ `https://foreman-phi.vercel.app` |
 | API deployed (Render) | ✅ `https://foreman-api-y31r.onrender.com` |
 | Backend features (Claude, Whisper, Supabase, ElevenLabs) | ✅ all green on `/ready` |
-| Build + unit tests | ✅ backend 36, web 25 |
+| Internal `/ops` dashboard | ✅ `/ops` — recent jobs, ingest queue, per-session export (set `OPS_PASSWORD`) |
+| Build + unit tests | ✅ backend 44, web 27 |
 
 You do **not** need to deploy anything. If you changed keys or want to re-verify,
 run `npm run check-ready` (see §7).
@@ -157,6 +158,8 @@ Never put API keys in `NEXT_PUBLIC_*` — those ship in the browser bundle.
 | `ELEVENLABS_API_KEY` | Live ConvAI coach (optional) |
 | `ELEVENLABS_AGENT_ID` | Live ConvAI coach (optional) |
 | `INGEST_WEBHOOK_SECRET` | Site video ingest webhook (optional) |
+| `OPS_PASSWORD` | **Required to use `/ops`** — gates the internal dashboard (the proxy-injected API key is not a gate); `/ops` fails closed in production without it. |
+| `AUDIO_PERSIST` | Optional — `true` persists raw audio for Whisper fine-tune (needs `training-iteration-a.sql`). Default off. |
 
 **Vercel (`web`)**:
 
