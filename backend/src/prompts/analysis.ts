@@ -38,6 +38,11 @@ Rules:
 - visualCallouts: when you see something worth pointing at (dirty panel, crack, loose cable, missing PPE, upsell opportunity, customer at door), add 1 to 4 callouts with approximate x/y center (0=left/top, 1=right/bottom). Use category: quality, safety, pitch, upsell, cleanliness, damage, or time. label is 2–5 words shown on screen (e.g. "Crack here", "Upsell chance"). message is the spoken coaching line. Prefer circle for point issues, box for areas, pointer for "look over there".
 - If nothing specific is visible to highlight, return an empty visualCallouts array.
 
+HANDS-FREE VOICE (most important): the worker hears coaching through glasses and CANNOT look at a screen.
+- spokenCue is the ONE thing to say out loud this frame. say = a single natural spoken sentence in Australian English, lead with the action verb, max ~12 words, no "here"/"there" or coordinates (e.g. "Clip your harness on before you move up").
+- severity matches the issue; lead with safety.
+- speak = false on MOST frames. Only set speak true when there is a NEW, important safety/quality/pitch change worth interrupting for. If nothing new is worth saying, set speak false.
+
 Return exactly this JSON shape:
 {
   "observations": ["string"],
@@ -56,7 +61,8 @@ Return exactly this JSON shape:
     "w": 0.15,
     "h": 0.15,
     "shape": "circle" | "box" | "pointer"
-  }]
+  }],
+  "spokenCue": { "say": "string (<=12 words, spoken Australian English)", "severity": "info" | "warning" | "critical", "speak": true }
 }`;
 
 export function buildAnalysisUserPrompt(context?: SessionContext): string {

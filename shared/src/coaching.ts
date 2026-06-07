@@ -73,6 +73,17 @@ export const coachingResponseSchema = z.object({
   nextSteps: z.array(z.string().min(1)),
   /** On-frame highlights — circles/boxes pointing at issues or opportunities. */
   visualCallouts: z.array(visualCalloutSchema).default([]),
+  /**
+   * Ear-first: the single line to SAY this frame for a hands-free worker on
+   * glasses. `speak` is false on most frames so coaching isn't a firehose.
+   */
+  spokenCue: z
+    .object({
+      say: z.string().min(1).max(200),
+      severity: coachingSeverity,
+      speak: z.boolean(),
+    })
+    .optional(),
 });
 
 export type CoachingCategory = z.infer<typeof coachingCategory>;
