@@ -1,52 +1,45 @@
 # FOREMAN Swarm Board
 
-**Orchestrator:** integrator-only `main` pushes  
-**Production:** https://foreman-phi.vercel.app · API https://foreman-api-y31r.onrender.com  
-**Current main:** post–trust-audit fixes (see `docs/swarm/TRUST_AUDIT.md`)
+**Production:** https://foreman-phi.vercel.app · `/demo` · `/welcome`  
+**Orchestrator:** integrator-only `main` pushes
 
-## Phase 0 — Trust audit (COMPLETE)
+## Queue discipline
 
-| Agent | Status | Verdict |
-|-------|--------|---------|
-| AU1 clean-room gate | done | VERIFIED post-fix (was FALSE: flaky web test + double metric) |
-| AU2 S0–S1 DoD | done | S0 PARTIAL · S1 VERIFIED |
-| AU3 S2 evidence pack | done | ZIP VERIFIED · PDF/serial/4-selfies FALSE |
-| AU4 S3–S4 eval/export | done | eval PARTIAL (6/11) · export fixed |
-| AU5 diff archaeology | done | P0 double-metric fixed |
-| AU6 security | done | ZIP proxy fixed · see TRUST_AUDIT.md |
-| AU7 prod truth | done | VERIFIED |
-| AU8 claims table | done | `docs/swarm/TRUST_AUDIT.md` |
+| Phase | Status |
+|-------|--------|
+| Phase 0 Trust audit | **CLOSED** — `docs/swarm/TRUST_AUDIT.md` |
+| Mega Programs A–D | **PARTIAL** — A closed; B/C/D wave 2 merged — `docs/swarm/MEGA_CLOSURE.md` |
+| Factory Programs E–H | **QUEUED** — opens when Mega B2–B5, C3, D2–D3 close OR operator waives |
 
-### Audit fix lanes (merged)
+## Mega A — Prove it (CLOSED)
 
-| Fix | Files |
-|-----|-------|
-| Single cue-metric POST | `frame-instrumentation.ts`, `camera-coach.tsx` |
-| Hero = spokenCue | `coach-overlay.tsx` |
-| Binary ZIP proxy | `evidence-pack/route.ts` |
-| Ops export provenance | `backend/src/db/ops.ts` |
-| Doc ZIP truth | `PILOT_HANDOFF.md`, `PHONE_DEMO.md`, `YOUR_ACTIONS.md` |
-| Review notes retry | `web/lib/review.ts` |
+| Lane | SHA | Metric |
+|------|-----|--------|
+| A1 fixtures | merged | 10 CER JPEG pairs |
+| A2 E2E | merged | Playwright smoke |
+| A3 validator | merged | `validate-pack` |
+| A4 eval | merged | **11/11** scenarios · **97%** rubric |
+| A5 bench | merged | `npm run bench` |
 
-**Gate:** build · web lint · backend 73 · web 65 · smoke PASS
+## Mega B/C/D — wave 2 merged
 
-## Phase 1 — Four programs (IN PROGRESS)
+| Lane | Status | Deliverable |
+|------|--------|-------------|
+| B1 offline | PARTIAL (lib only) | IndexedDB queue + sync |
+| C1 demo | merged | `/demo` |
+| C2 landing | merged | `/welcome` |
+| C4 pitch | merged | `PITCH_KIT.md` |
+| D1 observability | PARTIAL (backend) | structured JSON logs |
+| D4 backup | merged | `backup-supabase.sh` |
 
-| Program | Lane | Status | Branch | Metric |
-|---------|------|--------|--------|--------|
-| **A — Prove it** | A1 fixtures | merged | `program/a1-fixtures` | 10 CER JPEG pairs + manifest |
-| | A2 Playwright E2E | merged | `program/a2-e2e` | 1 smoke spec (consent boot) |
-| | A3 pack validator | merged | `program/a3-pack-validator` | `validate-pack` CLI + 6 tests |
-| | A4 vision eval | queued | — | needs goldens (`--update-golden`) |
-| | A5 bench | merged | `program/a5-bench` | `npm run bench` script + BENCH.md |
-| **B — Pilot-grade** | B1 offline-first · B2 crew model · B3 Blake dashboard · B4 PDF pack · B5 perf budget | queued |
-| **C — Sell it** | C1 demo mode · C2 landing · C3 ROI calc · C4 pitch kit | queued |
-| **D — Operate it** | D1 observability · D2 /ops maturity · D3 security sweep · D4 backup routine | queued |
+## Mega backlog (blocks Factory)
 
-## Prior swarm (L1–L10) — merged `37d5950`
+B2 · B3 · B4 · B5 · C3 · D2 · D3
 
-All lanes merged. Test counts: **backend 73**, **web 65**.
+## Factory (not started)
 
-## Operator-gated (never lane work)
+E1–E4 · F1–F3 · G1–G3 · H1–H7
 
-Supabase migrations 2+3 · OPS_PASSWORD · GitHub SUPABASE_* · Local.xcconfig · iPhone UAT · hard spend caps · legal review · GUNNR STC format · Sentry/external accounts
+## Operator-gated
+
+Supabase migrations · OPS_PASSWORD · payments · Sentry · real pilot footage · legal review

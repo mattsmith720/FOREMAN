@@ -110,7 +110,12 @@ export async function getSessionExportRecords(
     if (labelsFallback.error) {
       throw new Error(labelsFallback.error.message);
     }
-    labels = labelsFallback.data ?? [];
+    labels = (labelsFallback.data ?? []).map((row) => ({
+      ...row,
+      label_source: null,
+      frame_id: null,
+      confirmed_at: null,
+    }));
   } else if (labelsPrimary.error) {
     throw new Error(labelsPrimary.error.message);
   }
