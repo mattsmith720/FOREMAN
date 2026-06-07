@@ -2,7 +2,7 @@
  * Export Foreman sessions to JSONL for training pipelines.
  *
  * Usage:
- *   npx tsx scripts/export-training-data.ts [--out ./exports/dataset.jsonl] [--limit 50]
+ *   npx tsx scripts/export-training-data.ts [--out ./exports/dataset.jsonl] [--limit 50] [--job-type panel_clean]
  */
 import "dotenv/config";
 import { createWriteStream } from "node:fs";
@@ -13,9 +13,19 @@ import { getSupabase } from "../src/db/supabase.js";
 const BUCKET = "frames";
 const SIGNED_URL_TTL_SEC = 3600;
 
+const MAINTENANCE_JOB_TYPES = new Set([
+  "panel_clean",
+  "pigeon_proofing",
+  "thermal_scan",
+  "exterior_clean",
+  "commercial_clean",
+]);
+
 function parseArgs(argv: string[]) {
   let out = "./exports/training-dataset.jsonl";
   let limit = 100;
+  let jobType: string | null = null;
+  let maintenanceOnly = false;
 
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--out" && argv[i + 1]) {
@@ -24,9 +34,15 @@ function parseArgs(argv: string[]) {
     if (argv[i] === "--limit" && argv[i + 1]) {
       limit = Number(argv[++i]);
     }
+    if (argv[i] === "--job-type" && argv[i + 1]) {
+      jobType = argv[++i];
+    }
+    if (argv[i] === "--maintenance-only") {
+      maintenanceOnly = true;
+    }
   }
 
-  return { out, limit };
+  return { out, limit, jobType, maintenanceOnly };
 }
 
 // Paginate so sessions with more than PostgREST's default 1000-row cap are not
@@ -60,15 +76,23 @@ async function fetchAllRows(
 }
 
 async function main() {
-  const { out, limit } = parseArgs(process.argv.slice(2));
+  const { out, limit, jobType, maintenanceOnly } = parseArgs(process.argv.slice(2));
   const supabase = getSupabase();
 
-  const { data: sessions, error: sessionsError } = await supabase
+  let query = supabase
     .from("sessions")
     .select("id, started_at, ended_at, job_type, worker, consent_at")
     .not("ended_at", "is", null)
     .order("started_at", { ascending: false })
     .limit(limit);
+
+  if (jobType) {
+    query = query.eq("job_type", jobType);
+  } else if (maintenanceOnly) {
+    query = query.in("job_type", [...MAINTENANCE_JOB_TYPES]);
+  }
+
+  const { data: sessions, error: sessionsError } = await query;
 
   if (sessionsError) {
     throw new Error(sessionsError.message);
@@ -175,6 +199,10 @@ async function main() {
   const meta = {
     generated_at: new Date().toISOString(),
     frame_records: rowCount,
+    filter: {
+      job_type: jobType,
+      maintenance_only: maintenanceOnly,
+    },
     sessions: {
       total: (sessions ?? []).length,
       ...sessionTypeCounts,

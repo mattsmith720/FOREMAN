@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { JOB_PHASES, type JobPhaseId } from "../../lib/job-phase";
+import {
+  DEFAULT_JOB_PHASE,
+  INSTALL_JOB_PHASES,
+  MAINTENANCE_JOB_PHASES,
+  type JobPhaseId,
+} from "../../lib/job-phase";
 
 type UploadState = "idle" | "uploading" | "processing" | "done" | "error";
 
 export default function IngestPage() {
   const [worker, setWorker] = useState("");
-  const [jobType, setJobType] = useState<JobPhaseId>("solar_install");
+  const [jobType, setJobType] = useState<JobPhaseId>(DEFAULT_JOB_PHASE);
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<UploadState>("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -135,8 +140,8 @@ export default function IngestPage() {
     <main className="ingest-page">
       <h1>Upload site video</h1>
       <p className="ingest-lead">
-        After a job, upload a video from your phone. Foreman stores it, extracts frames and
-        audio, and adds it to the training dataset.
+        After a maintenance visit, upload video from your phone. Foreman extracts frames and
+        audio, builds your training dataset, and powers auto-generated onboarding modules.
       </p>
 
       <form className="ingest-form" onSubmit={(event) => void handleSubmit(event)}>
@@ -152,8 +157,24 @@ export default function IngestPage() {
         </label>
 
         <fieldset className="ingest-phases">
-          <legend>Job type</legend>
-          {JOB_PHASES.map((phase) => (
+          <legend>Maintenance job type</legend>
+          {MAINTENANCE_JOB_PHASES.map((phase) => (
+            <label key={phase.id} className="ingest-phase-label">
+              <input
+                type="radio"
+                name="jobType"
+                value={phase.id}
+                checked={jobType === phase.id}
+                onChange={() => setJobType(phase.id)}
+              />
+              {phase.label}
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className="ingest-phases ingest-phases--secondary">
+          <legend>Install (other crews)</legend>
+          {INSTALL_JOB_PHASES.map((phase) => (
             <label key={phase.id} className="ingest-phase-label">
               <input
                 type="radio"

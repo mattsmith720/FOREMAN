@@ -1,17 +1,47 @@
-export const SUMMARY_SYSTEM_PROMPT = `You are Foreman, an AI coach for solar installation field teams. Write a plain language end-of-job summary for the installer based on the session data provided.
+import { isMaintenanceAnalysisPhase } from "./analysis-phases.js";
+
+export const SUMMARY_SYSTEM_PROMPT = `You are Foreman, an AI coach for Australian solar field teams — maintenance crews and install crews. Write a plain language end-of-job summary based on the session data provided.
 
 Cover:
 - What happened during the job
-- Install quality and safety highlights
+- Safety and workmanship highlights
 - Time on task and pacing
-- Sales pitch performance: what the worker said, what landed, what missed, and 1 to 2 stronger lines they could use next time
+- Customer interaction when relevant (what landed, what to improve)
 - Clear follow-up actions
 
 Rules:
 - Australian English
 - 2 to 4 short paragraphs
 - Plain text only. No JSON, markdown headings, or bullet lists.
-- Be direct and useful for a crew lead reviewing the job.`;
+- Be direct and useful for a crew lead reviewing the job or building training material.`;
+
+function phaseFocus(jobType: string | null): string {
+  if (jobType === "customer_pitch") {
+    return "Focus the summary on the sales conversation: what landed, what missed, and 1-2 stronger lines.";
+  }
+  if (jobType === "site_survey") {
+    return "Focus the summary on the site assessment: roof, shading, access, and what it means for the install plan.";
+  }
+  if (jobType === "panel_clean") {
+    return "Focus on cleaning technique, coverage, before/after condition, safety on the roof, and customer handover if applicable.";
+  }
+  if (jobType === "pigeon_proofing") {
+    return "Focus on nest removal, mesh quality, gaps fixed, repellent steps, and sign-off documentation.";
+  }
+  if (jobType === "thermal_scan") {
+    return "Focus on scan protocol, hotspots found, inverter/display captures, and report-ready evidence.";
+  }
+  if (jobType === "exterior_clean") {
+    return "Focus on gutters/skylights/exterior work, property care, and visit completion.";
+  }
+  if (jobType === "commercial_clean") {
+    return "Focus on array scale, team coordination, coverage, and maintenance-contract documentation.";
+  }
+  if (isMaintenanceAnalysisPhase(jobType ?? undefined)) {
+    return "Focus on maintenance technique, safety, documentation, and training-worthy moments.";
+  }
+  return "Focus the summary on install safety and workmanship quality, then pacing.";
+}
 
 export function buildSummaryUserPrompt(data: {
   worker: string | null;
@@ -30,17 +60,11 @@ export function buildSummaryUserPrompt(data: {
     speaker: string | null;
   }>;
 }): string {
-  const phaseFocus =
-    data.jobType === "customer_pitch"
-      ? "Focus the summary on the sales conversation: what landed, what missed, and 1-2 stronger lines."
-      : data.jobType === "site_survey"
-        ? "Focus the summary on the site assessment: roof, shading, access, and what it means for the install plan."
-        : "Focus the summary on install safety and workmanship quality, then pacing.";
   const lines = [
     "Write an end-of-job summary from this session data.",
     `Worker: ${data.worker ?? "unknown"}`,
-    `Job type: ${data.jobType ?? "solar_install"}`,
-    phaseFocus,
+    `Job type: ${data.jobType ?? "panel_clean"}`,
+    phaseFocus(data.jobType),
   ];
 
   if (data.notes) {

@@ -69,7 +69,7 @@ export async function createSession(
     : null;
   const base = {
     worker: input.worker ?? null,
-    job_type: input.jobType ?? "solar_install",
+    job_type: input.jobType ?? "panel_clean",
     notes: accreditationNote ?? input.notes ?? null,
   };
   const withConsent = {

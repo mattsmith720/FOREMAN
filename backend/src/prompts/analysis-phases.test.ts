@@ -16,6 +16,8 @@ function loadFixture(name: string): unknown {
 }
 
 test("phaseGuidance returns phase-specific text for known phases", () => {
+  assert.match(phaseGuidance("panel_clean") ?? "", /PANEL CLEAN/);
+  assert.match(phaseGuidance("pigeon_proofing") ?? "", /PIGEON PROOFING/);
   assert.match(phaseGuidance("site_survey") ?? "", /SURVEY/);
   assert.match(phaseGuidance("solar_install") ?? "", /SAFETY FIRST/);
   assert.match(phaseGuidance("customer_pitch") ?? "", /PITCH/);
@@ -23,8 +25,9 @@ test("phaseGuidance returns phase-specific text for known phases", () => {
   assert.equal(phaseGuidance(undefined), null);
 });
 
-test("maxCalloutsForPhase keeps install quieter than survey/pitch", () => {
+test("maxCalloutsForPhase keeps install and maintenance quieter than survey/pitch", () => {
   assert.equal(maxCalloutsForPhase("solar_install"), 2);
+  assert.equal(maxCalloutsForPhase("panel_clean"), 2);
   assert.equal(maxCalloutsForPhase("site_survey"), 3);
   assert.equal(maxCalloutsForPhase("customer_pitch"), 3);
   assert.equal(maxCalloutsForPhase(undefined), 3);

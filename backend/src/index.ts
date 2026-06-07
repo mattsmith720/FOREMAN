@@ -22,6 +22,7 @@ import { registerMetricsRoutes } from "./routes/metrics.js";
 import { registerEvidencePackRoutes } from "./routes/evidence-pack.js";
 import { registerOpsRoutes } from "./routes/ops.js";
 import { registerLeadsRoutes } from "./routes/leads.js";
+import { registerTrainingModuleRoutes } from "./routes/training-module.js";
 import { registerReadyRoute } from "./routes/ready.js";
 import {
   logHttpRequestComplete,
@@ -188,6 +189,7 @@ await registerIngestRoutes(app);
 await registerMetricsRoutes(app);
 await registerOpsRoutes(app);
 await registerLeadsRoutes(app);
+await registerTrainingModuleRoutes(app);
 
 const port = getListenPort();
 

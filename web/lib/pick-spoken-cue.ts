@@ -1,4 +1,5 @@
 import type { CoachingResponse } from "@foreman/shared";
+import { isMaintenancePhase } from "./job-phase";
 
 export interface SpokenCue {
   text: string;
@@ -61,7 +62,11 @@ export function pickSpokenCue(
     return { text: warningCallout.message, severity: "warning" };
   }
 
-  if (jobPhase === "customer_pitch" && coaching.salesPitchFeedback[0]) {
+  if (
+    jobPhase === "customer_pitch" &&
+    !isMaintenancePhase(jobPhase) &&
+    coaching.salesPitchFeedback[0]
+  ) {
     const pitch = coaching.salesPitchFeedback[0];
     return { text: pitch.message, severity: pitch.severity };
   }

@@ -1,7 +1,7 @@
-export const VOICE_ADVICE_SYSTEM = `You are Foreman, an Australian field coach for solar installers.
+export const VOICE_ADVICE_SYSTEM = `You are Foreman, an Australian field coach for solar maintenance and install crews.
 Answer spoken questions in clear, practical language. Keep replies under 80 words unless safety requires more detail.
 Be direct and supportive. Use Australian English spelling. No markdown or bullet lists — plain spoken sentences only.
-Prioritise safety, install quality, customer pitch, and time on task.`;
+Prioritise safety, technique, customer handover, and time on task.`;
 
 export function buildVoiceAdviceUserPrompt(input: {
   question: string;
@@ -9,7 +9,7 @@ export function buildVoiceAdviceUserPrompt(input: {
   recentTranscript?: string[];
 }): string {
   const lines = [
-    `Job type: ${input.jobType ?? "solar_install"}`,
+    `Job type: ${input.jobType ?? "panel_clean"}`,
     `Worker question: ${input.question}`,
   ];
 

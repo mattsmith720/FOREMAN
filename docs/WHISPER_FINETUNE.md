@@ -1,14 +1,15 @@
 # Whisper fine-tune prep (Iteration B)
 
-Foreman's first local model win is a **Whisper fine-tune** on solar/trade speech —
-cheaper and lower-risk than a vision model, and it directly improves transcript
-quality (which feeds pitch coaching). This doc is the actionable prep; **no
-training runs yet** — we gather data and tooling first.
+Foreman's first local model win is a **Whisper fine-tune** on solar maintenance and
+trade speech (panel cleaning, pigeon proofing, Debris-Block, thermal scans, Brisbane
+site jargon) — cheaper and lower-risk than a vision model, and it directly improves
+transcript quality (which feeds training module generation and coaching). This doc is
+the actionable prep; **no training runs yet** — we gather data and tooling first.
 
 ## Why Whisper first
 
-- Off-the-shelf Whisper mis-hears solar jargon, brand names, and Australian trade
-  slang, which corrupts pitch critique and the training transcripts.
+- Off-the-shelf Whisper mis-hears solar maintenance jargon, brand names, and
+  Australian trade slang, which corrupts coaching transcripts and training exports.
 - A small fine-tune on our own audio + corrected transcripts fixes the worst
   errors for a few dollars of compute.
 

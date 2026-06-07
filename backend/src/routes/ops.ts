@@ -1,5 +1,4 @@
-import crypto from "node:crypto";
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { toClientError } from "../api-error.js";
 import { getAnalyseCostUsd, getTranscribeCostUsd } from "../config.js";
 import { getLatencyMetrics } from "../metrics.js";
@@ -14,37 +13,10 @@ import {
 import { listOpsErrors } from "../ops-errors.js";
 import { loadEvalTrendline } from "../ops-trends.js";
 import { needsSummaryRetry } from "../stuck-summary.js";
+import { opsAuthorized } from "./ops-auth.js";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/**
- * Internal ops gate. The Vercel proxy already injects FOREMAN_API_KEY (enforced
- * by the global auth hook); OPS_PASSWORD is an optional second factor. If unset,
- * /ops relies on the API key alone.
- */
-function safeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  try {
-    return crypto.timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
-  } catch {
-    return false;
-  }
-}
-
-function opsAuthorized(request: FastifyRequest): boolean {
-  const expected = process.env.OPS_PASSWORD?.trim();
-  if (!expected) {
-    // Fail CLOSED in production: the Vercel proxy auto-injects FOREMAN_API_KEY,
-    // so the API key is not a real gate for /ops. Require OPS_PASSWORD in prod.
-    return process.env.NODE_ENV !== "production";
-  }
-  const provided = request.headers["x-ops-password"];
-  const value = Array.isArray(provided) ? provided[0] : provided;
-  return typeof value === "string" && safeEqual(value, expected);
-}
 
 export async function registerOpsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/ops/sessions", async (request, reply) => {

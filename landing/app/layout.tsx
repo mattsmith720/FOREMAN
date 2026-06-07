@@ -1,43 +1,47 @@
 import type { Metadata } from "next";
-import { DM_Sans, Outfit } from "next/font/google";
+import { Fraunces, Source_Sans_3 } from "next/font/google";
 import type { ReactNode } from "react";
+import { JsonLd, SEO_DESCRIPTION } from "@/components/json-ld";
 import { site } from "@/lib/site";
 import "./globals.css";
 
-const outfit = Outfit({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-outfit",
+  weight: ["500", "600", "700"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-dm-sans",
+  variable: "--font-source",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Foreman — Compliance execution for solar install crews",
+    default: "Foreman | Field intelligence for solar maintenance crews",
     template: "%s · Foreman",
   },
-  description: site.description,
+  description: SEO_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     locale: "en_AU",
     url: site.url,
     siteName: site.name,
-    title: "Foreman — Compliance execution for solar install crews",
-    description: site.description,
+    title: "Foreman | Field intelligence for solar maintenance crews",
+    description: SEO_DESCRIPTION,
     images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Foreman" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Foreman — Compliance execution for solar install crews",
-    description: site.description,
+    title: "Foreman | Field intelligence for solar maintenance crews",
+    description: SEO_DESCRIPTION,
     images: ["/og.svg"],
   },
   robots: { index: true, follow: true },
@@ -49,8 +53,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-AU" className={`${outfit.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+    <html lang="en-AU" className={`${fraunces.variable} ${sourceSans.variable}`}>
+      <body>
+        <a href="#main" className="lp-skip">
+          Skip to content
+        </a>
+        <JsonLd />
+        {children}
+      </body>
     </html>
   );
 }

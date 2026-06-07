@@ -2,9 +2,9 @@ import { APP_URL, DEMO_URL, SITE_URL } from "./config";
 
 export const site = {
   name: "Foreman",
-  tagline: "Compliance execution for solar install crews",
+  tagline: "Field intelligence for solar maintenance crews",
   description:
-    "Voice-guided CER evidence capture and real-time defect coaching for Australian solar install crews.",
+    "Phone-first AI for Australian solar maintenance teams. Record real jobs, coach techs on the roof, and auto-build onboarding packages from your own footage.",
   url: SITE_URL,
   demoUrl: DEMO_URL,
   appUrl: APP_URL,

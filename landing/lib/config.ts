@@ -1,4 +1,4 @@
-/** Public marketing site config — no secrets. */
+/** Public marketing site config. No secrets. */
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://landing-lac-mu.vercel.app";
@@ -13,8 +13,8 @@ export const APP_URL =
 
 export const PILOT_BADGE =
   process.env.NEXT_PUBLIC_PILOT_BADGE ??
-  "Built on the roof with real install crews";
+  "Piloting with SolarShield · Brisbane maintenance crews";
 
 export const ANNOUNCEMENT =
   process.env.NEXT_PUBLIC_ANNOUNCEMENT ??
-  "Now piloting with Brisbane solar crews — Book a demo";
+  "Now piloting with SolarShield · Brisbane · Book a demo";
