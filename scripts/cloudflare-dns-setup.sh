@@ -25,15 +25,23 @@ api() {
   local method="$1"
   local path="$2"
   local data="${3:-}"
+  local response
   if [[ -n "$data" ]]; then
-    curl -fsS -X "$method" "https://api.cloudflare.com/client/v4${path}" \
+    response=$(curl -sS -X "$method" "https://api.cloudflare.com/client/v4${path}" \
       -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
       -H "Content-Type: application/json" \
-      --data "$data"
+      --data "$data")
   else
-    curl -fsS -X "$method" "https://api.cloudflare.com/client/v4${path}" \
-      -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+    response=$(curl -sS -X "$method" "https://api.cloudflare.com/client/v4${path}" \
+      -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
   fi
+  if ! echo "$response" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("success") else 1)' 2>/dev/null; then
+    echo "Cloudflare API error on ${method} ${path}:" >&2
+    echo "$response" | python3 -m json.tool 2>/dev/null >&2 || echo "$response" >&2
+    echo "Token needs Zone → DNS → Edit for ${ZONE_NAME}. Create at https://dash.cloudflare.com/profile/api-tokens" >&2
+    exit 1
+  fi
+  echo "$response"
 }
 
 echo "== Cloudflare DNS setup for ${ZONE_NAME} =="
