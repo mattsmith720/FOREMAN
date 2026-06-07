@@ -30,11 +30,15 @@
 
 **Gate:** build · web lint · backend 73 · web 65 · smoke PASS
 
-## Phase 1 — Four programs (NEXT)
+## Phase 1 — Four programs (IN PROGRESS)
 
-| Program | Lanes | Status |
-|---------|-------|--------|
-| **A — Prove it** | A1 fixtures · A2 Playwright E2E · A3 pack validator · A4 vision eval · A5 bench | queued |
+| Program | Lane | Status | Branch | Metric |
+|---------|------|--------|--------|--------|
+| **A — Prove it** | A1 fixtures | merged | `program/a1-fixtures` | 10 CER JPEG pairs + manifest |
+| | A2 Playwright E2E | merged | `program/a2-e2e` | 1 smoke spec (consent boot) |
+| | A3 pack validator | merged | `program/a3-pack-validator` | `validate-pack` CLI + 6 tests |
+| | A4 vision eval | queued | — | needs goldens (`--update-golden`) |
+| | A5 bench | merged | `program/a5-bench` | `npm run bench` script + BENCH.md |
 | **B — Pilot-grade** | B1 offline-first · B2 crew model · B3 Blake dashboard · B4 PDF pack · B5 perf budget | queued |
 | **C — Sell it** | C1 demo mode · C2 landing · C3 ROI calc · C4 pitch kit | queued |
 | **D — Operate it** | D1 observability · D2 /ops maturity · D3 security sweep · D4 backup routine | queued |
